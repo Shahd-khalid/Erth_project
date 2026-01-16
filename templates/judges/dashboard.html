@@ -13,7 +13,8 @@
             </div>
             <div>
                 <h1 style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0;">لوحة تحكم القضاء</h1>
-                <p style="color: var(--text-muted); margin: 5px 0 0; font-size: 1.1rem;">أهلاً بك، فضيلة القاضي {{ user.get_full_name|default:user.username }}</p>
+                <p style="color: var(--text-muted); margin: 5px 0 0; font-size: 1.1rem;">أهلاً بك، فضيلة القاضي {{
+                    user.get_full_name|default:user.username }}</p>
             </div>
         </div>
         <a href="{% url 'judges:manage_clerks' %}" class="btn-primary"
@@ -62,11 +63,54 @@
             </div>
             {% endfor %}
         </div>
-        {% else %}
-        <div class="alert alert-info"
-            style="background: rgba(255,255,255,0.02); border: 1px dashed var(--glass-border); text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 40px; border-radius: 20px;">
-            <i class="fas fa-info-circle" style="margin-left: 10px;"></i> لا توجد قضايا جديدة بانتظار القبول حالياً.
+    </div>
+
+    <!-- Active Cases (Accepted but Waiting for Clerk/Action) -->
+    <div style="margin-bottom: 60px;">
+        <h3
+            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
+            <i class="fas fa-folder-open" style="color: var(--primary-color);"></i> قضايا تحت الإجراء
+        </h3>
+        {% if active_cases %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr style="background: rgba(212, 175, 55, 0.04);">
+                        <th style="padding: 20px;">رقم القضية</th>
+                        <th style="padding: 20px;">الحالة الحالية</th>
+                        <th style="padding: 20px;">تاريخ القبول</th>
+                        <th style="padding: 20px;">العمليات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in active_cases %}
+                    {% if case.status != 'DATA_REVIEW' and case.status != 'SESSION_ACTIVE' %}
+                    <tr>
+                        <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
+                        <td style="padding: 20px; color: #ddd;">
+                            {% if case.clerk %}
+                            <span class="badge badge-info">عند الكاتب: {{ case.clerk.first_name }}</span>
+                            {% else %}
+                            <span class="badge badge-warning">بانتظار تعيين كاتب</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 20px; color: var(--text-muted);">{{ case.updated_at|date:"Y-m-d" }}</td>
+                        <td style="padding: 20px; display: flex; gap: 10px;">
+                            <a href="{% url 'judges:assign_clerk' case.id %}" class="btn-outline"
+                                style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px;">
+                                <i class="fas fa-user-plus"></i> تعيين كاتب
+                            </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <p
+            style="color: var(--text-muted); text-align: center; padding: 40px; background: rgba(255,255,255,0.01); border-radius: 20px;">
+            لا توجد قضايا تحت الإجراء حالياً.</p>
         {% endif %}
     </div>
 
@@ -91,8 +135,10 @@
                     {% for case in review_cases %}
                     <tr>
                         <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
-                        <td style="padding: 20px; color: #ddd;">{{ case.clerk.get_full_name|default:case.clerk.username }}</td>
-                        <td style="padding: 20px; color: var(--text-muted);">{{ case.updated_at|default:case.created_at|date:"Y-m-d" }}</td>
+                        <td style="padding: 20px; color: #ddd;">{{ case.clerk.get_full_name|default:case.clerk.username
+                            }}</td>
+                        <td style="padding: 20px; color: var(--text-muted);">{{
+                            case.updated_at|default:case.created_at|date:"Y-m-d" }}</td>
                         <td style="padding: 20px;">
                             <a href="{% url 'judges:case_details' case.id %}" class="btn-primary"
                                 style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 8px;">
@@ -123,7 +169,8 @@
             <div class="card" style="border-radius: 25px; border-top: 5px solid var(--primary-color);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                     <h4 style="margin: 0; font-size: 1.4rem; font-weight: 800;">قضية: {{ case.case_number }}</h4>
-                    <span style="font-size: 0.9rem; color: var(--text-muted);"><i class="fas fa-calendar"></i> {{ case.updated_at|date:"Y-m-d" }}</span>
+                    <span style="font-size: 0.9rem; color: var(--text-muted);"><i class="fas fa-calendar"></i> {{
+                        case.updated_at|date:"Y-m-d" }}</span>
                 </div>
 
                 <div

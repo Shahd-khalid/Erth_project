@@ -63,6 +63,12 @@
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="alert alert-info"
+            style="background: rgba(255,255,255,0.02); border: 1px dashed var(--glass-border); text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 40px; border-radius: 20px;">
+            <i class="fas fa-info-circle" style="margin-left: 10px;"></i> لا توجد قضايا جديدة بانتظار القبول حالياً.
+        </div>
+        {% endif %}
     </div>
 
     <!-- Active Cases (Accepted but Waiting for Clerk/Action) -->

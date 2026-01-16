@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+
+    {% if messages %}
+    <div class="alert alert-success">
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4>مرحباً، {{ heir.name }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>تفاصيل النصيب الشرعي</h5>
+                    <p><strong>قيمة النصيب التقريبية:</strong> {{ heir.share_value }} ريال</p>
+                    <p><strong>النسبة:</strong> {{ heir.share_percentage }}%</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <h5>رسالة القاضي:</h5>
+                        <p>{{ heir.allocation_description|default:"لا توجد رسالة خاصة." }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h3>الأصول المخصصة لك</h3>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>الأصل</th>
+                            <th>النوع</th>
+                            <th>القيمة</th>
+                            <th>الصورة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asset in my_assets %}
+                        <tr>
+                            <td>{{ asset.description }}</td>
+                            <td>{{ asset.get_asset_type_display }}</td>
+                            <td>{{ asset.value }}</td>
+                            <td>
+                                {% if asset.image %}
+                                <a href="{{ asset.image.url }}" target="_blank">عرض</a>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">لم يتم تخصيص أي أصول لك حتى الآن. قد يكون نصيبك نقداً أو
+                                سيتم تحديده لاحقاً.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    {% if heir.acceptance_status == 'PENDING' %}
+    <div class="text-center">
+        {% if my_assets %}
+        <h4>هل توافق على هذه القسمة؟</h4>
+        <div class="mt-3">
+            <form method="post" style="display: inline-block;">
+                {% csrf_token %}
+                <button type="submit" name="action" value="accept" class="btn btn-success btn-lg px-5">أوافق</button>
+            </form>
+
+            <form method="post" style="display: inline-block;">
+                {% csrf_token %}
+                <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg px-5 ms-3">لا أوافق
+                    (اختيار يدوي)</button>
+            </form>
+        </div>
+        <p class="text-muted mt-2 small">عند عدم القبول، ستنتقل إلى صفحة تتيح لك اختيار أصول أخرى بحدود نصيبك.</p>
+        {% else %}
+        <h4>لم يتم تخصيص أصول لك بعد.</h4>
+        <p>يمكنك البدء باختيار الأصول التي ترغب فيها ضمن حدود نصيبك.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="action" value="reject" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-hand-pointer"></i> البدء باختيار الأصول
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% elif heir.acceptance_status == 'ACCEPTED' %}
+    <div class="alert alert-success text-center">
+        <h4>تم قبول القسمة</h4>
+        <p>شكراً لك، تم تسجيل موافقتك بنجاح.</p>
+    </div>
+    {% elif heir.acceptance_status == 'REJECTED' %}
+    <div class="alert alert-warning text-center">
+        <h4>لم توافق على القسمة</h4>
+        <p>يمكنك <a href="{% url 'heirs:select_assets' link=case.session_link heir_id=heir.id %}">الانتقال هنا</a>
+            لاختيار الأصول يدوياً.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

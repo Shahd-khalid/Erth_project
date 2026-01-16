@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-v3-wrapper">
+    <!-- The Stage -->
+    <div class="auth-stage-3d">
+
+        <!-- LAYER 1: The Selection (Behind) -->
+        <div class="stage-layer-under form-3d-card">
+            <div class="form-v3-inner">
+                <div class="form-header-v3">
+                    <h2>انضم للمنظومة</h2>
+                    <p>اختر نوع حسابك المفضل للمتابعة.</p>
+                </div>
+
+                <div class="role-grid-v3">
+                    <a href="{% url 'register_public' %}" class="pill-v3">
+                        <i class="fas fa-calculator"></i>
+                        <span>مستخدم عام</span>
+                    </a>
+                    <a href="{% url 'register_judge' %}" class="pill-v3">
+                        <i class="fas fa-gavel"></i>
+                        <span>قاضي شرعي</span>
+                    </a>
+                    <a href="{% url 'register_clerk' %}" class="pill-v3">
+                        <i class="fas fa-file-signature"></i>
+                        <span>كاتب مساعد</span>
+                    </a>
+                    <a href="{% url 'register_heir' %}" class="pill-v3">
+                        <i class="fas fa-users"></i>
+                        <span>وريث مستفيد</span>
+                    </a>
+                </div>
+
+                <div class="footer-v3-links">
+                    <p>لديك حساب بالفعل؟ <a href="{% url 'login' %}">سجل الدخول</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAYER 2: The Visual (Foreground) -->
+        <div class="stage-layer-over visual-3d-card">
+            <div class="visual-v3-content">
+                <div class="icon-3d-ring">
+                    <div class="inner-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+                <div class="visual-v3-text">
+                    <h3>إرث</h3>
+                    <p>عضوية جديدة</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Reuse Core V3 3D Logic */
+    .auth-v3-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #000000 0%, #1c1502 40%, #2a2005 50%, #1c1502 60%, #000000 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999;
+    }
+
+    .auth-stage-3d {
+        position: relative;
+        width: 1000px;
+        height: 650px;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-3d-card {
+        position: absolute;
+        right: 0;
+        width: 700px;
+        height: 550px;
+        background: rgba(25, 25, 25, 0.6);
+        backdrop-filter: blur(50px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 60px;
+        z-index: 10;
+        padding: 60px 100px 60px 250px;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+    }
+
+    .form-v3-inner {
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .form-header-v3 h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+
+    .form-header-v3 p {
+        font-size: 0.9rem;
+        margin-bottom: 35px;
+    }
+
+    .pill-v3 {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 18px 25px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #fff;
+        text-decoration: none;
+        transition: 0.3s;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    .pill-v3 i {
+        color: var(--primary-color);
+        font-size: 1.3rem;
+        opacity: 0.9;
+    }
+
+    .pill-v3:hover {
+        background: rgba(212, 175, 55, 0.1);
+        border-color: var(--primary-color);
+        transform: translateX(-8px);
+    }
+
+    .pill-v3:hover i {
+        transform: scale(1.1);
+        text-shadow: 0 0 10px var(--primary-color);
+    }
+
+    .visual-3d-card {
+        position: absolute;
+        left: 0;
+        width: 500px;
+        height: 650px;
+        background: #050505;
+        border-radius: 70px;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 40px 0 80px rgba(0, 0, 0, 0.9), 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .inner-icon {
+        font-size: 8rem;
+        color: var(--primary-color);
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.8));
+    }
+
+    .visual-v3-text h3 {
+        font-size: 3rem;
+        font-weight: 900;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+
+    .visual-v3-text p {
+        color: var(--primary-color);
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+
+    .footer-v3-links {
+        text-align: center;
+        margin-top: 30px;
+        color: #888;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 20px;
+    }
+
+    .footer-v3-links a {
+        color: var(--primary-color);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    @media (max-width: 1000px) {
+        .auth-stage-3d {
+            width: 100%;
+            height: auto;
+            flex-direction: column;
+        }
+
+        .visual-3d-card {
+            position: relative;
+            width: 95%;
+            height: 250px;
+            border-radius: 40px;
+            margin-bottom: -50px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .form-3d-card {
+            position: relative;
+            width: 100%;
+            height: auto;
+            border-radius: 40px;
+            padding: 80px 25px 40px;
+            right: auto;
+            transform: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+    }
+</style>
+{% endblock %}

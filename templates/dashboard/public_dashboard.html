@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+        </div>
+        <div style="padding: 20px;">
+            <h3>مرحباً، {{ user.username }}</h3>
+            <p>صلاحية الحساب: <span class="badge"
+                    style="background-color: var(--secondary-color); color: var(--text-color); padding: 5px 10px; border-radius: 4px;">{{ user.get_role_display }}</span></p>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+            <div class="dashboard-actions"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                {% if user.role == 'JUDGE' %}
+                <div class="card" style="background-color: #f8f9fa; border: 1px solid #ddd;">
+                    <h4><i class="fas fa-gavel"></i> القضايا الجديدة</h4>
+                    <p>إدارة القضايا المسندة إليك.</p>
+                    <a href="{% url 'case_list' %}" class="btn-primary"
+                        style="display: inline-block; margin-top: 10px;">عرض القضايا</a>
+                </div>
+                <div class="card" style="background-color: #f8f9fa; border: 1px solid #ddd;">
+                    <h4><i class="fas fa-plus"></i> إنشاء قضية</h4>
+                    <p>فتح ملف قضية جديد.</p>
+                    <a href="{% url 'create_case' %}" class="btn-primary"
+                        style="display: inline-block; margin-top: 10px;">بدء قضية</a>
+                </div>
+                {% elif user.role == 'ADMIN' %}
+                <div class="card" style="background-color: #f8f9fa; border: 1px solid #ddd;">
+                    <h4><i class="fas fa-users-cog"></i> إدارة المستخدمين</h4>
+                    <p>إضافة وتعديل صلاحيات المستخدمين.</p>
+                    <a href="#" class="btn-primary" style="display: inline-block; margin-top: 10px;">إدارة</a>
+                </div>
+                {% else %}
+                <div class="card" style="background-color: #f8f9fa; border: 1px solid #ddd;">
+                    <h4><i class="fas fa-info-circle"></i> المعلومات الشخصية</h4>
+                    <p>تحديث بياناتك الشخصية.</p>
+                    <a href="#" class="btn-primary" style="display: inline-block; margin-top: 10px;">تعديل</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إرث | التقنية في خدمة العدالة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=1.9">
+</head>
+
+<body class="landing-page">
+    <div class="landing-container">
+        <!-- Header -->
+        <header class="landing-header">
+            <a href="/" class="landing-logo">
+                <i class="fas fa-balance-scale"></i>
+                <span>إرث</span>
+            </a>
+            <nav class="landing-nav">
+                <a href="#">المنهجية</a>
+                <a href="#">المجلس العلمي</a>
+                <a href="#">الفتاوى</a>
+                <a href="#">الأسعار</a>
+            </nav>
+            <div class="auth-btns">
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard:index' %}" class="login-link">لوحة التحكم</a>
+                {% else %}
+                <a href="{% url 'login' %}" class="login-link">تسجيل الدخول</a>
+                <a href="{% url 'register_heir' %}" class="btn-signup">حساب جديد</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="landing-hero">
+            <!-- Content Side (Right in RTL) -->
+            <div class="hero-content">
+                <h1>حاسبة المواريث الشرعية <br> التقنية تلتقي بالعدالة</h1>
+                <p>
+                    احسب أنصبة الميراث المعقدة بكل سهولة ودقة شرعية متناهية، وفق الأنظمة المعمول بها.
+                </p>
+                <div class="hero-btns">
+                    <a href="{% url 'portal' %}" class="btn-calc">المنصة الرئيسية</a>
+                    <a href="{% url 'public_calculator' %}" class="btn-learn">احسب الآن</a>
+                </div>
+            </div>
+
+            <!-- Visual Side (Left in RTL) -->
+            <div class="hero-visual">
+                <div class="hero-image-container">
+                    <img src="{% static 'images/hero_hand_scale_v2.jpg' %}" alt="Technology Justice"
+                        class="hero-original-img">
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Footer -->
+        <div class="landing-footer-stats">
+            <div class="stat-item">
+                <i class="fas fa-scroll"></i>
+                <div class="stat-text">معتمد من المجلس العلمي</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-shield-alt"></i>
+                <div class="stat-text">تحت إشراف كبار العلماء</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-lock"></i>
+                <div class="stat-text">آمن، دقيق وموثوق</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

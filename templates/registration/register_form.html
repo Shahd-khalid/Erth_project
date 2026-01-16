@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-v3-wrapper">
+    <!-- The Stage -->
+    <div class="auth-stage-3d">
+
+        <!-- LAYER 1: The Form (Behind) -->
+        <div class="stage-layer-under form-3d-card scrollable-v3">
+            <div class="form-v3-inner">
+                <div class="form-header-v3">
+                    <h2>{{ title|default:"بيانات التسجيل" }}</h2>
+                    <p>يرجى إكمال البيانات المطلوبة بدقة.</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-body-v3">
+                        {% for field in form %}
+                        <div class="input-v3-group">
+                            <label>{{ field.label }}</label>
+                            <div class="input-v3-container">
+                                {{ field }}
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            {% for error in field.errors %}<div class="error-msg-v3"
+                                style="margin-top:5px; font-size:0.75rem;">{{ error }}</div>{% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn-v3-submit">
+                        إتمام التسجيل
+                    </button>
+
+                    <div class="footer-v3-links">
+                        <p>لديك حساب بالفعل؟ <a href="{% url 'login' %}">سجل الدخول</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- LAYER 2: The Visual (Foreground) -->
+        <div class="stage-layer-over visual-3d-card">
+            <div class="visual-v3-content">
+                <div class="icon-3d-ring">
+                    <div class="inner-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                </div>
+                <div class="visual-v3-text">
+                    <h3>إرث</h3>
+                    <p>التوثيق الرقمي</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Reuse Core V3 3D Logic */
+    .auth-v3-wrapper {
+        min-height: 100vh;
+        background: var(--premium-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999;
+    }
+
+    .auth-stage-3d {
+        position: relative;
+        width: 1000px;
+        height: 650px;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-3d-card {
+        position: absolute;
+        right: 0;
+        width: 700px;
+        height: 650px;
+        background: rgba(25, 25, 25, 0.6);
+        backdrop-filter: blur(50px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 60px;
+        z-index: 10;
+        padding: 40px 100px 40px 250px;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: flex-start;
+        /* FIX: Prevent center clipping */
+        overflow-y: auto;
+        /* Ensure scrolling works */
+        max-height: 90vh;
+    }
+
+    .scrollable-v3 {
+        overflow-y: auto;
+    }
+
+    .scrollable-v3::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .scrollable-v3::-webkit-scrollbar-thumb {
+        background: rgba(212, 175, 55, 0.1);
+        border-radius: 10px;
+    }
+
+    .form-v3-inner {
+        width: 100%;
+        max-width: 400px;
+        margin-top: auto;
+        /* Center vertically if space allows */
+        margin-bottom: auto;
+    }
+
+    .form-header-v3 h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+
+    .form-header-v3 p {
+        color: #888;
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+        /* Compacted from 30px */
+    }
+
+    .input-v3-group {
+        margin-bottom: 15px;
+        /* Compacted from 25px */
+    }
+
+    .input-v3-group label {
+        display: block;
+        color: #666;
+        font-size: 0.8rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .input-v3-container {
+        position: relative;
+        border-bottom: 2px solid rgba(212, 175, 55, 0.4);
+        padding-bottom: 10px;
+        margin-top: 5px;
+        transition: 0.3s;
+    }
+
+    .input-v3-container input,
+    .input-v3-container select,
+    .input-v3-container textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 1rem;
+        outline: none;
+        padding-right: 10px;
+        padding-left: 45px;
+        text-align: right;
+    }
+
+    .input-v3-container i {
+        position: absolute;
+        left: 5px;
+        top: 8px;
+        color: var(--primary-color);
+        opacity: 1;
+        font-size: 1.3rem;
+        filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.5));
+    }
+
+    .input-v3-container:focus-within {
+        border-bottom-color: var(--primary-color);
+    }
+
+    .input-v3-container:focus-within i {
+        transform: scale(1.1);
+        color: #fff;
+    }
+
+    .btn-v3-submit {
+        width: 100%;
+        height: 50px;
+        border-radius: 25px;
+        border: none;
+        background: linear-gradient(90deg, #d4af37, #b8860b);
+        color: #000;
+        font-weight: 900;
+        font-size: 1.15rem;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-top: 10px;
+    }
+
+    .visual-3d-card {
+        position: absolute;
+        left: 0;
+        width: 500px;
+        height: 650px;
+        background: #050505;
+        border-radius: 70px;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 40px 0 80px rgba(0, 0, 0, 0.9), 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .inner-icon {
+        font-size: 7.5rem;
+        color: var(--primary-color);
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.8));
+    }
+
+    .visual-v3-text h3 {
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #fff;
+        text-align: center;
+    }
+
+    .visual-v3-text p {
+        color: var(--primary-color);
+        font-size: 1rem;
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+
+    .footer-v3-links {
+        text-align: center;
+        margin-top: 25px;
+        color: #888;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 20px;
+    }
+
+    .footer-v3-links a {
+        color: var(--primary-color);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    @media (max-width: 1000px) {
+        .auth-stage-3d {
+            width: 100%;
+            height: auto;
+            flex-direction: column;
+        }
+
+        .visual-3d-card {
+            position: relative;
+            width: 95%;
+            height: 250px;
+            border-radius: 40px;
+            margin-bottom: -50px;
+        }
+
+        .form-3d-card {
+            position: relative;
+            width: 100%;
+            height: auto;
+            border-radius: 40px;
+            padding: 80px 25px 40px;
+            right: auto;
+            transform: none;
+            max-height: none;
+        }
+    }
+</style>
+{% endblock %}

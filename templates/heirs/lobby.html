@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card text-center">
+        <div class="card-header">
+            <h3>جلسة توزيع التركة - قضية رقم {{ case.case_number }}</h3>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">مرحباً بكم في جلسة توزيع التركة</h5>
+            <p class="card-text">الرجاء اختيار اسمك من القائمة أدناه للدخول إلى تفاصيل نصيبك.</p>
+
+            <div class="d-grid gap-2 col-6 mx-auto">
+                {% for heir in case.heirs.all %}
+                <a href="{% url 'heirs:session_home' link=case.session_link heir_id=heir.id %}"
+                    class="btn btn-outline-primary btn-lg">
+                    {{ heir.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="card-footer text-muted">
+            {{ case.created_at|date:"Y-m-d" }}
+        </div>
+    </div>
+</div>
+{% endblock %}

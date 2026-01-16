@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>لوحة تحكم القاضي - مراجعة التوزيع ({{ case.case_number }})</h2>
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            ملخص اختيارات الورثة
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>الوارث</th>
+                        <th>النصيب الشرعي</th>
+                        <th>قيمة المختار</th>
+                        <th>الفرق</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in heir_stats %}
+                    <tr class="{% if 'تعارض' in stat.status %}table-danger{% endif %}">
+                        <td>
+                            <strong>{{ stat.name }}</strong>
+                            <div class="small text-muted">
+                                المختار:
+                                {% for intent in stat.intents.all %}
+                                <span class="badge {% if intent.wants_lottery %}bg-info{% else %}bg-warning{% endif %}"
+                                    title="{% if intent.wants_lottery %}موافق على القرعة{% else %}يرفض القرعة (يطلب البيع){% endif %}">
+                                    {{ intent.asset.description }}
+                                    {% if not intent.wants_lottery %}<i class="fas fa-gavel"></i>{% endif %}
+                                </span>
+                                {% empty %}
+                                <span class="text-muted">لا يوجد</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>{{ stat.share_value }}</td>
+                        <td>{{ stat.selected_value }}</td>
+                        <td
+                            class="{% if stat.diff > 0 %}text-danger{% elif stat.diff < 0 %}text-warning{% else %}text-success{% endif %}">
+                            {{ stat.diff|floatformat:2 }}
+                        </td>
+                        <td>
+                            <span
+                                class="badge {% if 'تعارض' in stat.status %}bg-danger animate-pulse{% elif 'لم يختر' in stat.status %}bg-secondary{% elif 'متطابق' in stat.status %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ stat.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if system_warnings %}
+<div class="card mb-4 border-warning">
+    <div class="card-header bg-warning text-dark">
+        <i class="fas fa-exclamation-triangle"></i> تنبيهات النظام للقاضي
+    </div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+            {% for warning in system_warnings %}
+            <li class="list-group-item">
+                {{ warning.message }}
+                {% if warning.type == 'over_selection' %}
+                <span class="badge bg-danger">يتطلب دفع فرق</span>
+                {% elif warning.type == 'no_selection' %}
+                <span class="badge bg-secondary">لم يختار بعد</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="mt-3 small text-muted">
+            * في حال تم الاعتماد، سيقوم النظام بتوزيع الأصول المتبقية (أو قيمتها) تلقائياً على الورثة الذين لم يكملوا
+            نصيبهم.
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        القرارات القضائية
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            {% if all_selected and all_balanced %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> جميع الورثة قاموا بالاختيار والتراضي. النظام جاهز للاعتماد النهائي.
+            </div>
+            {% elif system_warnings %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> ملاحظة: يوجد ورثة لم يختاروا أو لديهم فروقات. سيقوم النظام بمعالجة
+                ذلك تلقائياً عند الضغط على "اعتماد".
+            </div>
+            {% endif %}
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <button type="submit" name="action" value="approve" class="btn btn-success btn-lg">
+                    <i class="fas fa-check-double"></i> موافقة على الاختيار واعتماد التوزيع (وتقسيم الباقي)
+                </button>
+
+                <button type="submit" name="action" value="escalate" class="btn btn-primary">
+                    <i class="fas fa-random"></i> فتح باب القرعة
+                </button>
+
+                <a href="{% url 'liquidation' case.id %}" class="btn btn-danger">
+                    <i class="fas fa-gavel"></i> الانتقال للمزاد (تسييل)
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}

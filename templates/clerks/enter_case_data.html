@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>إدخال بيانات التركة - قضية {{ case.case_number }}</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">بيانات المتوفى</div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_basic">
+                {{ deceased_form.as_p }}
+                <button type="submit" class="btn btn-primary">حفظ بيانات المتوفى</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assets/Debts/Wills Entry via separate actions or modals (simplified for now as inline forms or separate sections) -->
+    <!-- For simplicity, adhering to the pattern: submitting forms adds items one by one or using JS dynamic forms. 
+         Given the request "Clerk enters details", we can reuse the Judge's logic here or extend the main form.
+         Let's assume we link to a detailed entry page or just enhance this one. -->
+
+    <div class="row">
+        <!-- Assets -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">الأصول (التركة)</div>
+                <div class="card-body">
+                    <ul>
+                        {% for asset in case.assets.all %}
+                        <li>{{ asset.description }} - {{ asset.value }}</li>
+                        {% endfor %}
+                    </ul>
+                    <hr>
+                    <h5>إضافة أصل</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_asset">
+                        {{ asset_form.as_p }}
+                        <button type="submit" class="btn btn-sm btn-success">إضافة</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debts -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">الديون</div>
+                <div class="card-body">
+                    <ul>
+                        {% for debt in case.debts.all %}
+                        <li>{{ debt.description }} - {{ debt.amount }}</li>
+                        {% endfor %}
+                    </ul>
+                    <hr>
+                    <h5>إضافة دين</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_debt">
+                        {{ debt_form.as_p }}
+                        <button type="submit" class="btn btn-sm btn-danger">إضافة</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wills -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">الوصايا</div>
+                <div class="card-body">
+                    <ul>
+                        {% for will in case.wills.all %}
+                        <li>{{ will.description }} - {{ will.amount }}</li>
+                        {% endfor %}
+                    </ul>
+                    <hr>
+                    <h5>إضافة وصية</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_will">
+                        {{ will_form.as_p }}
+                        <button type="submit" class="btn btn-sm btn-warning">إضافة</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">الورثة</div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_heirs">
+                {{ heir_formset.management_form }}
+                {% for form in heir_formset %}
+                <div class="heir-form border p-2 mb-2">
+                    {{ form.as_p }}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">حفظ الورثة</button>
+            </form>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="text-center mb-5">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="submit_to_judge">
+            <button type="submit" class="btn btn-lg btn-success">إرسال للقاضي للاعتماد</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

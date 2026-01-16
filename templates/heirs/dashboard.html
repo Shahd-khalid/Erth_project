@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="margin-top: 50px;">
+
+    <!-- Heir Header -->
+    <div class="card"
+        style="margin-bottom: 50px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255,255,255,0.01) 100%);">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div
+                style="background: rgba(255,255,255,0.05); width: 65px; height: 65px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); border: 1px solid var(--glass-border);">
+                <i class="fas fa-user-friends" style="font-size: 1.8rem;"></i>
+            </div>
+            <div>
+                <h1 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">بوابة الورثة</h1>
+                <p style="color: var(--text-muted); margin: 5px 0 0; font-size: 1rem;">متابعة ملفات التركة وجلسات توزيع
+                    النصيب الشرعي.</p>
+            </div>
+        </div>
+        <div style="opacity: 0.6; font-weight: 600;">بوابة الورثة والوكلاء</div>
+    </div>
+
+    <!-- Deceased Name Association -->
+    <div class="card"
+        style="border: 1px solid var(--primary-color); background: rgba(212, 175, 55, 0.02); padding: 40px; border-radius: 25px; margin-bottom: 60px;">
+        <div style="margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-user-times" style="color: var(--primary-color); font-size: 1.4rem;"></i>
+            <h3 style="margin: 0; color: #fff; font-weight: 800;">تحديث بيانات المورث (المتوفى)</h3>
+        </div>
+
+        <form method="post" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+            {% csrf_token %}
+            <div class="form-group" style="flex: 1; min-width: 300px; margin-bottom: 0;">
+                <label for="deceased_name"
+                    style="color: var(--text-muted); font-weight: 600; margin-bottom: 10px; display: block;">اسم المتوفى
+                    بالكامل:</label>
+                <input type="text" name="deceased_name" id="deceased_name" class="form-control"
+                    value="{{ user.deceased_name|default:'' }}" placeholder="أدخل اسم المتوفى لربطك بالقضية" required
+                    style="height: 60px; font-size: 1.1rem; border-radius: 12px;">
+            </div>
+            <button type="submit" class="btn-primary" style="height: 60px; padding: 0 40px; border-radius: 12px;">
+                <i class="fas fa-save" style="margin-left: 8px;"></i> تحديث البيانات
+            </button>
+        </form>
+        <div
+            style="margin-top: 20px; color: var(--text-muted); font-size: 0.95rem; display: flex; gap: 10px; align-items: center; opacity: 0.8;">
+            <i class="fas fa-info-circle" style="color: var(--primary-color);"></i>
+            <span>تستخدم هذه البيانات لربط حسابك برقم القضية الصحيحة من قبل إدارة المنصة.</span>
+        </div>
+    </div>
+
+    <!-- My Case Records -->
+    <div>
+        <h3
+            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
+            <i class="fas fa-folder-open" style="color: var(--primary-color);"></i> ملفات القضايا المنتمي إليها
+        </h3>
+
+        {% if my_heir_records %}
+        <div class="dashboard-grid">
+            {% for record in my_heir_records %}
+            <div class="card"
+                style="border-radius: 25px; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <span
+                            style="background: rgba(212, 175, 55, 0.1); color: var(--primary-color); padding: 5px 12px; border-radius: 6px; font-weight: 700;">قضية
+                            رقم: {{ record.case.case_number }}</span>
+                        <span
+                            class="badge {% if record.case.status == 'SESSION_ACTIVE' %}badge-active{% else %}badge-info{% endif %}">
+                            {{ record.case.get_status_display }}
+                        </span>
+                    </div>
+
+                    <div
+                        style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 15px; border: 1px solid var(--glass-border);">
+                        <p style="margin: 0 0 10px; color: #fff;"><strong
+                                style="color: var(--primary-color);">المتوفى:</strong> {{ record.case.deceased.name|default:"جاري التدقيق..." }}</p>
+                        <p style="margin: 0; color: #fff;"><strong style="color: var(--primary-color);">صفتك:</strong>
+                            {{ record.get_relationship_display }}</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    {% if record.case.status == 'SESSION_ACTIVE' %}
+                    <div
+                        style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; font-weight: 700; border: 1px solid rgba(46, 204, 113, 0.3);">
+                        <i class="fas fa-video-slash fa-flip-horizontal" style="margin-left: 8px;"></i> الجلسة القضائية
+                        مفتوحة الآن
+                    </div>
+                    <a href="{% url 'heirs:session_home' link=record.case.session_link heir_id=record.id %}"
+                        class="btn-primary" style="width: 100%; border-radius: 12px; height: 55px;">
+                        <i class="fas fa-sign-in-alt"></i> الدخول لمركز الجلسة
+                    </a>
+                    {% else %}
+                    <div
+                        style="background: rgba(255,255,255,0.03); color: var(--text-muted); padding: 15px; border-radius: 12px; text-align: center; font-weight: 600; border: 1px dashed var(--glass-border);">
+                        <i class="fas fa-hourglass-half" style="margin-left: 8px;"></i> بانتظار تفعيل الجلسة من القاضي
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div
+            style="text-align: center; padding: 60px; background: rgba(255,255,255,0.02); border-radius: 30px; border: 1px dashed var(--glass-border);">
+            <i class="fas fa-ghost"
+                style="font-size: 3.5rem; opacity: 0.1; display: block; margin-bottom: 20px; color: #fff;"></i>
+            <p style="color: var(--text-muted); font-size: 1.1rem; line-height: 1.6;">لا توجد قضايا مرتبطة بحسابك
+                حالياً.<br>تأكد من كتابة اسم المورث بشكل صحيح أعلاه.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

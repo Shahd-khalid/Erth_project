@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fas fa-gavel"></i> قائمة القضايا</span>
+            <a href="{% url 'create_case' %}" class="btn-primary" style="font-size: 0.9rem;">قضية جديدة</a>
+        </div>
+
+        {% if cases %}
+        <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                    <th style="padding: 10px; text-align: right;">رقم القضية</th>
+                    <th style="padding: 10px; text-align: right;">المتوفى</th>
+                    <th style="padding: 10px; text-align: right;">تاريخ الإنشاء</th>
+                    <th style="padding: 10px; text-align: right;">الحالة</th>
+                    <th style="padding: 10px; text-align: right;">الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in cases %}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 10px;">{{ case.case_number }}</td>
+                    <td style="padding: 10px;">{{ case.deceased.name }}</td>
+                    <td style="padding: 10px;">{{ case.created_at|date:"Y-m-d" }}</td>
+                    <td style="padding: 10px;">
+                        <span class="badge" style="background-color: #e2e3e5; padding: 5px 10px; border-radius: 4px;">{{ case.get_status_display }}</span>
+                    </td>
+                    <td style="padding: 10px;">
+                        <a href="#" style="color: var(--primary-color);">عرض التفاصيل</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 40px;">
+            <p style="color: #666; font-size: 1.1rem;">لا توجد قضايا مسجلة حالياً.</p>
+            <a href="{% url 'create_case' %}" class="btn-primary" style="margin-top: 10px; display: inline-block;">بدء
+                أول قضية</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-5 mb-5 p-5 bg-white border shadow-sm" id="printable-area"
+    style="direction: rtl; font-family: 'Amiri', serif;">
+    <!-- Legal Header -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">صك توزيع تركة</h2>
+        <h4 class="text-muted">رقم القضية: {{ case.case_number }}</h4>
+        <p>بتاريخ: {% now "Y-m-d" %}</p>
+        <hr class="border-dark opacity-100">
+    </div>
+
+    <!-- Case Context -->
+    <div class="mb-4">
+        <p class="lead">
+            الحمد لله وحده، وبعد.. فقد تم بحمد الله وتوفيقه الانتهاء من إجراءات توزيع تركة المتوفى/
+            <strong>{{ case.deceased.name }}</strong>، وذلك تحت إشراف فضيلة القاضي/
+            <strong>{{ case.judge.get_full_name|default:case.judge.username }}</strong>.
+        </p>
+    </div>
+
+    <!-- Estate Summary -->
+    <div class="alert alert-light border">
+        <h5 class="fw-bold mb-3">ملخص قيمة التركة:</h5>
+        <p>إجمالي قيمة الأصول: <strong>{{ total_estate_value|floatformat:2 }} ريال</strong></p>
+    </div>
+
+    <!-- Heirs & Allocations -->
+    <h5 class="fw-bold mb-3 mt-4">تفاصيل التوزيع النهائي:</h5>
+    {% for item in heir_data %}
+    <div class="card mb-4 border-dark">
+        <div class="card-header bg-light border-dark">
+            <h6 class="mb-0 fw-bold">الوارث: {{ item.heir.name }} (صلة القرابة: {{ item.heir.relationship }})</h6>
+        </div>
+        <div class="card-body">
+            <p>النصيب الشرعي المستحق: <strong>{{ item.heir.share_value|floatformat:2 }} ريال</strong></p>
+
+            <table class="table table-bordered table-sm mt-2">
+                <thead class="bg-light">
+                    <tr>
+                        <th>الأصل / العقار</th>
+                        <th class="text-start">القيمة التقديرية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asset in item.assets %}
+                    <tr>
+                        <td>{{ asset.description }}</td>
+                        <td class="text-start">{{ asset.value|floatformat:2 }} ريال</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center text-muted">لا توجد أصول عينية (توزيع نقدي فقط)</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold">
+                        <td>إجمالي قيمة الأصول المخصصة عيناً</td>
+                        <td class="text-start">{{ item.specific_assets_value|floatformat:2 }} ريال</td>
+                    </tr>
+                    {% if item.pool_allocation > 0 %}
+                    <tr class="table-info">
+                        <td>نصيب نقدي/متبقي (توزيع تلقائي للمتبقي)</td>
+                        <td class="text-start">{{ item.pool_allocation|floatformat:2 }} ريال</td>
+                    </tr>
+                    {% endif %}
+                    <tr class="table-dark text-white fw-bold">
+                        <td>إجمالي ما تم تخصيصه للوارث</td>
+                        <td class="text-start">{{ item.total_allocated|floatformat:2 }} ريال</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {% if item.diff > 0 %}
+            <div class="alert alert-info py-2 small">
+                * يلتزم الوارث بدفع فرق قدره <strong>{{ item.diff|floatformat:2 }} ريال</strong> لخزينة التركة للموازنة.
+            </div>
+            {% elif item.diff < 0 %} <div class="alert alert-success py-2 small">
+                * يستحق الوارث مبلغاً نقدياً تكميلياً قدره <strong>{{ item.diff|abs|floatformat:2 }} ريال</strong> من
+                السيولة المتوفرة.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<!-- Legal Closing -->
+<div class="mt-5">
+    <p>وبناءً على ما تقدم، فقد تم إثبات هذا التوزيع واعتماده رسمياً، ويُعمل به من تاريخ صدوره.</p>
+
+    <div class="row mt-5">
+        <div class="col-6 text-center">
+            <p>ختم الدائرة القضائية</p>
+            <div style="height: 100px; width: 100px; border: 2px dashed #ccc; margin: 0 auto; border-radius: 50%;">
+            </div>
+        </div>
+        <div class="col-6 text-center">
+            <p>توقيع القاضي المشرف</p>
+            <br>
+            <p>.......................................</p>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="container text-center mb-5 no-print">
+    <button onclick="window.print()" class="btn btn-dark btn-lg px-5">
+        <i class="fas fa-print"></i> طباعة الوثيقة الرسمية
+    </button>
+</div>
+
+<style>
+    @media print {
+
+        .no-print,
+        nav,
+        footer {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        #printable-area {
+            border: none !important;
+        }
+    }
+</style>
+{% endblock %}

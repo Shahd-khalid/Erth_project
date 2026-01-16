@@ -1,0 +1,520 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="margin-top: 50px; padding-bottom: 100px;">
+    <div class="calculator-grid"
+        style="display: grid; grid-template-columns: 1fr 550px; gap: 40px; align-items: start;">
+
+        <!-- Input Section (Main Form) -->
+        <div class="input-section">
+            <div class="card" style="padding: 50px; border-radius: 30px; background: rgba(255, 255, 255, 0.02);">
+                <div class="card-header"
+                    style="border: none; padding: 0; margin-bottom: 40px; display: flex; align-items: center; gap: 20px;">
+                    <div
+                        style="background: var(--primary-color); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #000;">
+                        <i class="fas fa-calculator" style="font-size: 1.8rem;"></i>
+                    </div>
+                    <div>
+                        <h1 style="font-weight: 800; color: #fff; font-size: 2rem; margin: 0;">حاسبة المواريث المتقدمة
+                        </h1>
+                        <p style="color: var(--text-muted); margin: 5px 0 0;">حساب النصيب الشرعي بدقة عالية لجميع حالات
+                            الورثة ودرجات القرابة.</p>
+                    </div>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-error"
+                    style="margin-bottom: 40px; background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; color: #e74c3c; padding: 20px; border-radius: 15px;">
+                    <i class="fas fa-exclamation-circle" style="margin-left: 10px;"></i> {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="post" id="calculator-form">
+                    {% csrf_token %}
+
+                    <!-- Estate Value -->
+                    <div class="form-group"
+                        style="margin-bottom: 60px; background: rgba(212, 175, 55, 0.04); padding: 40px; border-radius: 25px; border: 1px solid rgba(212, 175, 55, 0.1);">
+                        <label for="net_estate"
+                            style="font-size: 1.3rem; color: #fff; margin-bottom: 20px; display: block; font-weight: 800; text-align: center;">
+                            أدخل قيمة التركة الإجمالية (ريال سعودي)
+                        </label>
+                        <div style="position: relative; max-width: 500px; margin: 0 auto;">
+                            <span
+                                style="position: absolute; right: 25px; top: 18px; color: var(--primary-color); font-weight: 800; font-size: 1.4rem;">ر.س</span>
+                            <input type="number" name="net_estate" id="net_estate" class="form-control" required min="0"
+                                step="0.01" value="{{ request.POST.net_estate|default:'' }}"
+                                style="font-size: 2.2rem; font-weight: 900; height: 85px; padding-right: 80px; text-align: center; border-radius: 18px; background: #000; border-color: var(--primary-color);">
+                        </div>
+                    </div>
+
+                    <!-- 1. The Big 4 (Essential Heirs) -->
+                    <div style="margin-bottom: 60px;">
+                        <h4
+                            style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 30px; display: flex; align-items: center; gap: 15px; font-weight: 800;">
+                            <span
+                                style="background: var(--primary-color); color: #000; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">١</span>
+                            الورثة الأساسيون (أصحاب الفروض)
+                        </h4>
+                        <div class="heir-selector-grid">
+                            <label class="heir-card {% if request.POST.husband %}active{% endif %}">
+                                <input type="checkbox" name="husband" id="husband_checkbox" style="display:none;" {% if request.POST.husband %}checked{% endif %}>
+                                <i class="fas fa-male"></i>
+                                <div class="label">الزوج</div>
+                            </label>
+                            <label class="heir-card {% if request.POST.wife %}active{% endif %}">
+                                <input type="checkbox" name="wife" id="wife_checkbox" style="display:none;" {% if request.POST.wife %}checked{% endif %}>
+                                <i class="fas fa-female"></i>
+                                <div class="label">الزوجة</div>
+                            </label>
+                            <label class="heir-card {% if request.POST.father %}active{% endif %}">
+                                <input type="checkbox" name="father" id="father_checkbox" style="display:none;" {% if request.POST.father %}checked{% endif %}>
+                                <i class="fas fa-user-tie"></i>
+                                <div class="label">الأب</div>
+                            </label>
+                            <label class="heir-card {% if request.POST.mother %}active{% endif %}">
+                                <input type="checkbox" name="mother" id="mother_checkbox" style="display:none;" {% if request.POST.mother %}checked{% endif %}>
+                                <i class="fas fa-user-tag"></i>
+                                <div class="label">الأم</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 2. Descendants & Ancestors (Dynamic Counts) -->
+                    <div style="margin-bottom: 40px;">
+                        <h4
+                            style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 30px; display: flex; align-items: center; gap: 15px; font-weight: 800;">
+                            <span
+                                style="background: var(--primary-color); color: #000; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">٢</span>
+                            الفروع والأصول (الأبناء والأجداد)
+                        </h4>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+
+                            <!-- Sons & Daughters -->
+                            <div class="count-card">
+                                <h5><i class="fas fa-child"></i> الأبناء والبنات</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>ذكور (ابن)</label><input type="number" name="sons"
+                                            value="{{ request.POST.sons|default:0 }}" min="0"></div>
+                                    <div class="i-group"><label>إناث (بنت)</label><input type="number" name="daughters"
+                                            value="{{ request.POST.daughters|default:0 }}" min="0"></div>
+                                </div>
+                            </div>
+
+                            <!-- Grandchildren -->
+                            <div class="count-card">
+                                <h5><i class="fas fa-users"></i> أبناء الابن (الأحفاد)</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>ابن ابن</label><input type="number" name="son_of_son"
+                                            value="{{ request.POST.son_of_son|default:0 }}" min="0"></div>
+                                    <div class="i-group"><label>بنت ابن</label><input type="number"
+                                            name="daughter_of_son" value="{{ request.POST.daughter_of_son|default:0 }}"
+                                            min="0"></div>
+                                </div>
+                            </div>
+
+                            <!-- Grandparents -->
+                            <div class="count-card" style="grid-column: span 2;">
+                                <h5><i class="fas fa-history"></i> الأجداد والجدات</h5>
+                                <div class="inputs" style="grid-template-columns: repeat(3, 1fr);">
+                                    <div class="i-group"><label>الجد (أب الأب)</label><input type="number"
+                                            name="grandfathers_father"
+                                            value="{{ request.POST.grandfathers_father|default:0 }}" min="0"></div>
+                                    <div class="i-group"><label>الجدة (لأب)</label><input type="number"
+                                            name="grandmothers_father"
+                                            value="{{ request.POST.grandmothers_father|default:0 }}" min="0"></div>
+                                    <div class="i-group"><label>الجدة (لأم)</label><input type="number"
+                                            name="grandmothers_mother"
+                                            value="{{ request.POST.grandmothers_mother|default:0 }}" min="0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Siblings (Horizontal Section) -->
+                    <div style="margin-bottom: 40px;">
+                        <h4
+                            style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 30px; display: flex; align-items: center; gap: 15px; font-weight: 800;">
+                            <span
+                                style="background: var(--primary-color); color: #000; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">٣</span>
+                            الإخوة والأخوات
+                        </h4>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            <!-- Full Siblings -->
+                            <div class="count-card">
+                                <h5 style="color: var(--primary-color);">الأشقاء (من الأب والأم)</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>أخ شقيق</label><input type="number" name="brothers"
+                                            value="{{ request.POST.brothers|default:0 }}" min="0"></div>
+                                    <div class="i-group"><label>أخت شقيقة</label><input type="number" name="sisters"
+                                            value="{{ request.POST.sisters|default:0 }}" min="0"></div>
+                                </div>
+                            </div>
+                            <!-- Paternal Siblings -->
+                            <div class="count-card">
+                                <h5>الإخوة لأب</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>أخ لأب</label><input type="number"
+                                            name="brothers_father" value="{{ request.POST.brothers_father|default:0 }}"
+                                            min="0"></div>
+                                    <div class="i-group"><label>أخت لأب</label><input type="number"
+                                            name="sisters_father" value="{{ request.POST.sisters_father|default:0 }}"
+                                            min="0"></div>
+                                </div>
+                            </div>
+                            <!-- Maternal Siblings -->
+                            <div class="count-card">
+                                <h5>الإخوة لأم</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>أخ لأم</label><input type="number"
+                                            name="brothers_mother" value="{{ request.POST.brothers_mother|default:0 }}"
+                                            min="0"></div>
+                                    <div class="i-group"><label>أخت لأم</label><input type="number"
+                                            name="sisters_mother" value="{{ request.POST.sisters_mother|default:0 }}"
+                                            min="0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Other Relatives (Extended Grid) -->
+                    <div style="margin-bottom: 50px;">
+                        <h4
+                            style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 30px; display: flex; align-items: center; gap: 15px; font-weight: 800;">
+                            <span
+                                style="background: var(--primary-color); color: #000; width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">٤</span>
+                            الأقارب والعصبات (أبناء الأخ والأعمام)
+                        </h4>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+
+                            <!-- Nephews -->
+                            <div class="count-card">
+                                <h5><i class="fas fa-user-friends"></i> أبناء الإخوة الذكور</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>ابن أخ شقيق</label><input type="number"
+                                            name="son_of_brother" value="{{ request.POST.son_of_brother|default:0 }}"
+                                            min="0"></div>
+                                    <div class="i-group"><label>ابن أخ لأب</label><input type="number"
+                                            name="son_of_brother_father"
+                                            value="{{ request.POST.son_of_brother_father|default:0 }}" min="0"></div>
+                                </div>
+                            </div>
+
+                            <!-- Uncles -->
+                            <div class="count-card">
+                                <h5><i class="fas fa-id-badge"></i> الأعمام</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>عم شقيق</label><input type="number" name="uncles"
+                                            value="{{ request.POST.uncles|default:0 }}" min="0"></div>
+                                    <div class="i-group"><label>عم لأب</label><input type="number" name="uncles_father"
+                                            value="{{ request.POST.uncles_father|default:0 }}" min="0"></div>
+                                </div>
+                            </div>
+
+                            <!-- Cousins -->
+                            <div class="count-card">
+                                <h5><i class="fas fa-handshake"></i> أبناء الأعمام</h5>
+                                <div class="inputs">
+                                    <div class="i-group"><label>ابن عم شقيق</label><input type="number"
+                                            name="son_of_uncle" value="{{ request.POST.son_of_uncle|default:0 }}"
+                                            min="0"></div>
+                                    <div class="i-group"><label>ابن عم لأب</label><input type="number"
+                                            name="son_of_uncle_father"
+                                            value="{{ request.POST.son_of_uncle_father|default:0 }}" min="0"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <button type="submit" class="calculate-btn">
+                        <i class="fas fa-balance-scale-left"></i> بدء الحساب واستخراج الفريضة
+                    </button>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Column (Side Panel) -->
+        <div class="results-side" style="position: sticky; top: 120px;">
+            <div class="card"
+                style="padding: 45px; border-radius: 35px; border: 2px solid var(--primary-color); background: rgba(0,0,0,0.4); box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <i class="fas fa-scroll"
+                        style="font-size: 4rem; color: var(--primary-color); margin-bottom: 20px; display: block; opacity: 0.9;"></i>
+                    <h3 style="font-size: 2rem; font-weight: 800; color: #fff;">نتائج الحصص والأنصبة</h3>
+                </div>
+
+                {% if result %}
+                <div class="table-container" style="border: none; background: transparent;">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px;">
+                        <thead>
+                            <tr style="background: rgba(212, 175, 55, 0.1);">
+                                <th
+                                    style="padding: 15px; border-radius: 12px 0 0 12px; font-size: 0.9rem; color: var(--primary-color);">
+                                    الوارث</th>
+                                <th
+                                    style="padding: 15px; font-size: 0.9rem; color: var(--primary-color); text-align: center;">
+                                    النصيب</th>
+                                <th
+                                    style="padding: 15px; border-radius: 0 12px 12px 0; font-size: 0.9rem; color: var(--primary-color); text-align: left;">
+                                    القيمة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in result %}
+                            <tr style="background: rgba(255,255,255,0.03); transform: scale(1); transition: 0.3s;">
+                                <td style="padding: 20px; font-weight: 800; color: #fff; border-radius: 12px 0 0 12px;">
+                                    {{ item.relationship }}</td>
+                                <td style="padding: 20px; text-align: center;">
+                                    <span
+                                        style="background: var(--primary-color); color: #000; padding: 6px 15px; border-radius: 8px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);">
+                                        {{ item.fraction }}
+                                    </span>
+                                </td>
+                                <td
+                                    style="padding: 20px; text-align: left; font-weight: 900; color: var(--primary-color); font-size: 1.25rem; border-radius: 0 12px 12px 0;">
+                                    {{ item.value }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 40px; text-align: center;">
+                    <div
+                        style="padding: 20px; background: rgba(212, 175, 55, 0.05); border-radius: 15px; border: 1px dashed var(--primary-color); margin-bottom: 25px;">
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;"><i
+                                class="fas fa-info-circle"></i> تم الحساب وفقاً للقسمة الشرعية المعتمدة</p>
+                        <h4 style="color: #fff; margin: 0; font-weight: 800;">مجموع الحصص: ١/١</h4>
+                    </div>
+                    <button onclick="window.print()" class="btn-outline"
+                        style="width: 100%; height: 55px; border-radius: 12px; font-weight: 800; font-size: 1.1rem;">
+                        <i class="fas fa-file-pdf" style="margin-left: 10px;"></i> طباعة التقرير الشرعي
+                    </button>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 60px 0;">
+                    <div
+                        style="width: 90px; height: 90px; background: rgba(255,255,255,0.02); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
+                        <i class="fas fa-receipt" style="font-size: 3rem; color: #fff; opacity: 0.1;"></i>
+                    </div>
+                    <p
+                        style="color: var(--text-muted); font-size: 1.1rem; line-height: 1.8; max-width: 250px; margin: 0 auto;">
+                        قم بتعبئة بيانات الورثة والترقة ثم اضغط على زر الحساب لاستخراج الفريضة الشرعية هنا.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Premium Heir Cards */
+    .heir-selector-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 20px;
+    }
+
+    .heir-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 30px 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .heir-card i {
+        font-size: 2.22rem;
+        color: var(--text-muted);
+        transition: 0.3s;
+    }
+
+    .heir-card .label {
+        font-weight: 700;
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .heir-card:hover {
+        transform: translateY(-8px);
+        background: rgba(212, 175, 55, 0.05);
+        border-color: var(--primary-color);
+    }
+
+    .heir-card.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        box-shadow: 0 15px 35px rgba(212, 175, 55, 0.2);
+    }
+
+    .heir-card.active i,
+    .heir-card.active .label {
+        color: #000;
+    }
+
+    /* Count Cards */
+    .count-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 25px;
+        transition: 0.3s;
+    }
+
+    .count-card:hover {
+        border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .count-card h5 {
+        color: var(--text-muted);
+        font-weight: 800;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .count-card h5 i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    .count-card .inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .count-card .i-group label {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .count-card .i-group input {
+        width: 100%;
+        background: #000;
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        padding: 12px;
+        color: var(--primary-color);
+        font-weight: 900;
+        font-size: 1.2rem;
+        text-align: center;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    .count-card .i-group input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    }
+
+    /* Buttons */
+    .calculate-btn {
+        width: 100%;
+        height: 80px;
+        background: var(--primary-color);
+        border: none;
+        border-radius: 20px;
+        color: #000;
+        font-weight: 900;
+        font-size: 1.5rem;
+        cursor: pointer;
+        margin-top: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 15px 40px rgba(212, 175, 55, 0.3);
+    }
+
+    .calculate-btn:hover {
+        transform: scale(1.02);
+        filter: brightness(1.1);
+        box-shadow: 0 20px 50px rgba(212, 175, 55, 0.5);
+    }
+
+    .calculate-btn:active {
+        transform: scale(0.98);
+    }
+
+    @media (max-width: 1250px) {
+        .calculator-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .results-side {
+            position: relative !important;
+            top: 0 !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cards = document.querySelectorAll('.heir-card');
+        const calculateBtn = document.querySelector('.calculate-btn');
+
+        cards.forEach(card => {
+            const cb = card.querySelector('input[type="checkbox"]');
+
+            card.addEventListener('click', function () {
+                if (cb.disabled) return;
+                cb.checked = !cb.checked;
+                cb.dispatchEvent(new Event('change'));
+            });
+
+            cb.addEventListener('change', function () {
+                card.classList.toggle('active', cb.checked);
+
+                // Mutual exclusivity for husband/wife
+                if (cb.id === 'husband_checkbox' && cb.checked) {
+                    const wifeCb = document.getElementById('wife_checkbox');
+                    wifeCb.checked = false; wifeCb.disabled = true;
+                    wifeCb.parentElement.classList.remove('active');
+                } else if (cb.id === 'husband_checkbox' && !cb.checked) {
+                    document.getElementById('wife_checkbox').disabled = false;
+                }
+
+                if (cb.id === 'wife_checkbox' && cb.checked) {
+                    const husbandCb = document.getElementById('husband_checkbox');
+                    husbandCb.checked = false; husbandCb.disabled = true;
+                    husbandCb.parentElement.classList.remove('active');
+                } else if (cb.id === 'wife_checkbox' && !cb.checked) {
+                    document.getElementById('husband_checkbox').disabled = false;
+                }
+            });
+        });
+
+        // Simple button pulse on hover
+        if (calculateBtn) {
+            calculateBtn.addEventListener('mouseenter', () => {
+                const icon = calculateBtn.querySelector('i');
+                if (icon) icon.classList.add('fa-spin');
+            });
+            calculateBtn.addEventListener('mouseleave', () => {
+                const icon = calculateBtn.querySelector('i');
+                if (icon) icon.classList.remove('fa-spin');
+            });
+        }
+    });
+</script>
+{% endblock %}

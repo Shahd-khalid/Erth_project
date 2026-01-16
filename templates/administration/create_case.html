@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 30px;">
+    <div class="card">
+        <div class="card-header">
+            إنشاء قضية للوريث: {{ heir_user.full_name|default:heir_user.username }}
+            {% if heir_user.deceased_name %}
+            <br><small style="font-size: 0.9rem; opacity: 0.8;">اسم المتوفى المدخل: ({{ heir_user.deceased_name }})</small>
+            {% endif %}
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>رقم القضية:</label>
+                <input type="text" name="case_number" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>اختر القاضي:</label>
+                <select name="judge_id" class="form-control" required>
+                    <option value="">-- اختر القاضي --</option>
+                    {% for judge in judges %}
+                    <option value="{{ judge.id }}">{{ judge.full_name|default:judge.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">تعيين وإنشاء</button>
+            <a href="{% url 'administration:dashboard' %}" class="btn-secondary"
+                style="margin-bottom: 20px; display: inline-block;">&larr; عودة</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

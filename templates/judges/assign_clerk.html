@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 30px;">
+    <div class="card">
+        <div class="card-header">
+            تعيين كاتب للقضية رقم: {{ case.case_number }}
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>اختر الكاتب المساعد:</label>
+                <select name="clerk_id" class="form-control" required>
+                    <option value="">-- اختر الكاتب --</option>
+                    {% for clerk in clerks %}
+                    <option value="{{ clerk.id }}">{{ clerk.full_name|default:clerk.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">تعيين وإرسال</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

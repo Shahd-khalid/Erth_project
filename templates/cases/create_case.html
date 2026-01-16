@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin-top: 30px;">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-plus"></i> إنشاء قضية جديدة
+        </div>
+        <form method="post">
+            {% csrf_token %}
+
+            <h4 style="color: var(--secondary-color); margin-bottom: 15px;">بيانات القضية</h4>
+            <div class="form-group">
+                <label for="{{ case_form.case_number.id_for_label }}">رقم القضية:</label>
+                {{ case_form.case_number }}
+                {{ case_form.case_number.errors }}
+            </div>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+            <h4 style="color: var(--secondary-color); margin-bottom: 15px;">بيانات المتوفى</h4>
+            <div class="form-group">
+                <label for="{{ deceased_form.name.id_for_label }}">اسم المتوفى:</label>
+                {{ deceased_form.name }}
+                {{ deceased_form.name.errors }}
+            </div>
+            <div class="form-group">
+                <label for="{{ deceased_form.date_of_death.id_for_label }}">تاريخ الوفاة:</label>
+                {{ deceased_form.date_of_death }}
+                {{ deceased_form.date_of_death.errors }}
+            </div>
+            <div class="form-group">
+                <label for="{{ deceased_form.national_id.id_for_label }}">رقم الهوية:</label>
+                {{ deceased_form.national_id }}
+                {{ deceased_form.national_id.errors }}
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;">حفظ وإنشاء</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

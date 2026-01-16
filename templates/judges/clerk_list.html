@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>اختيار كاتب مساعد</h2>
+    <p>قم باختيار كاتب مساعد للانضمام إلى فريقك.</p>
+
+    {% if available_clerks %}
+    <div class="row">
+        {% for clerk in available_clerks %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ clerk.full_name|default:clerk.username }}</h5>
+                    <p class="card-text text-muted">تاريخ التسجيل: {{ clerk.date_joined|date:"Y-m-d" }}</p>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <form method="post" action="{% url 'judges:select_clerk' clerk.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100">اختيار الكاتب</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">لا يوجد كُتاب متاحين حالياً (غير مرتبطين بقاضي).</div>
+    {% endif %}
+
+    <hr class="my-5">
+
+    <h3>فريق الكُتاب الخاص بي</h3>
+    {% if my_clerks %}
+    <ul class="list-group">
+        {% for clerk in my_clerks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ clerk.full_name|default:clerk.username }}
+            {% if clerk.clerk_judge_status == 'APPROVED' %}
+            <span class="badge bg-success rounded-pill">نشط</span>
+            {% elif clerk.clerk_judge_status == 'PENDING' %}
+            <span class="badge bg-warning text-dark rounded-pill">بانتظار قبول الكاتب</span>
+            {% else %}
+            <span class="badge bg-danger rounded-pill">مرفوض</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>لم تقم باختيار أي كاتب بعد.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>القرعة الإلكترونية ({{ case.case_number }})</h2>
+    <p class="lead">تستخدم القرعة لفك النزاع على الأصول التي يرغب فيها أكثر من وارث.</p>
+
+    {% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">إعداد القرعة</div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">اختر الأصل المتنازع عليه:</label>
+                            <select name="asset_id" class="form-select" required>
+                                <option value="">-- اختر الأصل --</option>
+                                {% for asset in lottery_assets %}
+                                <option value="{{ asset.id }}">
+                                    {{ asset.description }} ({{ asset.value }} ريال)
+                                    {% if asset.selection_intents.count > 1 %} [متنازع عليه - {{ asset.selection_intents.count }} ورثة] {% endif %}
+                                </option>
+                                {% empty %}
+                                <option disabled>لا توجد أصول غير موزعة.</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">اختر الورثة المتنافسين:</label>
+                            <div class="list-group">
+                                {% for heir in heirs %}
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-1" type="checkbox" name="participants"
+                                        value="{{ heir.id }}">
+                                    {{ heir.name }} (نصيبه: {{ heir.share_value }})
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-random"></i> إجراء القرعة الآن
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>كيف تعمل القرعة؟</h5>
+                    <ol>
+                        <li>يحدد القاضي الأصل.</li>
+                        <li>يحدد الورثة الذين يرغبون فيه ويملكون الرصيد الكافي (أو يتعهدون بدفع الفرق).</li>
+                        <li>يقوم النظام باختيار فائز واحد عشوائياً.</li>
+                        <li>يتم تخصيص الأصل للفائز فوراً.</li>
+                    </ol>
+                    <hr>
+                    <a href="{% url 'review_distribution' case.id %}" class="btn btn-secondary">عودة للمراجعة</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const conflictMap = {{ conflict_map_json| safe }};
+    const assetSelect = document.querySelector('select[name="asset_id"]');
+    const participantChecks = document.querySelectorAll('input[name="participants"]');
+
+    assetSelect.addEventListener('change', function () {
+        const assetId = this.value;
+        const interestedHeirs = conflictMap[assetId] || [];
+
+        participantChecks.forEach(check => {
+            // Auto-check if the heir is in the interested list for this asset
+            check.checked = interestedHeirs.map(id => id.toString()).includes(check.value.toString());
+
+            // Highlight the row for better visibility
+            if (check.checked) {
+                check.closest('.list-group-item').classList.add('list-group-item-warning');
+            } else {
+                check.closest('.list-group-item').classList.remove('list-group-item-warning');
+            }
+        });
+    });
+</script>
+{% endblock %}

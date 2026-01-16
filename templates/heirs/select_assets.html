@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>اختيار الأصول اليدوي</h2>
+    <p>الوريث: {{ heir.name }} | رصيد النصيب: <strong>{{ heir.share_value }} ريال</strong></p>
+
+    {% if messages %}
+    <div class="alert alert-warning">
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-8">
+                <h4>الأصول المتاحة للاختيار</h4>
+                <div class="row">
+                    {% for asset in available_assets %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            {% if asset.image %}
+                            <img src="{{ asset.image.url }}" class="card-img-top" alt="..."
+                                style="height: 150px; object-fit: cover;">
+                            {% endif %}
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input asset-checkbox" type="checkbox"
+                                        name="selected_assets" value="{{ asset.id }}" data-value="{{ asset.value }}"
+                                        id="asset_{{ asset.id }}">
+                                    <label class="form-check-label" for="asset_{{ asset.id }}">
+                                        <strong>{{ asset.description }}</strong>
+                                        <br>
+                                        {{ asset.value }} ريال
+                                    </label>
+                                </div>
+                                <div class="mt-2 border-top pt-2">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="lottery_{{ asset.id }}"
+                                            id="lottery_{{ asset.id }}" checked>
+                                        <label class="form-check-label small" for="lottery_{{ asset.id }}">أوافق على
+                                            القرعة في حال وجود تعارض</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <p>لا توجد أصول متاحة حالياً.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card position-sticky" style="top: 20px;">
+                    <div class="card-header">
+                        ملخص الاختيار
+                    </div>
+                    <div class="card-body">
+                        <p>قيمة النصيب: {{ heir.share_value }}</p>
+                        <p>مجموع المختار: <span id="total-selected">0</span></p>
+                        <p id="status-msg" class="text-success">ضمن الحدود</p>
+
+                        <div id="confirm-container" class="alert alert-danger mt-3 d-none">
+                            <p class="small mb-2">عليك دفع الفرق (<span id="diff-value">0</span> ريال) نقداً للتركة.</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="confirm_balance"
+                                    id="confirm_balance">
+                                <label class="form-check-label" for="confirm_balance">
+                                    أوافق وأتعهد بدفع الفرق.
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary" id="submit-btn" disabled>تأكيد وحفظ
+                                الاختيار</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    const checkboxes = document.querySelectorAll('.asset-checkbox');
+    const totalDisplay = document.getElementById('total-selected');
+    const statusMsg = document.getElementById('status-msg');
+    const submitBtn = document.getElementById('submit-btn');
+    const confirmContainer = document.getElementById('confirm-container');
+    const confirmCheckbox = document.getElementById('confirm-balance');
+    const diffDisplay = document.getElementById('diff-value');
+
+    // Parse correctly passing through Django template
+    const shareVal = parseFloat('{{ heir.share_value|stringformat:"f" }}');
+
+    function updateTotal() {
+        let total = 0;
+        checkboxes.forEach(box => {
+            if (box.checked) {
+                total += parseFloat(box.dataset.value);
+            }
+        });
+
+        totalDisplay.innerText = total.toFixed(2);
+
+        let diff = total - shareVal;
+
+        // Reset states
+        confirmContainer.classList.add('d-none');
+        // confirmCheckbox.checked = false; // Don't uncheck automatically to be annoying? Better UX to keep checked if adjusting.
+
+        if (Math.abs(diff) < 0.1) {
+            // Equal
+            statusMsg.innerHTML = '<span class="text-success fw-bold">اختيار مطابق للنصيب (ممتاز)</span>';
+            submitBtn.disabled = false;
+        } else if (diff > 0) {
+            // Excess
+            statusMsg.innerHTML = `<span class="text-danger">تجاوزت النصيب بمقدار: ${(diff).toFixed(2)} ريال</span>`;
+            diffDisplay.innerText = diff.toFixed(2);
+            confirmContainer.classList.remove('d-none');
+
+            if (confirmCheckbox.checked) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        } else {
+            // Less (Assuming diff is negative)
+            let remaining = Math.abs(diff);
+            statusMsg.innerHTML = `<span class="text-warning">متبقي لك: ${remaining.toFixed(2)} ريال (بإمكانك الحفظ الآن أو إضافة المزيد)</span>`;
+            submitBtn.disabled = false; // Enabled for partial selection as requested
+        }
+    }
+
+    checkboxes.forEach(box => box.addEventListener('change', updateTotal));
+    if (confirmCheckbox) {
+        confirmCheckbox.addEventListener('change', updateTotal);
+    }
+
+    // Initial call
+    updateTotal();
+</script>
+{% endblock %}

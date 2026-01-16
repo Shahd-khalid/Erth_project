@@ -258,29 +258,58 @@
     }
 
     @media (max-width: 1000px) {
+        .auth-v3-wrapper {
+            padding: 15px;
+            /* Reduce outer padding */
+            align-items: flex-start;
+            /* Allow scrolling from top */
+            overflow-y: auto;
+            /* Enable scrolling for the whole wrapper */
+        }
+
         .auth-stage-3d {
             width: 100%;
             height: auto;
             flex-direction: column;
+            margin-top: 20px;
+            margin-bottom: 40px;
         }
 
         .visual-3d-card {
             position: relative;
-            width: 95%;
-            height: 250px;
+            left: auto;
+            width: 100%;
+            height: 200px;
+            /* Shorter header on mobile */
             border-radius: 40px;
-            margin-bottom: -50px;
+            margin-bottom: -40px;
+            /* Slight overlap */
+            z-index: 20;
         }
 
         .form-3d-card {
             position: relative;
             width: 100%;
             height: auto;
-            border-radius: 40px;
-            padding: 80px 25px 40px;
-            right: auto;
-            transform: none;
             max-height: none;
+            right: auto;
+            border-radius: 30px;
+            padding: 70px 20px 30px;
+            /* Top padding to account for overlap */
+            background: rgba(25, 25, 25, 0.85);
+            /* Darker background for readability */
+        }
+
+        .form-v3-inner {
+            max-width: 100%;
+        }
+
+        .visual-v3-text h3 {
+            font-size: 2rem;
+        }
+
+        .inner-icon {
+            font-size: 4rem;
         }
     }
 </style>

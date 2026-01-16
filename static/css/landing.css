@@ -258,3 +258,58 @@ body.landing-page {
         margin-bottom: 2rem;
     }
 }
+
+@media (max-width: 768px) {
+    .landing-header {
+        flex-direction: column;
+        gap: 20px;
+        padding: 1.5rem 5%;
+    }
+
+    .landing-nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .landing-nav a {
+        font-size: 1rem;
+    }
+
+    .landing-hero {
+        padding: 2rem 5%;
+    }
+
+    .hero-content h1 {
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .hero-btns {
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+    }
+
+    .btn-calc,
+    .btn-learn {
+        width: 100%;
+        text-align: center;
+        padding: 0.8rem;
+    }
+
+    .landing-footer-stats {
+        flex-direction: column;
+        padding: 2rem 5%;
+        gap: 25px;
+    }
+
+    .stat-item {
+        justify-content: center;
+    }
+}

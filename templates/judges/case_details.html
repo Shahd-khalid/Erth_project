@@ -13,13 +13,15 @@
                     <i class="fas fa-balance-scale" style="font-size: 1.8rem;"></i>
                 </div>
                 <div>
-                    <h1 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">تفاصيل القضية: {{ case.case_number }}</h1>
+                    <h1 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">تفاصيل القضية: {{
+                        case.case_number }}</h1>
                     <p style="color: var(--text-muted); margin: 5px 0 0;">إدارة بيانات الورثة، الأصول، والديون الشرعية.
                     </p>
                 </div>
             </div>
             <span class="badge"
-                style="background: var(--primary-color); color: #000; font-size: 1rem; padding: 10px 20px; border-radius: 10px; font-weight: 800;">{{ case.get_status_display }}</span>
+                style="background: var(--primary-color); color: #000; font-size: 1rem; padding: 10px 20px; border-radius: 10px; font-weight: 800;">{{
+                case.get_status_display }}</span>
         </div>
     </div>
 
@@ -57,7 +59,7 @@
                                 <tr style="background: rgba(212, 175, 55, 0.03);">
                                     <th style="padding: 15px; color: var(--primary-color);">الاسم الكامل</th>
                                     <th style="padding: 15px; color: var(--primary-color);">صلة القرابة</th>
-                                    <th style="padding: 15px; color: var(--primary-color);">الجنس</th>
+                                    <th style="padding: 15px; color: var(--primary-color);">الحساب المرتبط</th>
                                     <th style="padding: 15px; color: var(--primary-color);">حذف</th>
                                 </tr>
                             </thead>
@@ -66,7 +68,14 @@
                                 <tr style="border-bottom: 1px solid var(--glass-border);">
                                     <td style="padding: 15px;">{{ form.id }}{{ form.name }}</td>
                                     <td style="padding: 15px;">{{ form.relationship }}</td>
-                                    <td style="padding: 15px;">{{ form.gender }}</td>
+                                    <td style="padding: 15px; text-align: center;">
+                                        {% if form.instance.user %}
+                                        <span style="color: #2ecc71;"><i class="fas fa-check-circle"></i>
+                                             {{ form.instance.user.username }}</span>
+                                        {% else %}
+                                        <span style="color: var(--text-muted);">يدوي</span>
+                                        {% endif %}
+                                    </td>
                                     <td style="padding: 15px; text-align: center;">{{ form.DELETE }}</td>
                                 </tr>
                                 {% endfor %}
@@ -74,6 +83,35 @@
                         </table>
                     </div>
                 </div>
+
+                {% if pending_heirs %}
+                <div
+                    style="margin-top: 40px; background: rgba(52, 152, 219, 0.05); padding: 25px; border-radius: 20px; border: 1px solid rgba(52, 152, 219, 0.2);">
+                    <h4 style="color: #3498db; margin-bottom: 20px; font-weight: 800;">
+                        <i class="fas fa-link"></i> ورثة مسجلون بالنظام (بانتظار الربط)
+                    </h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        {% for p_heir in pending_heirs %}
+                        <div
+                            style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <p style="margin: 0; color: #fff; font-weight: 700;">{{
+                                    p_heir.full_name|default:p_heir.username }}</p>
+                                <small style="color: var(--text-muted);">{{ p_heir.relationship_to_deceased }}</small>
+                            </div>
+                            <form method="post" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="link_heir">
+                                <input type="hidden" name="heir_user_id" value="{{ p_heir.id }}">
+                                <button type="submit" class="btn-primary"
+                                    style="padding: 5px 15px; font-size: 0.8rem; background: #3498db;">ربط
+                                    بالقضية</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
                 <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
                     <button type="submit" class="btn-outline" style="padding: 0.8rem 2rem; border-radius: 10px;">حفظ
@@ -99,7 +137,8 @@
                         style="background: rgba(46, 204, 113, 0.05); border: 1px solid rgba(46, 204, 113, 0.1); padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <p style="margin: 0; color: #fff; font-weight: 700;">{{ asset.description }}</p>
-                            <small style="color: var(--text-muted);">{{ asset.get_asset_type_display }} • {{ asset.value }} ريال</small>
+                            <small style="color: var(--text-muted);">{{ asset.get_asset_type_display }} • {{ asset.value
+                                }} ريال</small>
                         </div>
                         <form method="post" onsubmit="return confirm('تأكيد الحذف؟');" style="margin:0;">
                             {% csrf_token %}

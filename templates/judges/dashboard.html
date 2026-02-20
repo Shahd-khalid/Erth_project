@@ -141,10 +141,9 @@
                     {% for case in review_cases %}
                     <tr>
                         <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
-                        <td style="padding: 20px; color: #ddd;">{{ case.clerk.get_full_name|default:case.clerk.username
-                            }}</td>
-                        <td style="padding: 20px; color: var(--text-muted);">{{
-                            case.updated_at|default:case.created_at|date:"Y-m-d" }}</td>
+                        <td style="padding: 20px; color: #ddd;">{{ case.clerk.get_full_name|default:case.clerk.username }}</td>
+                        <td style="padding: 20px; color: var(--text-muted);">
+                            {{ case.updated_at|default:case.created_at|date:"Y-m-d" }}</td>
                         <td style="padding: 20px;">
                             <a href="{% url 'judges:case_details' case.id %}" class="btn-primary"
                                 style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 8px;">

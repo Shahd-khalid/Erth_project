@@ -52,8 +52,8 @@ def create_case_for_heir(request, heir_id):
             case=case,
             user=heir_user,
             name=heir_user.full_name or heir_user.username,
-            relationship='SON', # Placeholder, Clerk will fix
-            gender='MALE' # Placeholder
+            relationship=heir_user.relationship_to_deceased or Heir.Relationship.SON,
+            gender=Heir.Gender.MALE
         )
         
         return redirect('administration:dashboard')
@@ -76,8 +76,8 @@ def assign_to_existing_case(request, heir_id):
             case=case,
             user=heir_user,
             name=heir_user.full_name or heir_user.username,
-            relationship='SON', # Clerk will refine
-            gender='MALE'      # Clerk will refine
+            relationship=heir_user.relationship_to_deceased or Heir.Relationship.SON,
+            gender=Heir.Gender.MALE
         )
         return redirect('administration:dashboard')
 

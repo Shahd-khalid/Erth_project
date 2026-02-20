@@ -20,6 +20,10 @@ class User(AbstractUser):
         APPROVED = 'APPROVED', _('مقبول')
         REJECTED = 'REJECTED', _('مرفوض')
 
+    class Gender(models.TextChoices):
+        MALE = 'ذكر', _('ذكر')
+        FEMALE = 'أنثى', _('أنثى')
+
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.PUBLIC)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     is_verified = models.BooleanField(default=False)
@@ -30,9 +34,6 @@ class User(AbstractUser):
         verbose_name=_('حالة التحقق')
     )
     
-    # New fields for specific roles
-    full_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('الاسم الكامل'))
-    document_file = models.FileField(upload_to='documents/', blank=True, null=True, verbose_name=_('وثيقة إثبات (حصر ورثة/هوية)'))
     full_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('الاسم الكامل'))
     document_file = models.FileField(upload_to='documents/', blank=True, null=True, verbose_name=_('وثيقة إثبات (حصر ورثة/هوية)'))
     judge_license = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('رقم رخصة القاضي'))
@@ -44,8 +45,10 @@ class User(AbstractUser):
         verbose_name=_('حالة الارتباط بالقاضي')
     )
     
-    # Heir specific field
+    # Heir specific fields
     deceased_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('اسم المتوفى'))
+    relationship_to_deceased = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('صلة القرابة بالمتوفى'))
+    gender = models.CharField(max_length=10, choices=Gender.choices, blank=True, null=True, verbose_name=_('الجنس'))
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

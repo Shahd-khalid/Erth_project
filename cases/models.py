@@ -137,6 +137,7 @@ class Heir(models.Model):
     relationship = models.CharField(max_length=50, choices=Relationship.choices, verbose_name=_('صلة القرابة'))
     gender = models.CharField(max_length=10, choices=Gender.choices, verbose_name=_('الجنس'))
     is_blocked = models.BooleanField(default=False, verbose_name=_('محجوب'))
+    blocking_reason = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('سبب الحجب'))
     
     # Session Fields
     share_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=_('نسبة الإرث %'))

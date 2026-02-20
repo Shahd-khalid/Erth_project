@@ -42,15 +42,26 @@ class JudgeRegistrationForm(UserCreationForm):
 class HeirRegistrationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ('username', 'email', 'full_name', 'phone_number', 'deceased_name', 'document_file')
+        fields = ('username', 'email', 'full_name', 'phone_number', 'gender', 'deceased_name', 'relationship_to_deceased', 'document_file')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
             'deceased_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'اسم المتوفى لربطك بالقضية الصحيحة'}),
+            'relationship_to_deceased': forms.Select(attrs={'class': 'form-control'}),
             'document_file': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from cases.models import Heir
+        self.fields['relationship_to_deceased'] = forms.ChoiceField(
+            choices=Heir.Relationship.choices,
+            widget=forms.Select(attrs={'class': 'form-control'}),
+            label="صلة القرابة بالمتوفى"
+        )
 
     def save(self, commit=True):
         user = super().save(commit=False)

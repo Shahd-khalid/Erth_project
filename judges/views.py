@@ -136,7 +136,7 @@ def case_details(request, case_id):
     except Deceased.DoesNotExist:
         deceased = None
 
-    HeirFormSet = modelformset_factory(Heir, fields=('name', 'relationship', 'gender'), extra=1, can_delete=True)
+    HeirFormSet = modelformset_factory(Heir, fields=('name', 'relationship', 'gender'), extra=0, can_delete=True)
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -187,6 +187,21 @@ def case_details(request, case_id):
                 for obj in heir_formset.deleted_objects:
                     obj.delete()
 
+        elif action == 'link_heir':
+            heir_user_id = request.POST.get('heir_user_id')
+            heir_user = get_object_or_404(User, id=heir_user_id, role=User.Role.HEIR)
+            
+            # Create a new Heir record for this case, linking back to the user
+            # We use the relationship and name from the user's registry
+            Heir.objects.create(
+                case=case,
+                user=heir_user,
+                name=heir_user.full_name or heir_user.username,
+                relationship=heir_user.relationship_to_deceased or Heir.Relationship.SON, # Default to SON if not specified, though usually captured
+                gender=Heir.Gender.MALE # Simplified gender, better to capture in User reg too if needed
+            )
+            messages.success(request, f'تم ربط الوريث {heir_user.username} بالقضية بنجاح.')
+
         # Approve Case Details (Transition to Ready for Calculation)
         elif action == 'approve_details':
              # Validate before approving?
@@ -201,13 +216,24 @@ def case_details(request, case_id):
         deceased_form = DeceasedForm(instance=deceased)
         heir_formset = HeirFormSet(queryset=Heir.objects.filter(case=case))
 
+    # Get registered users who claimed to be heirs of this deceased
+    if deceased:
+        pending_heirs = User.objects.filter(
+            role=User.Role.HEIR, 
+            deceased_name__icontains=deceased.name,
+            heir_records__isnull=True # Not yet linked to a case
+        )
+    else:
+        pending_heirs = []
+
     return render(request, 'judges/case_details.html', {
         'case': case,
         'asset_form': AssetForm(),
         'debt_form': DebtForm(),
         'will_form': WillForm(),
         'deceased_form': deceased_form,
-        'heir_formset': heir_formset
+        'heir_formset': heir_formset,
+        'pending_heirs': pending_heirs
     })
 
 @login_required
@@ -266,7 +292,10 @@ def perform_calculation(request, case_id):
                 'is_blocked': data.get('is_blocked', False),
                 'blocking_reason': data.get('blocking_reason', '')
             }
+            
             if item['is_blocked']:
+                heir_obj.blocking_reason = data.get('blocking_reason', '')
+                heir_obj.save()
                 blocked_heirs.append(item)
             else:
                 final_results.append(item)

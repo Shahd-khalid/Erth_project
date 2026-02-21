@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block content %}
 <div class="container" style="margin-top: 50px; padding-bottom: 100px;">
@@ -58,26 +58,22 @@
                         </h4>
                         <div class="heir-selector-grid">
                             <label class="heir-card {% if request.POST.husband %}active{% endif %}">
-                                <input type="checkbox" name="husband" id="husband_checkbox" style="display:none;" {% if
-                                    request.POST.husband %}checked{% endif %}>
+                                <input type="checkbox" name="husband" id="husband_checkbox" style="display:none;" {% if request.POST.husband %}checked{% endif %}>
                                 <i class="fas fa-male"></i>
                                 <div class="label">الزوج</div>
                             </label>
                             <label class="heir-card {% if request.POST.wife %}active{% endif %}">
-                                <input type="checkbox" name="wife" id="wife_checkbox" style="display:none;" {% if
-                                    request.POST.wife %}checked{% endif %}>
+                                <input type="checkbox" name="wife" id="wife_checkbox" style="display:none;" {% if request.POST.wife %}checked{% endif %}>
                                 <i class="fas fa-female"></i>
                                 <div class="label">الزوجة</div>
                             </label>
                             <label class="heir-card {% if request.POST.father %}active{% endif %}">
-                                <input type="checkbox" name="father" id="father_checkbox" style="display:none;" {% if
-                                    request.POST.father %}checked{% endif %}>
+                                <input type="checkbox" name="father" id="father_checkbox" style="display:none;" {% if request.POST.father %}checked{% endif %}>
                                 <i class="fas fa-user-tie"></i>
                                 <div class="label">الأب</div>
                             </label>
                             <label class="heir-card {% if request.POST.mother %}active{% endif %}">
-                                <input type="checkbox" name="mother" id="mother_checkbox" style="display:none;" {% if
-                                    request.POST.mother %}checked{% endif %}>
+                                <input type="checkbox" name="mother" id="mother_checkbox" style="display:none;" {% if request.POST.mother %}checked{% endif %}>
                                 <i class="fas fa-user-tag"></i>
                                 <div class="label">الأم</div>
                             </label>
@@ -618,3 +614,4 @@
     });
 </script>
 {% endblock %}
+

@@ -28,7 +28,7 @@ if SECRET_KEY == 'django-insecure-render-fallback-for-startup-only' and not DEBU
     warnings.warn("SECRET_KEY is not set in environment variables! Using insecure fallback.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'False'
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):

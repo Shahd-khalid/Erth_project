@@ -66,12 +66,12 @@
             </a>
 
             <!-- Mobile Menu Toggle -->
-            <button class="nav-toggle" id="navToggle"
-                style="display: none; background: none; border: none; color: var(--primary-color); font-size: 1.5rem; cursor: pointer;">
+            <button class="nav-toggle mobile-only" id="navToggle"
+                style="background: none; border: none; color: var(--primary-color); font-size: 1.8rem; cursor: pointer; padding: 10px;">
                 <i class="fas fa-bars"></i>
             </button>
 
-            <div class="nav-right" id="navRight" style="display: flex; align-items: center; gap: 40px;">
+            <div class="nav-right desktop-only" id="navRight" style="display: flex; align-items: center; gap: 40px;">
                 <ul class="nav-links" style="display: flex; gap: 20px; align-items: center;">
                     {% if user.is_authenticated %}
                     <li><a href="{% url 'dashboard:index' %}"><i class="fas fa-th-large"></i> لوحة التحكم</a></li>
@@ -94,7 +94,7 @@
         </div>
     </nav>
 
-    <main class="container main-content">
+    <main class="container main-content" style="padding-top: 40px;">
         {% if messages %}
         <div class="messages">
             {% for message in messages %}

@@ -322,8 +322,8 @@
     /* Premium Heir Cards */
     .heir-selector-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 15px;
     }
 
     .heir-card {
@@ -463,6 +463,7 @@
     @media (max-width: 1250px) {
         .calculator-grid-wrapper {
             grid-template-columns: 1fr !important;
+            gap: 30px !important;
         }
 
         .results-side {
@@ -472,8 +473,13 @@
     }
 
     @media (max-width: 768px) {
-        .card {
-            padding: 25px !important;
+        .container {
+            padding: 0 15px !important;
+        }
+
+        .input-section .card {
+            padding: 30px 20px !important;
+            border-radius: 20px !important;
         }
 
         .card-header {
@@ -483,25 +489,26 @@
         }
 
         .estate-input-wrapper input {
-            font-size: 1.5rem !important;
-            height: 70px !important;
-            padding-right: 60px !important;
+            font-size: 1.6rem !important;
+            height: 75px !important;
+            padding-right: 65px !important;
         }
 
         .estate-input-wrapper span {
-            right: 15px !important;
-            top: 15px !important;
-            font-size: 1.1rem !important;
+            right: 20px !important;
+            top: 20px !important;
+            font-size: 1.2rem !important;
         }
 
         .heir-selector-grid {
             grid-template-columns: 1fr 1fr !important;
-            gap: 10px !important;
+            gap: 12px !important;
         }
 
         .heir-card {
-            padding: 20px 10px !important;
-            gap: 10px !important;
+            padding: 25px 10px !important;
+            gap: 12px !important;
+            border-radius: 15px !important;
         }
 
         .heir-card i {
@@ -509,7 +516,7 @@
         }
 
         .heir-card .label {
-            font-size: 0.9rem !important;
+            font-size: 0.85rem !important;
         }
 
         .grandparents-card {
@@ -518,19 +525,27 @@
 
         .grandparents-inputs {
             grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+
+        .count-card {
+            padding: 20px !important;
+            border-radius: 15px !important;
         }
 
         .count-card .inputs {
             grid-template-columns: 1fr !important;
+            gap: 15px !important;
         }
 
         .calculate-btn {
-            font-size: 1.1rem !important;
+            font-size: 1.2rem !important;
             height: 70px !important;
+            border-radius: 15px !important;
         }
 
         h1 {
-            font-size: 1.5rem !important;
+            font-size: 1.6rem !important;
         }
 
         h4 {
@@ -538,11 +553,17 @@
         }
 
         .results-side .card {
-            padding: 25px !important;
+            padding: 30px 20px !important;
+            border-radius: 20px !important;
         }
 
         .results-side h3 {
             font-size: 1.5rem !important;
+        }
+
+        .results-side td {
+            padding: 15px 10px !important;
+            font-size: 0.9rem !important;
         }
     }
 </style>

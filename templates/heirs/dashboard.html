@@ -5,19 +5,21 @@
 
     <!-- Heir Header -->
     <div class="card dashboard-header-responsive"
-        style="margin-bottom: 50px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255,255,255,0.01) 100%);">
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div
+        style="margin-bottom: 30px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255,255,255,0.01) 100%);">
+        <div class="header-main" style="display: flex; align-items: center; gap: 20px;">
+            <div class="header-icon"
                 style="background: rgba(255,255,255,0.05); width: 65px; height: 65px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); border: 1px solid var(--glass-border);">
                 <i class="fas fa-user-friends" style="font-size: 1.8rem;"></i>
             </div>
             <div>
-                <h1 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">بوابة الورثة</h1>
-                <p style="color: var(--text-muted); margin: 5px 0 0; font-size: 1rem;">متابعة ملفات التركة وجلسات توزيع
+                <h1 class="header-title" style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">بوابة
+                    الورثة</h1>
+                <p class="header-subtitle" style="color: var(--text-muted); margin: 5px 0 0; font-size: 1rem;">متابعة
+                    ملفات التركة وجلسات توزيع
                     النصيب الشرعي.</p>
             </div>
         </div>
-        <div class="header-badge" style="opacity: 0.6; font-weight: 600;">بوابة الورثة والوكلاء</div>
+        <div class="header-badge desktop-only" style="opacity: 0.6; font-weight: 600;">بوابة الورثة والوكلاء</div>
     </div>
 
     <!-- Deceased Name Association -->
@@ -121,15 +123,39 @@
 
 <style>
     @media (max-width: 992px) {
-        .dashboard-header-responsive {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 20px;
-            padding: 25px !important;
+        .container {
+            margin-top: 20px !important;
         }
 
-        .header-badge {
-            display: none;
+        .dashboard-header-responsive {
+            flex-direction: column;
+            align-items: center !important;
+            text-align: center !important;
+            gap: 20px;
+            padding: 30px 20px !important;
+            margin-bottom: 30px !important;
+        }
+
+        .header-main {
+            flex-direction: column !important;
+            gap: 15px !important;
+        }
+
+        .header-icon {
+            margin: 0 auto !important;
+        }
+
+        .header-title {
+            font-size: 1.5rem !important;
+        }
+
+        .header-subtitle {
+            font-size: 0.9rem !important;
+        }
+
+        .card {
+            padding: 30px 20px !important;
+            border-radius: 20px !important;
         }
 
         .responsive-inline-form {
@@ -144,15 +170,7 @@
 
         .responsive-inline-form button {
             width: 100%;
-            height: 50px !important;
-        }
-
-        h1 {
-            font-size: 1.4rem !important;
-        }
-
-        h3 {
-            font-size: 1.2rem !important;
+            height: 55px !important;
         }
     }
 </style>

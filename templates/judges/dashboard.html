@@ -5,19 +5,21 @@
 
     <!-- Dashboard Header -->
     <div class="card dashboard-header-responsive"
-        style="margin-bottom: 50px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255,255,255,0.01) 100%);">
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div
+        style="margin-bottom: 30px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255,255,255,0.01) 100%);">
+        <div class="header-main" style="display: flex; align-items: center; gap: 20px;">
+            <div class="header-icon"
                 style="background: var(--primary-color); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #000;">
                 <i class="fas fa-gavel" style="font-size: 2.2rem;"></i>
             </div>
             <div>
-                <h1 style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0;">لوحة تحكم القضاء</h1>
-                <p style="color: var(--text-muted); margin: 5px 0 0; font-size: 1.1rem;">أهلاً بك، فضيلة القاضي {{
+                <h1 class="header-title" style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0;">لوحة تحكم
+                    القضاء</h1>
+                <p class="header-subtitle" style="color: var(--text-muted); margin: 5px 0 0; font-size: 1.1rem;">أهلاً
+                    بك، فضيلة القاضي {{
                     user.get_full_name|default:user.username }}</p>
             </div>
         </div>
-        <a href="{% url 'judges:manage_clerks' %}" class="btn-primary"
+        <a href="{% url 'judges:manage_clerks' %}" class="btn-primary header-action"
             style="padding: 0.8rem 2rem; font-size: 1.05rem; border-radius: 12px;">
             <i class="fas fa-users-cog"></i> إدارة التشكيل الإداري
         </a>
@@ -220,24 +222,76 @@
 
 <style>
     @media (max-width: 992px) {
+        .container {
+            margin-top: 20px !important;
+        }
+
         .dashboard-header-responsive {
             flex-direction: column;
-            align-items: flex-start !important;
+            align-items: center !important;
+            text-align: center !important;
             gap: 25px;
-            padding: 25px !important;
+            padding: 30px 20px !important;
+            margin-bottom: 30px !important;
         }
 
-        .dashboard-header-responsive a {
-            width: 100%;
-            text-align: center;
+        .header-main {
+            flex-direction: column !important;
+            gap: 15px !important;
         }
 
-        h1 {
-            font-size: 1.5rem !important;
+        .header-icon {
+            margin: 0 auto !important;
+            width: 60px !important;
+            height: 60px !important;
+        }
+
+        .header-icon i {
+            font-size: 1.8rem !important;
+        }
+
+        .header-title {
+            font-size: 1.6rem !important;
+        }
+
+        .header-subtitle {
+            font-size: 0.95rem !important;
+        }
+
+        .header-action {
+            width: 100% !important;
+            padding: 12px !important;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+        }
+
+        .card {
+            padding: 30px 20px !important;
+            border-radius: 20px !important;
         }
 
         h3 {
-            font-size: 1.2rem !important;
+            font-size: 1.3rem !important;
+            margin-bottom: 20px !important;
+        }
+
+        .table-container {
+            border-radius: 15px !important;
+        }
+
+        th,
+        td {
+            padding: 15px 12px !important;
+            font-size: 0.9rem !important;
+        }
+
+        .btn-outline,
+        .btn-primary {
+            font-size: 0.85rem !important;
+            padding: 10px !important;
         }
     }
 </style>

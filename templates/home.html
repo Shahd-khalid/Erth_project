@@ -3,12 +3,13 @@
 {% block content %}
 <div class="portal-wrapper" style="padding: 40px 0;">
     <!-- Welcome Header -->
-    <div class="welcome-header" style="text-align: center; margin-bottom: 80px;">
-        <h1
+    <div class="welcome-header" style="text-align: center; margin-bottom: 60px;">
+        <h1 class="welcome-title"
             style="font-size: 4rem; font-weight: 800; color: var(--primary-color); margin-bottom: 20px; line-height: 1.1;">
             منصة إرث
         </h1>
-        <p style="font-size: 1.4rem; color: var(--text-muted); max-width: 800px; margin: 0 auto; line-height: 1.7;">
+        <p class="welcome-subtitle"
+            style="font-size: 1.4rem; color: var(--text-muted); max-width: 800px; margin: 0 auto; line-height: 1.7;">
             البوابة المتكاملة لإدارة التركات والمواريث بأحدث التقنيات الرقمية المعتمدة شرعياً ونظامياً.
         </p>
     </div>
@@ -79,11 +80,11 @@
         <!-- Role Access: Heirs -->
         <div class="bento-item role-access"
             style="grid-column: span 6; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; display: flex; align-items: center; gap: 30px;">
-            <div
+            <div class="role-icon"
                 style="background: rgba(212, 175, 55, 0.1); width: 100px; height: 100px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <i class="fas fa-users" style="font-size: 3rem; color: var(--primary-color);"></i>
             </div>
-            <div>
+            <div class="role-text">
                 <h3 style="font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 10px;">حسابات الورثة</h3>
                 <p style="color: var(--text-muted); margin-bottom: 20px;">متابعة سير القضايا وطلب الاستشارات وحجز
                     المواعيد.</p>
@@ -107,16 +108,57 @@
     }
 
     @media (max-width: 992px) {
+        .portal-wrapper {
+            padding: 20px 0 !important;
+        }
+
+        .welcome-header {
+            margin-bottom: 40px !important;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem !important;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem !important;
+        }
+
+        .bento-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+        }
+
         .bento-item {
-            grid-column: span 12 !important;
+            grid-column: span 1 !important;
+            grid-row: auto !important;
+            padding: 30px !important;
         }
 
-        .main-calc {
-            padding: 40px !important;
+        .main-calc h2 {
+            font-size: 1.8rem !important;
         }
 
-        .welcome-header h1 {
+        .main-calc p {
+            font-size: 1rem !important;
+        }
+
+        .main-calc i {
             font-size: 3rem !important;
+        }
+
+        .role-access {
+            flex-direction: column !important;
+            text-align: center !important;
+            gap: 20px !important;
+        }
+
+        .role-icon {
+            margin: 0 auto !important;
+        }
+
+        .role-access a {
+            justify-content: center !important;
         }
     }
 </style>

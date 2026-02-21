@@ -8,11 +8,17 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
-try:
-    import dotenv
-    dotenv.load_dotenv()
-except ImportError:
-    pass
+from pathlib import Path
+
+# Load .env file if it exists (local development)
+BASE_DIR = Path(__file__).resolve().parent.parent
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    try:
+        import dotenv
+        dotenv.load_dotenv(dotenv_path=env_path)
+    except ImportError:
+        pass
 
 from django.core.wsgi import get_wsgi_application
 

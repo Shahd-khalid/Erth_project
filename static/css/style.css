@@ -49,6 +49,12 @@ ul {
     padding: 0 30px;
 }
 
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+}
+
 /* Navbar */
 .navbar {
     background: rgba(3, 5, 8, 0.85);
@@ -236,6 +242,13 @@ textarea {
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--glass-border);
     overflow: hidden;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
 }
 
 table {

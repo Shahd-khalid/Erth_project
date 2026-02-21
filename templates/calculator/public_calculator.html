@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="container" style="margin-top: 50px; padding-bottom: 100px;">
-    <div class="calculator-grid"
-        style="display: grid; grid-template-columns: 1fr 550px; gap: 40px; align-items: start;">
+    <div class="calculator-grid-wrapper"
+        style="display: grid; grid-template-columns: 1fr 450px; gap: 40px; align-items: start;">
 
         <!-- Input Section (Main Form) -->
         <div class="input-section">
@@ -39,7 +39,7 @@
                             style="font-size: 1.3rem; color: #fff; margin-bottom: 20px; display: block; font-weight: 800; text-align: center;">
                             أدخل قيمة التركة الإجمالية (ريال سعودي)
                         </label>
-                        <div style="position: relative; max-width: 500px; margin: 0 auto;">
+                        <div class="estate-input-wrapper" style="position: relative; max-width: 500px; margin: 0 auto;">
                             <span
                                 style="position: absolute; right: 25px; top: 18px; color: var(--primary-color); font-weight: 800; font-size: 1.4rem;">ر.س</span>
                             <input type="number" name="net_estate" id="net_estate" class="form-control" required min="0"
@@ -58,22 +58,26 @@
                         </h4>
                         <div class="heir-selector-grid">
                             <label class="heir-card {% if request.POST.husband %}active{% endif %}">
-                                <input type="checkbox" name="husband" id="husband_checkbox" style="display:none;" {% if request.POST.husband %}checked{% endif %}>
+                                <input type="checkbox" name="husband" id="husband_checkbox" style="display:none;" {% if
+                                    request.POST.husband %}checked{% endif %}>
                                 <i class="fas fa-male"></i>
                                 <div class="label">الزوج</div>
                             </label>
                             <label class="heir-card {% if request.POST.wife %}active{% endif %}">
-                                <input type="checkbox" name="wife" id="wife_checkbox" style="display:none;" {% if request.POST.wife %}checked{% endif %}>
+                                <input type="checkbox" name="wife" id="wife_checkbox" style="display:none;" {% if
+                                    request.POST.wife %}checked{% endif %}>
                                 <i class="fas fa-female"></i>
                                 <div class="label">الزوجة</div>
                             </label>
                             <label class="heir-card {% if request.POST.father %}active{% endif %}">
-                                <input type="checkbox" name="father" id="father_checkbox" style="display:none;" {% if request.POST.father %}checked{% endif %}>
+                                <input type="checkbox" name="father" id="father_checkbox" style="display:none;" {% if
+                                    request.POST.father %}checked{% endif %}>
                                 <i class="fas fa-user-tie"></i>
                                 <div class="label">الأب</div>
                             </label>
                             <label class="heir-card {% if request.POST.mother %}active{% endif %}">
-                                <input type="checkbox" name="mother" id="mother_checkbox" style="display:none;" {% if request.POST.mother %}checked{% endif %}>
+                                <input type="checkbox" name="mother" id="mother_checkbox" style="display:none;" {% if
+                                    request.POST.mother %}checked{% endif %}>
                                 <i class="fas fa-user-tag"></i>
                                 <div class="label">الأم</div>
                             </label>
@@ -115,9 +119,9 @@
                             </div>
 
                             <!-- Grandparents -->
-                            <div class="count-card" style="grid-column: span 2;">
+                            <div class="count-card grandparents-card" style="grid-column: span 2;">
                                 <h5><i class="fas fa-history"></i> الأجداد والجدات</h5>
-                                <div class="inputs" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="inputs grandparents-inputs">
                                     <div class="i-group"><label>الجد (أب الأب)</label><input type="number"
                                             name="grandfathers_father"
                                             value="{{ request.POST.grandfathers_father|default:0 }}" min="0"></div>
@@ -457,13 +461,88 @@
     }
 
     @media (max-width: 1250px) {
-        .calculator-grid {
-            grid-template-columns: 1fr;
+        .calculator-grid-wrapper {
+            grid-template-columns: 1fr !important;
         }
 
         .results-side {
             position: relative !important;
             top: 0 !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .card {
+            padding: 25px !important;
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 15px !important;
+        }
+
+        .estate-input-wrapper input {
+            font-size: 1.5rem !important;
+            height: 70px !important;
+            padding-right: 60px !important;
+        }
+
+        .estate-input-wrapper span {
+            right: 15px !important;
+            top: 15px !important;
+            font-size: 1.1rem !important;
+        }
+
+        .heir-selector-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+        }
+
+        .heir-card {
+            padding: 20px 10px !important;
+            gap: 10px !important;
+        }
+
+        .heir-card i {
+            font-size: 1.8rem !important;
+        }
+
+        .heir-card .label {
+            font-size: 0.9rem !important;
+        }
+
+        .grandparents-card {
+            grid-column: auto !important;
+        }
+
+        .grandparents-inputs {
+            grid-template-columns: 1fr !important;
+        }
+
+        .count-card .inputs {
+            grid-template-columns: 1fr !important;
+        }
+
+        .calculate-btn {
+            font-size: 1.1rem !important;
+            height: 70px !important;
+        }
+
+        h1 {
+            font-size: 1.5rem !important;
+        }
+
+        h4 {
+            font-size: 1.2rem !important;
+        }
+
+        .results-side .card {
+            padding: 25px !important;
+        }
+
+        .results-side h3 {
+            font-size: 1.5rem !important;
         }
     }
 </style>

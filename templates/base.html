@@ -11,6 +11,49 @@
         href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.1">
+    <style>
+        @media (max-width: 992px) {
+            .nav-toggle {
+                display: block !important;
+            }
+
+            .nav-right {
+                position: fixed;
+                top: 90px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 90px);
+                background: rgba(3, 5, 8, 0.98);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                justify-content: center;
+                transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+                z-index: 999;
+                padding: 40px;
+            }
+
+            .nav-right.active {
+                left: 0;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                text-align: center;
+            }
+
+            .nav-links li {
+                width: 100%;
+            }
+
+            .nav-links a,
+            .nav-links button {
+                width: 100%;
+                padding: 15px !important;
+                display: block;
+            }
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -22,7 +65,13 @@
                 <span style="font-family: 'IBM Plex Sans Arabic', sans-serif;">إرث</span>
             </a>
 
-            <div class="nav-right" style="display: flex; align-items: center; gap: 40px;">
+            <!-- Mobile Menu Toggle -->
+            <button class="nav-toggle" id="navToggle"
+                style="display: none; background: none; border: none; color: var(--primary-color); font-size: 1.5rem; cursor: pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="nav-right" id="navRight" style="display: flex; align-items: center; gap: 40px;">
                 <ul class="nav-links" style="display: flex; gap: 20px; align-items: center;">
                     {% if user.is_authenticated %}
                     <li><a href="{% url 'dashboard:index' %}"><i class="fas fa-th-large"></i> لوحة التحكم</a></li>
@@ -75,6 +124,17 @@
     </footer>
 
     <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navRight = document.getElementById('navRight');
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navRight.classList.toggle('active');
+                navToggle.querySelector('i').classList.toggle('fa-bars');
+                navToggle.querySelector('i').classList.toggle('fa-times');
+            });
+        }
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 

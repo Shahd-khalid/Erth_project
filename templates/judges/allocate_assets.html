@@ -24,7 +24,8 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="save_allocation">
 
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
+        <div class="allocation-grid"
+            style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
 
             <!-- Heirs Column (Sidebar) -->
             <div style="display: flex; flex-direction: column; gap: 20px;">
@@ -92,52 +93,48 @@
                 </h3>
 
                 <div class="table-container" style="border: none; background: transparent;">
-                    <table style="width: 100%;">
-                        <thead>
-                            <tr style="background: rgba(255,255,255,0.02);">
-                                <th style="padding: 20px; color: var(--primary-color);">الأصل / التركة</th>
-                                <th style="padding: 20px; color: var(--primary-color); text-align: center;">القيمة
-                                    التقديرية</th>
-                                <th style="padding: 20px; color: var(--primary-color);">تخصيص لـ (الوريث المكلف)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for asset in assets %}
-                            <tr style="border-bottom: 1px solid var(--glass-border); transition: all 0.2s;">
-                                <td style="padding: 20px;">
-                                    <div style="font-weight: 700; color: #fff;">{{ asset.description }}</div>
-                                    <small style="color: var(--text-muted);">{{ asset.get_asset_type_display }}</small>
-                                </td>
-                                <td style="padding: 20px; text-align: center; color: #2ecc71; font-weight: 800;">
-                                    {{ asset.value }} ريال</td>
-                                <td style="padding: 20px;">
-                                    <select name="asset_{{ asset.id }}"
-                                        class="premium-select-box {% if asset.intent_heir_id and not asset.assigned_to %}highlight-intent{% endif %}">
-                                        <option value="">-- غير مخصص --</option>
-                                        {% for option in asset.heir_options %}
-                                        <option value="{{ option.id }}" {% if option.is_selected %}selected{% endif %}>
-                                            {{ option.name }} {% if option.is_suggested %}(طلب وريث){% endif %}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    {% if asset.intent_heir_id == 'CONFLICT' %}
-                                    <div style="color: #e74c3c; font-size: 0.75rem; margin-top: 8px; font-weight: 600;">
-                                        <i class="fas fa-exclamation-triangle"></i> تعارض: اختاره أكثر من وريث
-                                    </div>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table style="width: 100%; min-width: 600px;">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.02);">
+                                    <th style="padding: 20px; color: var(--primary-color);">الأصل / التركة</th>
+                                    <th style="padding: 20px; color: var(--primary-color); text-align: center;">القيمة
+                                        التقديرية</th>
+                                    <th style="padding: 20px; color: var(--primary-color);">تخصيص لـ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for asset in assets %}
+                                <tr style="border-bottom: 1px solid var(--glass-border); transition: all 0.2s;">
+                                    <td style="padding: 20px;">
+                                        <div style="font-weight: 700; color: #fff;">{{ asset.description }}</div>
+                                        <small style="color: var(--text-muted);">{{ asset.get_asset_type_display
+                                            }}</small>
+                                    </td>
+                                    <td style="padding: 20px; text-align: center; color: #2ecc71; font-weight: 800;">{{
+                                        asset.value }} ريال</td>
+                                    <td style="padding: 20px;">
+                                        <select name="asset_{{ asset.id }}"
+                                            class="premium-select-box {% if asset.intent_heir_id and not asset.assigned_to %}highlight-intent{% endif %}">
+                                            <option value="">-- غير مخصص --</option>
+                                            {% for option in asset.heir_options %}
+                                            <option value="{{ option.id }}" {% if option.is_selected %}selected{% endif
+                                                %}>{{ option.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div style="margin-top: 50px; display: flex; gap: 20px; justify-content: flex-end;">
-                    <button type="submit" class="btn-outline"
-                        style="padding: 1rem 2.5rem; border-radius: 12px; font-weight: 700;">حفظ المسودة
-                        المحاسبية</button>
+                <div class="allocation-btns"
+                    style="margin-top: 50px; display: flex; gap: 20px; justify-content: flex-end;">
+                    <button type="submit" class="btn-outline">حفظ المسودة المحاسبية</button>
                     <button type="submit" name="action" value="publish_session" class="btn-primary"
-                        style="padding: 1rem 3rem; border-radius: 12px; font-weight: 800; background: #2ecc71; color: #fff;"
+                        style="background: #2ecc71; color: #fff;"
                         onclick="return confirm('هل أنت متأكد؟ سيتم تفعيل رابط الجلسة وإرساله للورثة.');">
                         <i class="fas fa-check-double"></i> اعتماد التوزيع وبدء الجلسة
                     </button>
@@ -189,6 +186,36 @@
 
     tr:hover {
         background: rgba(255, 255, 255, 0.01);
+    }
+
+    @media (max-width: 992px) {
+        .allocation-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+        }
+
+        .card {
+            padding: 20px !important;
+            border-radius: 20px !important;
+        }
+
+        .allocation-btns {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .allocation-btns button {
+            width: 100%;
+            padding: 12px !important;
+        }
+
+        h1 {
+            font-size: 1.4rem !important;
+        }
+
+        .card h3 {
+            font-size: 1.2rem !important;
+        }
     }
 </style>
 {% endblock %}

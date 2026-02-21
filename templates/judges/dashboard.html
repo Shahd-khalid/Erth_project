@@ -4,7 +4,7 @@
 <div class="container" style="margin-top: 50px;">
 
     <!-- Dashboard Header -->
-    <div class="card"
+    <div class="card dashboard-header-responsive"
         style="margin-bottom: 50px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255,255,255,0.01) 100%);">
         <div style="display: flex; align-items: center; gap: 20px;">
             <div
@@ -79,39 +79,41 @@
         </h3>
         {% if active_cases %}
         <div class="table-container">
-            <table>
-                <thead>
-                    <tr style="background: rgba(212, 175, 55, 0.04);">
-                        <th style="padding: 20px;">رقم القضية</th>
-                        <th style="padding: 20px;">الحالة الحالية</th>
-                        <th style="padding: 20px;">تاريخ القبول</th>
-                        <th style="padding: 20px;">العمليات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for case in active_cases %}
-                    {% if case.status != 'DATA_REVIEW' and case.status != 'SESSION_ACTIVE' %}
-                    <tr>
-                        <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
-                        <td style="padding: 20px; color: #ddd;">
-                            {% if case.clerk %}
-                            <span class="badge badge-info">عند الكاتب: {{ case.clerk.first_name }}</span>
-                            {% else %}
-                            <span class="badge badge-warning">بانتظار تعيين كاتب</span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 20px; color: var(--text-muted);">{{ case.updated_at|date:"Y-m-d" }}</td>
-                        <td style="padding: 20px; display: flex; gap: 10px;">
-                            <a href="{% url 'judges:assign_clerk' case.id %}" class="btn-outline"
-                                style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px;">
-                                <i class="fas fa-user-plus"></i> تعيين كاتب
-                            </a>
-                        </td>
-                    </tr>
-                    {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr style="background: rgba(212, 175, 55, 0.04);">
+                            <th style="padding: 20px;">رقم القضية</th>
+                            <th style="padding: 20px;">الحالة الحالية</th>
+                            <th style="padding: 20px;">تاريخ القبول</th>
+                            <th style="padding: 20px;">العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for case in active_cases %}
+                        {% if case.status != 'DATA_REVIEW' and case.status != 'SESSION_ACTIVE' %}
+                        <tr>
+                            <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
+                            <td style="padding: 20px; color: #ddd;">
+                                {% if case.clerk %}
+                                <span class="badge badge-info">عند الكاتب: {{ case.clerk.first_name }}</span>
+                                {% else %}
+                                <span class="badge badge-warning">بانتظار تعيين كاتب</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 20px; color: var(--text-muted);">{{ case.updated_at|date:"Y-m-d" }}</td>
+                            <td style="padding: 20px; display: flex; gap: 10px;">
+                                <a href="{% url 'judges:assign_clerk' case.id %}" class="btn-outline"
+                                    style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px;">
+                                    <i class="fas fa-user-plus"></i> تعيين كاتب
+                                </a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% else %}
         <p
@@ -128,32 +130,35 @@
         </h3>
         {% if review_cases %}
         <div class="table-container">
-            <table>
-                <thead>
-                    <tr style="background: rgba(212, 175, 55, 0.04);">
-                        <th style="padding: 20px;">رقم القضية</th>
-                        <th style="padding: 20px;">الكاتب المكلف</th>
-                        <th style="padding: 20px;">آخر تحديث</th>
-                        <th style="padding: 20px;">العمليات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for case in review_cases %}
-                    <tr>
-                        <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
-                        <td style="padding: 20px; color: #ddd;">{{ case.clerk.get_full_name|default:case.clerk.username }}</td>
-                        <td style="padding: 20px; color: var(--text-muted);">
-                            {{ case.updated_at|default:case.created_at|date:"Y-m-d" }}</td>
-                        <td style="padding: 20px;">
-                            <a href="{% url 'judges:case_details' case.id %}" class="btn-primary"
-                                style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 8px;">
-                                <i class="fas fa-file-signature"></i> مراجعة وتدقيق
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr style="background: rgba(212, 175, 55, 0.04);">
+                            <th style="padding: 20px;">رقم القضية</th>
+                            <th style="padding: 20px;">الكاتب المكلف</th>
+                            <th style="padding: 20px;">آخر تحديث</th>
+                            <th style="padding: 20px;">العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for case in review_cases %}
+                        <tr>
+                            <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
+                            <td style="padding: 20px; color: #ddd;">{{
+                                case.clerk.get_full_name|default:case.clerk.username }}</td>
+                            <td style="padding: 20px; color: var(--text-muted);">
+                                {{ case.updated_at|default:case.created_at|date:"Y-m-d" }}</td>
+                            <td style="padding: 20px;">
+                                <a href="{% url 'judges:case_details' case.id %}" class="btn-primary"
+                                    style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 8px;">
+                                    <i class="fas fa-file-signature"></i> مراجعة وتدقيق
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% else %}
         <p
@@ -212,4 +217,28 @@
     </div>
 
 </div>
+
+<style>
+    @media (max-width: 992px) {
+        .dashboard-header-responsive {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 25px;
+            padding: 25px !important;
+        }
+
+        .dashboard-header-responsive a {
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem !important;
+        }
+
+        h3 {
+            font-size: 1.2rem !important;
+        }
+    }
+</style>
 {% endblock %}

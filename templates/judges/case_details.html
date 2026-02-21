@@ -6,7 +6,8 @@
     <!-- Case Header Card -->
     <div class="card"
         style="margin-bottom: 40px; padding: 40px; border-radius: 30px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255,255,255,0.01) 100%);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div class="case-header-responsive"
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
             <div style="display: flex; align-items: center; gap: 20px;">
                 <div
                     style="background: var(--primary-color); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #000;">
@@ -19,7 +20,7 @@
                     </p>
                 </div>
             </div>
-            <span class="badge"
+            <span class="badge status-badge"
                 style="background: var(--primary-color); color: #000; font-size: 1rem; padding: 10px 20px; border-radius: 10px; font-weight: 800;">{{
                 case.get_status_display }}</span>
         </div>
@@ -54,33 +55,35 @@
                     {{ heir_formset.management_form }}
                     <div class="table-container"
                         style="border-radius: 15px; background: transparent; border: 1px solid var(--glass-border);">
-                        <table style="width: 100%;">
-                            <thead>
-                                <tr style="background: rgba(212, 175, 55, 0.03);">
-                                    <th style="padding: 15px; color: var(--primary-color);">الاسم الكامل</th>
-                                    <th style="padding: 15px; color: var(--primary-color);">صلة القرابة</th>
-                                    <th style="padding: 15px; color: var(--primary-color);">الحساب المرتبط</th>
-                                    <th style="padding: 15px; color: var(--primary-color);">حذف</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for form in heir_formset %}
-                                <tr style="border-bottom: 1px solid var(--glass-border);">
-                                    <td style="padding: 15px;">{{ form.id }}{{ form.name }}</td>
-                                    <td style="padding: 15px;">{{ form.relationship }}</td>
-                                    <td style="padding: 15px; text-align: center;">
-                                        {% if form.instance.user %}
-                                        <span style="color: #2ecc71;"><i class="fas fa-check-circle"></i>
-                                             {{ form.instance.user.username }}</span>
-                                        {% else %}
-                                        <span style="color: var(--text-muted);">يدوي</span>
-                                        {% endif %}
-                                    </td>
-                                    <td style="padding: 15px; text-align: center;">{{ form.DELETE }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table style="width: 100%; min-width: 600px;">
+                                <thead>
+                                    <tr style="background: rgba(212, 175, 55, 0.03);">
+                                        <th style="padding: 15px; color: var(--primary-color);">الاسم الكامل</th>
+                                        <th style="padding: 15px; color: var(--primary-color);">صلة القرابة</th>
+                                        <th style="padding: 15px; color: var(--primary-color);">الحساب المرتبط</th>
+                                        <th style="padding: 15px; color: var(--primary-color);">حذف</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for form in heir_formset %}
+                                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                                        <td style="padding: 15px;">{{ form.id }}{{ form.name }}</td>
+                                        <td style="padding: 15px;">{{ form.relationship }}</td>
+                                        <td style="padding: 15px; text-align: center;">
+                                            {% if form.instance.user %}
+                                            <span style="color: #2ecc71;"><i class="fas fa-check-circle"></i>
+                                                {{ form.instance.user.username }}</span>
+                                            {% else %}
+                                            <span style="color: var(--text-muted);">يدوي</span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="padding: 15px; text-align: center;">{{ form.DELETE }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -224,16 +227,15 @@
                     style="font-size: 1.1rem; color: var(--primary-color); word-break: break-all;">{{ request.scheme }}://{{ request.get_host }}/cases/session/{{ case.session_link }}/</code>
             </div>
 
-            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <div class="action-btns-responsive"
+                style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
                 <form method="post" action="{% url 'judges:perform_calculation' case.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn-primary"
-                        style="padding: 1.2rem 4rem; font-size: 1.3rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);">
+                    <button type="submit" class="btn-primary main-action-btn">
                         <i class="fas fa-magic" style="margin-left: 10px;"></i> بدء الحساب وتوزيع الفريضة
                     </button>
                 </form>
-                <a href="{% url 'judges:allocate_assets' case.id %}" class="btn-outline"
-                    style="padding: 1.2rem 3rem; font-size: 1.1rem; border-radius: 15px;">
+                <a href="{% url 'judges:allocate_assets' case.id %}" class="btn-outline main-action-btn">
                     <i class="fas fa-sitemap" style="margin-left: 10px;"></i> إدارة تخصيص الأصول يدوياً
                 </a>
             </div>
@@ -273,7 +275,6 @@
         box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
     }
 
-    .table-container td input,
     .table-container td select {
         background: transparent;
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -281,6 +282,45 @@
         border-radius: 4px;
         padding: 5px;
         width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .card {
+            padding: 20px !important;
+        }
+
+        .case-header-responsive {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+
+        .status-badge {
+            width: 100%;
+            text-align: center;
+        }
+
+        .premium-form-grid p {
+            margin-bottom: 15px;
+        }
+
+        .action-btns-responsive {
+            flex-direction: column;
+        }
+
+        .action-btns-responsive form,
+        .action-btns-responsive a {
+            width: 100%;
+        }
+
+        .main-action-btn {
+            width: 100%;
+            padding: 15px !important;
+            font-size: 1.1rem !important;
+        }
+
+        h1 {
+            font-size: 1.4rem !important;
+        }
     }
 </style>
 {% endblock %}

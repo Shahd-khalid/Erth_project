@@ -34,8 +34,9 @@
             <span style="font-weight: 800; font-size: 1.4rem; color: #fff;">الورثة المسجلون حديثاً</span>
         </div>
 
-        <div class="table-container" style="border: none; border-radius: 0;">
-            <table style="width: 100%; border-collapse: collapse;">
+        <div class="table-container"
+            style="border: none; border-radius: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
                 <thead>
                     <tr style="background: rgba(212, 175, 55, 0.03);">
                         <th style="padding: 20px; font-weight: 700; color: var(--primary-color);">الاسم</th>
@@ -48,14 +49,16 @@
                 <tbody>
                     {% for heir in new_heirs %}
                     <tr style="transition: all 0.3s; border-bottom: 1px solid var(--glass-border);">
-                        <td style="padding: 20px; font-weight: 600; color: #fff;">{{ heir.full_name|default:heir.username }}</td>
+                        <td style="padding: 20px; font-weight: 600; color: #fff;">{{
+                            heir.full_name|default:heir.username }}</td>
                         <td style="padding: 20px;">
                             <span
                                 style="background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 6px; color: #ddd; font-size: 0.9rem;">
                                 {{ heir.deceased_name|default:"لم يحدد" }}
                             </span>
                         </td>
-                        <td style="padding: 20px; color: var(--text-muted); font-size: 0.95rem;">{{ heir.date_joined|date:"Y-m-d" }}</td>
+                        <td style="padding: 20px; color: var(--text-muted); font-size: 0.95rem;">{{
+                            heir.date_joined|date:"Y-m-d" }}</td>
                         <td style="padding: 20px;">
                             {% if heir.document_file %}
                             <a href="{{ heir.document_file.url }}" target="_blank"
@@ -121,6 +124,34 @@
     .premium-dropdown a:hover {
         background: rgba(212, 175, 55, 0.1);
         color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 15px;
+            margin-top: 20px !important;
+        }
+
+        .card[style*="justify-content: space-between"] {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 20px;
+            padding: 25px !important;
+        }
+
+        .card[style*="justify-content: space-between"] .btn-primary {
+            width: 100%;
+        }
+
+        .card-header span {
+            font-size: 1.1rem !important;
+        }
+
+        th,
+        td {
+            padding: 12px !important;
+            font-size: 0.85rem !important;
+        }
     }
 </style>
 

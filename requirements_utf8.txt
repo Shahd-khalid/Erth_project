@@ -1,0 +1,7 @@
+﻿Django>=5.2,<6.0
+psycopg2-binary
+dj-database-url
+whitenoise
+gunicorn
+Pillow
+python-dotenv

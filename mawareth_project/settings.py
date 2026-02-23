@@ -28,7 +28,7 @@ if SECRET_KEY == 'django-insecure-render-fallback-for-startup-only' and not DEBU
     warnings.warn("SECRET_KEY is not set in environment variables! Using insecure fallback.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'False'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']
 if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
@@ -101,6 +101,7 @@ if os.environ.get('DATABASE_URL'):
         'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
     }
 else:
+    # Use local settings only if no DATABASE_URL is provided (typical for local dev)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

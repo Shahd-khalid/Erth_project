@@ -11,9 +11,10 @@ import os
 from pathlib import Path
 
 # Load .env file if it exists (local development)
+# On Render, we rely on environment variables set in the Dashboard
 BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = BASE_DIR / '.env'
-if env_path.exists():
+if env_path.exists() and not os.environ.get('RENDER'):
     try:
         import dotenv
         dotenv.load_dotenv(dotenv_path=env_path)

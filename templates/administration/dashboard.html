@@ -50,16 +50,16 @@
                 <tbody>
                     {% for heir in new_heirs %}
                     <tr style="transition: all 0.3s; border-bottom: 1px solid var(--glass-border);">
-                        <td style="padding: 20px; font-weight: 600; color: #fff;">{{
-                            heir.full_name|default:heir.username }}</td>
+                        <td style="padding: 20px; font-weight: 600; color: #fff;">
+                            {{ heir.full_name|default:heir.username }}</td>
                         <td style="padding: 20px;">
                             <span
                                 style="background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 6px; color: #ddd; font-size: 0.9rem;">
                                 {{ heir.deceased_name|default:"لم يحدد" }}
                             </span>
                         </td>
-                        <td style="padding: 20px; color: var(--text-muted); font-size: 0.95rem;">{{
-                            heir.date_joined|date:"Y-m-d" }}</td>
+                        <td style="padding: 20px; color: var(--text-muted); font-size: 0.95rem;">
+                            {{ heir.date_joined|date:"Y-m-d" }}</td>
                         <td style="padding: 20px;">
                             {% if heir.document_file %}
                             <a href="{{ heir.document_file.url }}" target="_blank"

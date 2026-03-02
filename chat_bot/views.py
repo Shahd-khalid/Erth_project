@@ -8,14 +8,26 @@ import numpy as np
 from groq import Groq
 import os
 
-# تحميل موديل embeddings (استخدمت الإصدار الصغير small لسرعة التشغيل على Render)
-model = SentenceTransformer("intfloat/multilingual-e5-small")
-index = faiss.read_index("rag/index.faiss")
+import torch
+# تقليل عدد الخيوط لتوفير الموارد على Render
+torch.set_num_threads(1)
 
-with open("rag/chunks.json", "r", encoding="utf-8") as f:
-    chunks = json.load(f)
+# متغيرات عالمية سيتم تحميلها عند الحاجة (Lazy Loading)
+_model = None
+_index = None
+_chunks = None
 
-# تهيئة عميل Groq (سيسحب المفتاح تلقائياً من متغيرات البيئة في Render)
+def get_rag_resources():
+    global _model, _index, _chunks
+    if _model is None:
+        print("📥 Loading RAG resources for the first time...")
+        _model = SentenceTransformer("intfloat/multilingual-e5-small")
+        _index = faiss.read_index("rag/index.faiss")
+        with open("rag/chunks.json", "r", encoding="utf-8") as f:
+            _chunks = json.load(f)
+    return _model, _index, _chunks
+
+# تهيئة عميل Groq (سريع جداً ولا يحتاج تحميل موديلات)
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 def chat(request):
@@ -23,6 +35,9 @@ def chat(request):
         question = request.GET.get("q")
         if not question:
             return JsonResponse({"answer": "اكتب سؤالك أولاً!"}, json_dumps_params={'ensure_ascii': False})
+
+        # تحميل الموارد فقط عند أول طلب لضمان تشغيل السيرفر بسرعة
+        model, index, chunks = get_rag_resources()
 
         # تحويل السؤال إلى Vector والتأكد من النوع float32
         question_embedding = model.encode([question]).astype('float32')

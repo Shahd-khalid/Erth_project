@@ -15,4 +15,5 @@ urlpatterns = [
     path('clerks/', include('clerks.urls')),
     path('heirs/', include('heirs.urls')),
     path('admin_custom/', include('administration.urls')),
+    path('chat/', include('chat_bot.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

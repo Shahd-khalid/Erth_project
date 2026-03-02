@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from sentence_transformers import SentenceTransformer
-from transformers import pipeline
 import json
 import faiss
 import numpy as np
@@ -9,8 +8,8 @@ import numpy as np
 from groq import Groq
 import os
 
-# تحميل موديل embeddings
-model = SentenceTransformer("intfloat/multilingual-e5-base")
+# تحميل موديل embeddings (استخدمت الإصدار الصغير small لسرعة التشغيل على Render)
+model = SentenceTransformer("intfloat/multilingual-e5-small")
 index = faiss.read_index("rag/index.faiss")
 
 with open("rag/chunks.json", "r", encoding="utf-8") as f:

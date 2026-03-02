@@ -8,7 +8,7 @@ from groq import Groq
 def test_rag():
     try:
         print("1. Loading Model...")
-        model = SentenceTransformer("intfloat/multilingual-e5-base")
+        model = SentenceTransformer("intfloat/multilingual-e5-small")
         
         print("2. Loading Index...")
         index = faiss.read_index("rag/index.faiss")

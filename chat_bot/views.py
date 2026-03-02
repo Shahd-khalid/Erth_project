@@ -1,18 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from sentence_transformers import SentenceTransformer
 import json
-import faiss
-import numpy as np
-
-from groq import Groq
 import os
+from groq import Groq
 
-import torch
-# تقليل عدد الخيوط لتوفير الموارد على Render
-torch.set_num_threads(1)
-
-# متغيرات عالمية سيتم تحميلها عند الحاجة (Lazy Loading)
+# متغيرات عالمية سيتم تحميلها عند الحاجة (Truly Lazy Loading)
 _model = None
 _index = None
 _chunks = None
@@ -20,14 +12,25 @@ _chunks = None
 def get_rag_resources():
     global _model, _index, _chunks
     if _model is None:
-        print("📥 Loading RAG resources for the first time...")
+        print("📥 Loading heavy AI models & libraries for the first time...")
+        # استيراد المكتبات الثقيلة هنا فقط (داخل الدالة) يمنع الموقع من الانهيار عند التشغيل
+        # ويجعله يفتح البورت (Port) فوراً لـ Render
+        from sentence_transformers import SentenceTransformer
+        import faiss
+        import torch
+        
+        # تقليل عدد الخيوط لتوفير الموارد (RAM/CPU)
+        torch.set_num_threads(1)
+        
         _model = SentenceTransformer("intfloat/multilingual-e5-small")
         _index = faiss.read_index("rag/index.faiss")
+        
         with open("rag/chunks.json", "r", encoding="utf-8") as f:
             _chunks = json.load(f)
+            
     return _model, _index, _chunks
 
-# تهيئة عميل Groq (سريع جداً ولا يحتاج تحميل موديلات)
+# تهيئة عميل Groq (سريع جداً وخفيف)
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 def chat(request):

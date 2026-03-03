@@ -5,20 +5,53 @@ import faiss
 import requests
 import time
 from groq import Groq
+from dotenv import load_dotenv
 
-def query_huggingface(payload):
-    HF_API_URL = "https://api-inference.huggingface.co/models/intfloat/multilingual-e5-small"
+# تحميل متغيرات البيئة من ملف .env
+load_dotenv()
+
+def query_hf_embedding(text):
     HF_TOKEN = os.environ.get("HUGGINGFACE_API_KEY")
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
-    for _ in range(3):
-        response = requests.post(HF_API_URL, headers=headers, json=payload)
-        result = response.json()
-        if isinstance(result, dict) and "error" in result and "currently loading" in result["error"]:
-            print("⏳ Model is loading, waiting...")
-            time.sleep(5)
-            continue
-        return result
-    return None
+    # موديل مايكروسوفت العالمي - مضمون لخاصية feature-extraction
+    MODEL_ID = "microsoft/Multilingual-MiniLM-L12-H384"
+    # الرابط الجديد المعتمد كبديل للرابط القديم
+    url = f"https://router.huggingface.co/hf-inference/models/{MODEL_ID}"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    
+    try:
+        # 350 حرف هو الأضمن للغة العربية
+        safe_text = text[:350]
+        response = requests.post(url, headers=headers, json={"inputs": safe_text}, timeout=15)
+        
+        if response.status_code == 200:
+            result = response.json()
+            
+            # فحص صارم للنتيجة
+            if isinstance(result, list) and len(result) > 0:
+                # التعامل مع الـ Tensor (3D/2D)
+                if isinstance(result[0], list):
+                    if isinstance(result[0][0], list):
+                        vector = result[0][0] # CLS
+                    else:
+                        vector = result[0]
+                else:
+                    vector = result
+                
+                # التأكد أنها قائمة أرقام
+                if isinstance(vector, list) and isinstance(vector[0], (int, float)):
+                    return vector
+            
+            print(f"⚠️ Debug: API returned unexpected format: {result}")
+            return None
+        elif response.status_code in [503, 404]:
+            print(f"⏳ Model is loading, please wait...")
+            return None
+        else:
+            print(f"❌ HF API Error {response.status_code}: {response.text}")
+            return None
+    except Exception as e:
+        print(f"❌ HF connection error: {e}")
+        return None
 
 def test_rag():
     try:
@@ -29,19 +62,20 @@ def test_rag():
         with open("rag/chunks.json", "r", encoding="utf-8") as f:
             chunks = json.load(f)
             
-        print("3. Testing API Encoding...")
+        print("3. Connecting to Groq...")
+        groq_key = os.environ.get("GROQ_API_KEY")
+        client_groq = Groq(api_key=groq_key)
+
+        print("4. Testing HF Encoding...")
         question = "كم نصيب الأم؟"
-        hf_result = query_huggingface({"inputs": f"query: {question}"})
+        embedding = query_hf_embedding(question)
         
-        if hf_result and isinstance(hf_result, list):
-            question_embedding = np.array(hf_result).astype('float32')
-            if len(question_embedding.shape) == 1:
-                question_embedding = question_embedding.reshape(1, -1)
+        if embedding is not None:
+            question_embedding = np.array([embedding]).astype('float32')
         else:
-            print(f"❌ API Error: {hf_result}")
             return
         
-        print("4. Testing FAISS Search...")
+        print("5. Testing FAISS Search...")
         D, I = index.search(question_embedding, k=3)
         
         context = ""

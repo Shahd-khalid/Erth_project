@@ -12,9 +12,13 @@ from huggingface_hub import InferenceClient
 # المتغيرات العالمية للكاش
 _index = None
 _chunks = None
+_client_groq = None
 
-# تهيئة عميل Groq (للرد على الأسئلة)
-client_groq = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+def get_groq_client():
+    global _client_groq
+    if _client_groq is None:
+        _client_groq = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    return _client_groq
 
 def get_rag_resources():
     global _index, _chunks
@@ -87,6 +91,7 @@ def chat(request):
                 context += chunks[i] + "\n"
         
         # إرسال إلى Groq للرد النهائي
+        client_groq = get_groq_client()
         completion = client_groq.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[

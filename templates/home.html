@@ -57,6 +57,27 @@
             <p style="color: var(--text-muted); font-size: 1rem;">حماية تامة للبيانات والوثائق.</p>
         </div>
 
+        <!-- NEW: AI Assistant Feature -->
+        <div class="bento-item ai-assistant"
+            style="grid-column: span 12; background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(0, 0, 0, 0.4) 100%); border: 1px solid var(--primary-color); border-radius: 30px; padding: 50px; display: flex; align-items: center; justify-content: space-between; gap: 30px; transition: var(--transition);">
+            <div style="display: flex; align-items: center; gap: 30px;">
+                <div
+                    style="background: var(--primary-color); width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-robot" style="font-size: 2.5rem; color: #000;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 8px;">المستشار القانوني
+                        الذكي (AI)</h3>
+                    <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px;">اطرح أسئلتك حول فقه
+                        المواريث واحصل على إجابات فورية مدعومة بالذكاء الاصطناعي والمصادر الشرعية.</p>
+                </div>
+            </div>
+            <a href="{% url 'chat_page' %}" class="btn-primary"
+                style="padding: 1rem 2.5rem; font-size: 1.1rem; white-space: nowrap;">
+                اسأل المستشار الآن
+            </a>
+        </div>
+
         <!-- Role Access: Judges & Admin -->
         <div class="bento-item role-access"
             style="grid-column: span 6; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; display: flex; align-items: center; gap: 30px;">

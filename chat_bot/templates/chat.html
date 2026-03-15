@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إرث | المستشار الذكي{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--border-radius-lg);
+        backdrop-filter: blur(15px);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+    }
+
+    .chat-header {
+        padding: 20px 30px;
+        background: rgba(212, 175, 55, 0.05);
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .chat-header i {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+    }
+
+    .chat-header h2 {
+        font-size: 1.3rem;
+        margin: 0;
+        color: var(--primary-color);
+    }
+
+    #chat-box {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) transparent;
+    }
+
+    #chat-box::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #chat-box::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 10px;
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 15px 20px;
+        border-radius: 20px;
+        line-height: 1.6;
+        position: relative;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message.user {
+        align-self: flex-end;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: #000;
+        border-bottom-left-radius: 4px;
+        font-weight: 500;
+    }
+
+    .message.bot {
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: var(--white);
+        border-bottom-right-radius: 4px;
+    }
+
+    .chat-input-area {
+        padding: 25px 30px;
+        background: rgba(0, 0, 0, 0.2);
+        border-top: 1px solid var(--glass-border);
+        display: flex;
+        gap: 15px;
+    }
+
+    .input-group {
+        flex: 1;
+        position: relative;
+    }
+
+    #question {
+        width: 100%;
+        padding: 15px 25px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 50px;
+        color: var(--white);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+
+    #question:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+    }
+
+    .send-btn {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        border: none;
+        color: #000;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+    }
+
+    .send-btn:hover {
+        transform: scale(1.05) rotate(-10deg);
+        background: var(--primary-hover);
+    }
+
+    .typing-indicator {
+        display: none;
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 12px 20px;
+        border-radius: 20px;
+        gap: 5px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        animation: blink 1.4s infinite both;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes blink {
+
+        0%,
+        80%,
+        100% {
+            opacity: 0.3;
+        }
+
+        40% {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-wrapper">
+    <div class="chat-header">
+        <i class="fas fa-robot"></i>
+        <h2>المستشار القانوني الذكي</h2>
+    </div>
+
+    <div id="chat-box">
+        <div class="message bot">
+            أهلاً بك في منصة إرث. أنا مستشارك الذكي المتخصص في علم المواريث، كيف يمكنني مساعدتك اليوم؟
+        </div>
+    </div>
+
+    <div class="typing-indicator" id="typing">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+
+    <div class="chat-input-area">
+        <div class="input-group">
+            <input type="text" id="question" placeholder="اكتب سؤالك هنا عن المواريث..."
+                onkeypress="if(event.key === 'Enter') ask()">
+        </div>
+        <button class="send-btn" onclick="ask()">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const questionInput = document.getElementById('question');
+    const typingIndicator = document.getElementById('typing');
+
+    function appendMessage(text, side) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${side}`;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function ask() {
+        const q = questionInput.value.trim();
+        if (!q) return;
+
+        // Add user message
+        appendMessage(q, 'user');
+        questionInput.value = '';
+
+        // Show typing
+        typingIndicator.style.display = 'flex';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        fetch(`/chat/chat/?q=${encodeURIComponent(q)}`)
+            .then(res => res.json())
+            .then(data => {
+                typingIndicator.style.display = 'none';
+                appendMessage(data.answer, 'bot');
+            })
+            .catch(err => {
+                typingIndicator.style.display = 'none';
+                appendMessage('عذراً، حدث خطأ في النظام. يرجى المحاولة لاحقاً.', 'bot');
+            });
+    }
+</script>
+{% endblock %}

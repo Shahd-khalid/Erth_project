@@ -215,6 +215,11 @@
 
                 <!-- Desktop Links -->
                 <ul class="nav-links desktop-only">
+            <div class="nav-right" id="navRight" style="display: flex; align-items: center; gap: 40px;">
+                <ul class="nav-links" style="display: flex; gap: 20px; align-items: center;">
+                    <li><a href="{% url 'chat_page' %}"><i class="fas fa-robot"></i> المستشار الذكي</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'dashboard:index' %}"><i class="fas fa-th-large"></i> لوحة التحكم</a></li>
                     <li>
                         <a href="{% url 'dashboard:visual_guide_selection' %}" class="nav-link">
                             <i class="fas fa-sitemap"></i> الدليل المرئي

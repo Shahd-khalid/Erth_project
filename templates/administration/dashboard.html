@@ -302,6 +302,39 @@
                             <span style="color: #e74c3c; font-size: 0.8rem; margin-right: 10px; border: 1px solid #e74c3c; padding: 2px 5px; border-radius: 5px;">
                                 <i class="fas fa-times-circle"></i> مرفوض سابقاً
                             </span>
+        <div class="table-container"
+            style="border: none; border-radius: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                <thead>
+                    <tr style="background: rgba(212, 175, 55, 0.03);">
+                        <th style="padding: 20px; font-weight: 700; color: var(--primary-color);">الاسم</th>
+                        <th style="padding: 20px; font-weight: 700; color: var(--primary-color);">اسم المتوفى</th>
+                        <th style="padding: 20px; font-weight: 700; color: var(--primary-color);">التاريخ</th>
+                        <th style="padding: 20px; font-weight: 700; color: var(--primary-color);">الوثائق</th>
+                        <th style="padding: 20px; font-weight: 700; color: var(--primary-color);">العمليات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for heir in new_heirs %}
+                    <tr style="transition: all 0.3s; border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding: 20px; font-weight: 600; color: #fff;">
+                            {{ heir.full_name|default:heir.username }}</td>
+                        <td style="padding: 20px;">
+                            <span
+                                style="background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 6px; color: #ddd; font-size: 0.9rem;">
+                                {{ heir.deceased_name|default:"لم يحدد" }}
+                            </span>
+                        </td>
+                        <td style="padding: 20px; color: var(--text-muted); font-size: 0.95rem;">
+                            {{ heir.date_joined|date:"Y-m-d" }}</td>
+                        <td style="padding: 20px;">
+                            {% if heir.document_file %}
+                            <a href="{{ heir.document_file.url }}" target="_blank"
+                                style="color: var(--primary-color); font-weight: 600; text-decoration: underline;">
+                                <i class="fas fa-file-pdf"></i> مراجعة
+                            </a>
+                            {% else %}
+                            <span style="opacity: 0.4;">لا يوجد</span>
                             {% endif %}
                         </div>
                     </div>

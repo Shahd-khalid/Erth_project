@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}جدول حالات المواريث | إرث{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table-container {
+        padding: 40px 0;
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .table-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .table-header h1 {
+        color: var(--primary-color);
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+        font-family: 'Tajawal', sans-serif;
+    }
+
+    .table-header p {
+        color: var(--text-color);
+        opacity: 0.8;
+        font-size: 1.1rem;
+    }
+
+    .controls-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px 25px;
+        border-radius: 12px;
+        border: 1px solid rgba(212, 175, 55, 0.1);
+    }
+
+    .back-btn {
+        background: transparent;
+        border: 1px solid var(--accent-color);
+        color: var(--accent-color);
+        padding: 8px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-family: 'Tajawal', sans-serif;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-btn:hover {
+        background: var(--accent-color);
+        color: #fff;
+    }
+
+    .mawareth-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(13, 17, 23, 0.7);
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border: 1px solid #ffffff;
+    }
+
+    /* Apply border-radius to table corners by selecting first/last th/td */
+    .mawareth-table tr:first-child th:first-child {
+        border-top-right-radius: 12px;
+    }
+
+    .mawareth-table tr:first-child th:last-child {
+        border-top-left-radius: 12px;
+    }
+
+    .mawareth-table tr:last-child td:first-child {
+        border-bottom-right-radius: 12px;
+    }
+
+    .mawareth-table tr:last-child td:last-child {
+        border-bottom-left-radius: 12px;
+    }
+
+    .mawareth-table th,
+    .mawareth-table td {
+        padding: 18px 20px;
+        text-align: right;
+        border: 1px solid #ffffff;
+        color: var(--text-color);
+    }
+
+    .mawareth-table th {
+        background: rgba(26, 35, 47, 0.9);
+        color: var(--accent-color);
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .mawareth-table tr:hover td {
+        background: rgba(255, 255, 255, 0.08);
+        /* More distinguishable hover */
+    }
+
+    .heir-group td {
+        background: rgba(212, 175, 55, 0.05);
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .share-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        background: rgba(212, 175, 55, 0.15);
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 20px;
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .condition-text {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.6;
+    }
+
+    .heir-name {
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: #fff;
+    }
+
+    @media (max-width: 768px) {
+        .mawareth-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="table-header">
+        <h1>الجدول الجامع لحالات المواريث</h1>
+        <p>تفصيل للأنصبة الشرعية وحالات الحجب والشروط لكل وارث.</p>
+    </div>
+
+    <div class="controls-wrapper">
+        <a href="{% url 'dashboard:visual_guide_selection' %}" class="back-btn">
+            <i class="fas fa-arrow-right"></i> العودة للاختيار
+        </a>
+    </div>
+
+    <table class="mawareth-table">
+        <thead>
+            <tr>
+                <th width="20%">الوارث</th>
+                <th width="55%">الشرط / حالة الإرث</th>
+                <th width="25%">النصيب المستحق</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- الزوجين -->
+            <tr class="heir-group">
+                <td colspan="3"><i class="fas fa-ring"></i> الزوجين</td>
+            </tr>
+            <tr>
+                <td rowspan="2" class="heir-name">الزوج</td>
+                <td class="condition-text">عدم وجود فرع وارث للزوجة</td>
+                <td><span class="share-badge">النصف (1/2)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">وجود فرع وارث للزوجة</td>
+                <td><span class="share-badge">الربع (1/4)</span></td>
+            </tr>
+            <tr>
+                <td rowspan="2" class="heir-name">الزوجة</td>
+                <td class="condition-text">عدم وجود فرع وارث للزوج</td>
+                <td><span class="share-badge">الربع (1/4)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">وجود فرع وارث للزوج</td>
+                <td><span class="share-badge">الثمن (1/8)</span></td>
+            </tr>
+
+            <!-- الفروع -->
+            <tr class="heir-group">
+                <td colspan="3"><i class="fas fa-arrow-down"></i> الفروع</td>
+            </tr>
+            <tr>
+                <td class="heir-name">الابن</td>
+                <td class="condition-text">يرث دائماً ويحجب الحواشي</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td rowspan="3" class="heir-name">البنت</td>
+                <td class="condition-text">واحدة ولم يوجد ابن</td>
+                <td><span class="share-badge">النصف (1/2)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">اثنتان فأكثر ولم يوجد ابن</td>
+                <td><span class="share-badge">الثلثان (2/3)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">وجود ابن (ذكر وأنثى)</td>
+                <td><span class="share-badge">تعصيب بالغير</span></td>
+            </tr>
+            <tr>
+                <td class="heir-name">ابن الابن</td>
+                <td class="condition-text">يرث إذا لم يوجد ابن</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td rowspan="4" class="heir-name">بنت الابن</td>
+                <td class="condition-text">واحدة (عدم وجود ابن، ابن ابن أعلى، بنت)</td>
+                <td><span class="share-badge">النصف (1/2)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">اثنتان فأكثر (عدم وجود ابن، ابن ابن أعلى، بنت)</td>
+                <td><span class="share-badge">الثلثان (2/3)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع بنت صلبية واحدة</td>
+                <td><span class="share-badge">السدس (1/6) تكملة للثلثين</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع ابن ابن موازٍ لها</td>
+                <td><span class="share-badge">تعصيب بالغير</span></td>
+            </tr>
+
+            <!-- الحواشي -->
+            <tr class="heir-group">
+                <td colspan="3"><i class="fas fa-users"></i> حواشي الميت</td>
+            </tr>
+            <tr>
+                <td class="heir-name">أخ شقيق</td>
+                <td class="condition-text">عدم وجود أصل مذكر أو فرع مذكر</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td rowspan="4" class="heir-name">أخت شقيقة</td>
+                <td class="condition-text">واحدة وعدم وجود أصل أو فرع أو أخ شقيق</td>
+                <td><span class="share-badge">النصف (1/2)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">اثنتان فأكثر</td>
+                <td><span class="share-badge">الثلثان (2/3)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع أخ شقيق</td>
+                <td><span class="share-badge">تعصيب بالغير</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع بنات الميت</td>
+                <td><span class="share-badge">تعصيب مع الغير</span></td>
+            </tr>
+            <tr>
+                <td rowspan="2" class="heir-name">أخ لأب</td>
+                <td class="condition-text">عدم وجود ابن أو أخ شقيق</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">يعصب أخته لأب إذا وجدت</td>
+                <td><span class="share-badge">تعصيب بالغير</span></td>
+            </tr>
+            <tr>
+                <td rowspan="5" class="heir-name">أخت لأب</td>
+                <td class="condition-text">واحدة (عدم وجود إخوة أشقاء، ابن، أب)</td>
+                <td><span class="share-badge">النصف (1/2)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">اثنتان فأكثر</td>
+                <td><span class="share-badge">الثلثان (2/3)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع أخت شقيقة واحدة</td>
+                <td><span class="share-badge">السدس (1/6) تكملة للثلثين</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع أخ لأب</td>
+                <td><span class="share-badge">تعصيب بالغير</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع بنات الميت</td>
+                <td><span class="share-badge">تعصيب مع الغير</span></td>
+            </tr>
+            <tr>
+                <td rowspan="2" class="heir-name">أخ لأم</td>
+                <td class="condition-text">واحد (عدم وجود أصل، فرع)</td>
+                <td><span class="share-badge">السدس (1/6)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">اثنان فأكثر</td>
+                <td><span class="share-badge">الثلث (1/3) يقتسمونه</span></td>
+            </tr>
+            <tr>
+                <td rowspan="2" class="heir-name">أخت لأم</td>
+                <td class="condition-text">واحدة (عدم وجود أصل وفرع)</td>
+                <td><span class="share-badge">السدس (1/6)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">اثنتان فأكثر</td>
+                <td><span class="share-badge">الثلث (1/3) يقتسمونه</span></td>
+            </tr>
+            <tr>
+                <td class="heir-name">ابن أخ شقيق</td>
+                <td class="condition-text">عدم وجود أخ شقيق ومن يحجبه</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td class="heir-name">ابن أخ لأب</td>
+                <td class="condition-text">عدم وجود أخ لأب ومن يحجبه</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+
+            <!-- الأصول -->
+            <tr class="heir-group">
+                <td colspan="3"><i class="fas fa-arrow-up"></i> الأصول</td>
+            </tr>
+            <tr>
+                <td rowspan="3" class="heir-name">الأب</td>
+                <td class="condition-text">مع وجود فرع وارث مذكر</td>
+                <td><span class="share-badge">السدس (1/6)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع وجود فرع وارث مؤنث</td>
+                <td><span class="share-badge">السدس + الباقي تعصيباً</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">عدم وجود فرع وارث</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td rowspan="2" class="heir-name">الأم</td>
+                <td class="condition-text">عدم وجود فرع وارث وعدم وجود جمع إخوة</td>
+                <td><span class="share-badge">الثلث (1/3)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">وجود فرع وارث أو جمع إخوة</td>
+                <td><span class="share-badge">السدس (1/6)</span></td>
+            </tr>
+            <tr>
+                <td rowspan="3" class="heir-name">الجد (أبو الأب)</td>
+                <td class="condition-text">مع وجود فرع وارث مذكر (عدم وجود أب)</td>
+                <td><span class="share-badge">السدس (1/6)</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">مع وجود فرع وارث مؤنث (عدم وجود أب)</td>
+                <td><span class="share-badge">السدس + الباقي تعصيباً</span></td>
+            </tr>
+            <tr>
+                <td class="condition-text">عدم وجود فرع وارث (عدم وجود أب)</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td class="heir-name">الجدة</td>
+                <td class="condition-text">واحدة أو أكثر (عدم وجود الأم)</td>
+                <td><span class="share-badge">السدس (1/6)</span></td>
+            </tr>
+
+            <!-- حواشي الأب -->
+            <tr class="heir-group">
+                <td colspan="3"><i class="fas fa-user-friends"></i> حواشي الأب</td>
+            </tr>
+            <tr>
+                <td class="heir-name">عم شقيق</td>
+                <td class="condition-text">عدم وجود أب أو جد</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td class="heir-name">عم لأب</td>
+                <td class="condition-text">عدم وجود أب، جد، أو عم شقيق</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td class="heir-name">ابن عم شقيق</td>
+                <td class="condition-text">عدم وجود عم شقيق ومن يحجبه</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+            <tr>
+                <td class="heir-name">ابن عم لأب</td>
+                <td class="condition-text">عدم وجود عم لأب ومن يحجبه</td>
+                <td><span class="share-badge">عصبة بالنفس</span></td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+{% endblock %}

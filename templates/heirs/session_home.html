@@ -32,86 +32,468 @@
         </div>
     </div>
 
+    {% if case.status == 'COMPLETED' or case.status == 'PAYMENTS_PHASE' or case.status == 'RAFFLE_PHASE' %}
     <div class="row">
         <div class="col-12">
-            <h3>الأصول المخصصة لك</h3>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
+            <h3 style="color: var(--primary-color); font-weight: 800; margin-bottom: 25px;"><i class="fas fa-certificate"></i> الأصول المخصصة لك</h3>
+            <div class="table-responsive shadow-sm" style="border-radius: 20px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.1);">
+                <table class="table table-hover" style="margin: 0; color: #fff;">
+                    <thead style="background: rgba(212, 175, 55, 0.1);">
                         <tr>
-                            <th>الأصل</th>
-                            <th>النوع</th>
-                            <th>القيمة</th>
-                            <th>الصورة</th>
+                            <th style="padding: 20px; border: none;">الأصل / العينة</th>
+                            <th style="padding: 20px; border: none;">الحالة</th>
+                            <th style="padding: 20px; border: none;">القيمة</th>
+                            <th style="padding: 20px; border: none; text-align: center;">العرض / الصورة</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for asset in my_assets %}
-                        <tr>
-                            <td>{{ asset.description }}</td>
-                            <td>{{ asset.get_asset_type_display }}</td>
-                            <td>{{ asset.value }}</td>
-                            <td>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 20px;">
+                                <span class="badge bg-primary" style="margin-bottom: 5px;">أصل كامل</span><br>
+                                <strong style="font-size: 1.1rem;">{{ asset.description }}</strong>
+                            </td>
+                            <td style="padding: 20px; vertical-align: middle;">
+                                <span class="badge bg-success">ملكية نهائية</span>
+                            </td>
+                            <td style="padding: 20px; vertical-align: middle; font-weight: 700; color: var(--primary-color);">{{ asset.value }} ريال</td>
+                            <td style="padding: 20px; text-align: center;">
                                 {% if asset.image %}
-                                <a href="{{ asset.image.url }}" target="_blank">عرض</a>
+                                <a href="{{ asset.image.url }}" target="_blank">
+                                    <img src="{{ asset.image.url }}" alt="صورة"
+                                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 2px solid var(--glass-border);">
+                                </a>
                                 {% else %}
-                                -
+                                <i class="fas fa-image" style="opacity: 0.2; font-size: 1.5rem;"></i>
                                 {% endif %}
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center">لم يتم تخصيص أي أصول لك حتى الآن. قد يكون نصيبك نقداً أو
-                                سيتم تحديده لاحقاً.</td>
+                        {% endfor %}
+
+                        {% for comp in my_components %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 20px;">
+                                <span class="badge bg-warning text-dark" style="margin-bottom: 5px;">جزء (عينة)</span><br>
+                                <strong style="font-size: 1.1rem;">{{ comp.description }}</strong>
+                                <small class="text-muted d-block">من أصل: {{ comp.asset.description }}</small>
+                            </td>
+                            <td style="padding: 20px; vertical-align: middle;">
+                                <span class="badge bg-success">ملكية نهائية</span>
+                            </td>
+                            <td style="padding: 20px; vertical-align: middle; font-weight: 700; color: var(--primary-color);">{{ comp.value }} ريال</td>
+                            <td style="padding: 20px; text-align: center;">
+                                {% if comp.asset.image %}
+                                <a href="{{ comp.asset.image.url }}" target="_blank">
+                                    <img src="{{ comp.asset.image.url }}" alt="صورة"
+                                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 12px; border: 2px solid var(--glass-border);">
+                                </a>
+                                {% else %}
+                                <i class="fas fa-image" style="opacity: 0.2; font-size: 1.5rem;"></i>
+                                {% endif %}
+                            </td>
                         </tr>
+                        {% endfor %}
+                        
+                        <!-- Show assets that are WON but not yet assigned due to payment -->
+                        {% for bill in my_bills %}
+                            {% if not bill.is_paid_to_judge %}
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(231, 76, 60, 0.05);">
+                                <td style="padding: 20px;">
+                                    <span class="badge bg-danger" style="margin-bottom: 5px;">قيد السداد</span><br>
+                                    <strong style="font-size: 1.1rem;">
+                                        {% if bill.asset %}
+                                            {{ bill.asset.description }}
+                                        {% else %}
+                                            {{ bill.component.description }}
+                                        {% endif %}
+                                    </strong>
+                                    <small class="text-muted d-block">فوز بالقرعة - بانتظار توفية الفرق</small>
+                                </td>
+                                <td style="padding: 20px; vertical-align: middle;">
+                                    <span class="badge bg-warning text-dark">محجوب مؤقتاً</span>
+                                </td>
+                                <td style="padding: 20px; vertical-align: middle; font-weight: 700; color: #fff;">
+                                    {% if bill.asset %}
+                                        {{ bill.asset.value }}
+                                    {% else %}
+                                        {{ bill.component.value }}
+                                    {% endif %}
+                                    ريال</td>
+                                <td style="padding: 20px; text-align: center;">
+                                    <div style="width: 60px; height: 60px; background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                        <i class="fas fa-lock" style="color: var(--primary-color);"></i>
+                                    </div>
+                                    <small class="text-danger d-block mt-1" style="font-size: 0.7rem;">أكمل السداد للعرض</small>
+                                </td>
+                            </tr>
+                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+    {% endif %}
 
-    <hr class="my-4">
+    <hr class="my-5" style="opacity: 0.1;">
 
-    {% if heir.acceptance_status == 'PENDING' %}
-    <div class="text-center">
-        {% if my_assets %}
-        <h4>هل توافق على هذه القسمة؟</h4>
-        <div class="mt-3">
-            <form method="post" style="display: inline-block;">
-                {% csrf_token %}
-                <button type="submit" name="action" value="accept" class="btn btn-success btn-lg px-5">أوافق</button>
-            </form>
-
-            <form method="post" style="display: inline-block;">
-                {% csrf_token %}
-                <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg px-5 ms-3">لا أوافق
-                    (اختيار يدوي)</button>
-            </form>
+    {% if case.recent_logs %}
+    <div class="card mb-5" style="border-radius: 20px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.01); overflow: hidden;">
+        <div class="card-header" style="background: rgba(212, 175, 55, 0.08); padding: 15px 25px; border-bottom: 1px solid rgba(212, 175, 55, 0.1);">
+            <h5 style="margin: 0; color: var(--primary-color); font-weight: 800;"><i class="fas fa-stream"></i> سجل نشاط الجلسة (مباشر)</h5>
         </div>
-        <p class="text-muted mt-2 small">عند عدم القبول، ستنتقل إلى صفحة تتيح لك اختيار أصول أخرى بحدود نصيبك.</p>
+        <div class="card-body" style="padding: 0; max-height: 250px; overflow-y: auto;">
+            <div class="list-group list-group-flush">
+                {% for log in case.recent_logs %}
+                <div class="list-group-item" style="background: transparent; border-bottom: 1px solid rgba(52, 152, 219, 0.05); padding: 15px 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="color: #ddd;">
+                            <strong style="color: var(--primary-color); margin-left:10px;">{{ log.heir.name }}:</strong>
+                            <span>{{ log.action_text }}</span>
+                        </div>
+                        <small style="color: var(--text-muted); font-size: 0.75rem;">{{ log.created_at|date:"H:i" }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if case.waiting_for_judge_approval %}
+    <div class="card border-info mb-5 shadow-lg" style="border-radius: 20px; overflow: hidden; border-width: 2px;">
+        <div class="card-header bg-info text-white fw-bold p-3">
+            <i class="fas fa-handshake"></i> بانتظار موافقة القاضي النهائية
+        </div>
+        <div class="card-body text-center p-5" style="background: rgba(52, 152, 219, 0.05);">
+            <h4 style="color: #2980b9; font-weight: 800; margin-bottom: 15px;">إجماع الورثة مكتمل!</h4>
+            <p style="font-size: 1.1rem;">لقد اتفقتم جميعاً على القسمة بالتراضي.</p>
+            <p style="color: #636e72;">فضيلة القاضي يقوم الآن بمراجعة الاتفاق وسيقوم بفتح التركة للاختيار قريباً جداً.</p>
+            <div class="mt-4">
+                <div class="spinner-grow text-info" role="status"></div>
+                <div class="spinner-grow text-info mx-2" role="status" style="animation-delay: 0.2s"></div>
+                <div class="spinner-grow text-info" role="status" style="animation-delay: 0.4s"></div>
+            </div>
+        </div>
+    </div>
+    {% elif case.status == 'CONSENT_PENDING' %}
+        {% if heir.acceptance_status == 'REJECTED' %}
+        <div class="card border-warning mb-4 shadow-sm" style="border-radius: 15px;">
+            <div class="card-header bg-warning text-dark fw-bold">
+                <i class="fas fa-hourglass-half"></i> بانتظار تصويت بقية الورثة
+            </div>
+            <div class="card-body text-center p-4">
+                <p style="font-size: 1.1rem;">لقد قمت برفض التقسيم وطلب الدخول في مسار القسمة بالتراضي.</p>
+                <p class="text-muted">تم إرسال طلبك لبقية الورثة، ونحن في انتظار قرارهم لفتح المجال للاختيار.</p>
+                <div class="spinner-border text-warning mt-2" role="status"></div>
+            </div>
+        </div>
         {% else %}
-        <h4>لم يتم تخصيص أصول لك بعد.</h4>
-        <p>يمكنك البدء باختيار الأصول التي ترغب فيها ضمن حدود نصيبك.</p>
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit" name="action" value="reject" class="btn btn-primary btn-lg px-5">
-                <i class="fas fa-hand-pointer"></i> البدء باختيار الأصول
-            </button>
-        </form>
+        <div class="card border-danger mb-4 shadow-sm" style="border-radius: 20px; border-width: 2px;">
+            <div class="card-header bg-danger text-white fw-bold p-3">
+                <i class="fas fa-exclamation-circle"></i> طلب قسمة بالتراضي
+            </div>
+            <div class="card-body text-center p-4">
+                {% if heir.mutual_consent_status == 'NOT_VOTED' %}
+                    <p style="font-size: 1.3rem; font-weight: bold; color: #c0392b;">قام الوريث {% for o_heir in objecting_heirs %} "{{ o_heir.name }}" {% if not forloop.last %} و {% endif %}{% endfor %} بالرفض لتقسيم القاضي وطلب الدخول في القِسمة بالتراضي.</p>
+                    <p class="mb-4" style="color: #2d3436;">هل توافق على الدخول في مسار القسمة بالتراضي مع بقية الورثة وتجاهل التقسيم الحالي؟</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="agree_mutual" class="btn btn-success btn-lg" style="border-radius: 12px; padding: 15px 40px; font-weight: 800;">
+                                <i class="fas fa-check-circle"></i> نعم، أوافق على التراضي
+                            </button>
+                        </form>
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="disagree_mutual" class="btn btn-outline-danger btn-lg" style="border-radius: 12px; padding: 15px 40px; font-weight: 800;">
+                                <i class="fas fa-times-circle"></i> لا، أرفض التراضي
+                            </button>
+                        </form>
+                    </div>
+                {% else %}
+                    <p style="font-size: 1.1rem; color: #2d3436; font-weight: 600;">لقد تم تسجيل رأيك بالموافقة. بانتظار قرار بقية الورثة...</p>
+                    <div class="spinner-border text-danger mt-3" role="status"></div>
+                {% endif %}
+            </div>
+        </div>
         {% endif %}
-    </div>
-    {% elif heir.acceptance_status == 'ACCEPTED' %}
-    <div class="alert alert-success text-center">
-        <h4>تم قبول القسمة</h4>
-        <p>شكراً لك، تم تسجيل موافقتك بنجاح.</p>
-    </div>
-    {% elif heir.acceptance_status == 'REJECTED' %}
-    <div class="alert alert-warning text-center">
-        <h4>لم توافق على القسمة</h4>
-        <p>يمكنك <a href="{% url 'heirs:select_assets' link=case.session_link heir_id=heir.id %}">الانتقال هنا</a>
-            لاختيار الأصول يدوياً.</p>
-    </div>
+        
+    {% elif case.status == 'MUTUAL_SELECTION' %}
+        <div class="alert alert-info text-center" style="border-radius: 20px; border: 2px solid #3498db; background: rgba(52, 152, 219, 0.05); padding: 40px;">
+            <h4 style="color: #2980b9; font-weight: 800;"><i class="fas fa-handshake"></i> مرحلة القسمة بالتراضي</h4>
+            <p style="font-size: 1.1rem; color: #34495e;">وافق الجميع على التراضي. الآن يمكنك اختيار ما تراه مناسباً لك من أصول التركة.</p>
+            {% if heir.acceptance_status == 'ACCEPTED' %}
+                <div style="background: rgba(46, 204, 113, 0.1); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                    <p style="color: #27ae60; font-weight: 700; margin-bottom: 10px;"><i class="fas fa-check-circle"></i> تم إرسال اختياراتك بنجاح.</p>
+                    <p style="font-size: 0.9rem; color: #7f8c8d;">هل ترغب في البدء من جديد وتغيير ما اخترته؟</p>
+                    <a href="{% url 'heirs:reselect_assets' link=case.session_link heir_id=heir.id %}" class="btn btn-warning" style="padding: 10px 30px; border-radius: 10px; font-weight: 700;">
+                        <i class="fas fa-redo-alt"></i> إعادة الاختيار (تصفير الحالي)
+                    </a>
+                </div>
+            {% else %}
+                <div style="margin-top: 25px;">
+                    <a href="{% url 'heirs:select_assets' link=case.session_link heir_id=heir.id %}" class="btn-primary" style="padding: 15px 50px; border-radius: 15px; display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+                        <i class="fas fa-mouse-pointer" style="font-size: 1.2rem;"></i> الدخول لقائمة الأصول والاختيار
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+    {% elif case.status == 'ALTERNATIVE_SELECTION' %}
+        <div class="alert alert-danger text-center" style="border-radius: 20px; border: 2px solid #e74c3c; background: rgba(231, 76, 60, 0.05); padding: 40px;">
+            <h4 style="color: #c0392b; font-weight: 800;"><i class="fas fa-gavel"></i> مرحلة الاعتراض وضمان الحقوق</h4>
+            <p style="font-size: 1.1rem; color: #34495e;">تم فتح مسار النزاعات لضمان حصول المعترض على حقوقه عبر القرعة.</p>
+            {% if heir.acceptance_status == 'REJECTED' %}
+                <p>بصفتك الوريث المعترض، يمكنك الآن اختيار العينات التي ترغب بالمنافسة عليها.</p>
+                <div style="margin-top: 25px;">
+                    <a href="{% url 'heirs:select_assets' link=case.session_link heir_id=heir.id %}" class="btn btn-danger" style="padding: 15px 40px; border-radius: 15px; font-weight: 700; text-decoration: none;">
+                        <i class="fas fa-fist-raised"></i> اختر العينات للمنافسة
+                    </a>
+                </div>
+            {% elif heir.acceptance_status == 'ACCEPTED' %}
+                <p style="color: #27ae60; font-weight: 700;">تم تسجيل طلبات النزاع الخاصة بك. القاضي سيبت فيها قريباً.</p>
+                <a href="{% url 'heirs:reselect_assets' link=case.session_link heir_id=heir.id %}" class="btn btn-sm btn-outline-warning mt-2">إعادة طلب النزاع</a>
+            {% else %}
+                <p>يرجى الانتظار بينما يقوم الوريث المعترض باختياراته، ثم سيقوم القاضي بإجراء القرعة لفض النزاع.</p>
+            {% endif %}
+        </div>
+
+    {% elif case.status == 'RAFFLE_PHASE' or case.status == 'PAYMENTS_PHASE' or case.status == 'COMPLETED' %}
+        
+        <!-- Active Disputes / Raffles -->
+        {% if active_disputes %}
+        <div class="card border-warning mb-5 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-header bg-warning text-dark fw-bold p-3">
+                <i class="fas fa-random"></i> نزاعات جارية (قرعة)
+            </div>
+            <div class="card-body p-4">
+                <p>أنت طرف في المنافسة على الأصول التالية:</p>
+                <div class="list-group">
+                    {% for dispute in active_disputes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center" style="border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.1);">
+                        <div>
+                            <strong>
+                                {% if dispute.asset %}
+                                    {{ dispute.asset.description }}
+                                {% else %}
+                                    {{ dispute.component.description }}
+                                {% endif %}
+                            </strong>
+                            <br><small class="text-muted">قيمة المنافسة: 
+                                {% if dispute.asset %}
+                                    {{ dispute.asset.value }}
+                                {% else %}
+                                    {{ dispute.component.value }}
+                                {% endif %}
+                                ريال</small>
+                        </div>
+                        <span class="badge bg-info p-2">بانتظار إجراء القرعة</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Resolved Disputes / Results -->
+        {% if resolved_disputes %}
+        <div class="card border-success mb-5 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-header bg-success text-white fw-bold p-3">
+                <i class="fas fa-trophy"></i> نتائج القرعة النهائية
+            </div>
+            <div class="card-body p-4">
+                <p>إليك نتائج المنازعات التي تم حسمها بالقرعة:</p>
+                <div class="list-group">
+                    {% for dispute in resolved_disputes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center" style="border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.1); background: rgba(46, 204, 113, 0.05);">
+                        <div>
+                            <strong>
+                                {% if dispute.asset %}
+                                    {{ dispute.asset.description }}
+                                {% else %}
+                                    {{ dispute.component.description }}
+                                {% endif %}
+                            </strong>
+                            <br><small class="text-muted">الفائز بالأصل: 
+                                <span class="text-success fw-bold">{{ dispute.winner.name }}</span>
+                            </small>
+                        </div>
+                        {% if dispute.winner == heir %}
+                            <span class="badge bg-success p-2"><i class="fas fa-check"></i> لقد فزت بهذا الأصل</span>
+                        {% else %}
+                            <span class="badge bg-secondary p-2">انتهت المنافسة</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Financial Settlements Section -->
+        {% if my_bills or my_receipts %}
+        <div class="card border-primary mb-5 shadow-lg" style="border-radius: 20px; overflow: hidden; border-width: 2px;">
+            <div class="card-header bg-primary text-white fw-bold p-3">
+                <i class="fas fa-wallet"></i> التسويات المالية والمدفوعات
+            </div>
+            <div class="card-body p-4">
+                
+                {% if my_bills %}
+                <h5 class="mb-3" style="color: #c0392b;"><i class="fas fa-arrow-up"></i> مبالغ مستحقة عليك (للحصول على الأصل)</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>الأصل المرتبط</th>
+                                <th>المبلغ</th>
+                                <th>الحالة</th>
+                                <th>الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in my_bills %}
+                            <tr>
+                                <td>
+                                    {% if bill.asset %}
+                                        {{ bill.asset.description }}
+                                    {% else %}
+                                        {{ bill.component.description }}
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold text-danger">{{ bill.amount }} ريال</td>
+                                <td>
+                                    {% if bill.is_paid_to_judge %}
+                                        <span class="badge bg-success">تم تأكيد استلام القاضي</span>
+                                    {% elif bill.heir_confirmed_payment %}
+                                        <span class="badge bg-warning text-dark">بانتظار تأكيد القاضي</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">لم يتم السداد بعد</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not bill.heir_confirmed_payment and not bill.is_paid_to_judge %}
+                                    <form action="{% url 'heirs:confirm_payment_sent' bill.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success">لقد سددت المبلغ</button>
+                                    </form>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                {% if my_receipts %}
+                <h5 class="mb-3" style="color: #27ae60;"><i class="fas fa-arrow-down"></i> مبالغ ستصلك (تعويض عن أصل)</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>سبب التعويض</th>
+                                <th>المبلغ</th>
+                                <th>حالة الدافع (الوريث الفائز)</th>
+                                <th>حالة القاضي</th>
+                                <th>الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for receipt in my_receipts %}
+                            <tr>
+                                <td>{{ receipt.reason }}</td>
+                                <td class="fw-bold text-success">{{ receipt.amount }} ريال</td>
+                                <td>
+                                    {% if receipt.heir_confirmed_payment %}
+                                        <span class="text-success"><i class="fas fa-check"></i> العضو فاد بأنه سدد</span>
+                                    {% else %}
+                                        <span class="text-muted">لم يسدد بعد</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if receipt.is_delivered_to_owner %}
+                                        <span class="badge bg-success">تم الاستلام النهائي</span>
+                                    {% elif receipt.is_paid_to_judge %}
+                                        <span class="badge bg-info">المبلغ عند القاضي حالياً</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">لم يصل للقاضي بعد</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if receipt.is_paid_to_judge and not receipt.is_delivered_to_owner %}
+                                    <form action="{% url 'heirs:confirm_receipt' receipt.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-primary">تأكيد استلامي للمبلغ</button>
+                                    </form>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+        {% endif %}
+
+        {% if case.status != 'COMPLETED' %}
+        <div class="alert alert-secondary text-center" style="border-radius: 20px; padding: 40px;">
+            <h4 style="font-weight: 800; color: #444;"><i class="fas fa-balance-scale"></i> مرحلة المراجعة النهائية والقرعة</h4>
+            <p style="font-size: 1.1rem;">الجلسة الآن بين يدي فضيلة القاضي لفض النزاعات وتأكيد الحوالات المالية.</p>
+            <div class="progress mt-4" style="height: 10px; border-radius: 5px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-secondary" role="progressbar" style="width: 85%;"></div>
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        {% if heir.acceptance_status == 'PENDING' %}
+        <div class="text-center" style="background: rgba(255,255,255,0.02); padding: 50px; border-radius: 30px; border: 1px dashed var(--glass-border);">
+            {% if my_assets or my_components %}
+            <h4 style="color: var(--primary-color); font-weight: 800; margin-bottom: 25px;">هل توافق على القسمة المقترحة من فضيلة القاضي؟</h4>
+            <div class="mt-4 d-flex flex-column flex-md-row justify-content-center gap-3">
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="accept" class="btn-primary"
+                        style="padding: 18px 50px; border-radius: 15px; font-size: 1.2rem; width: 100%; min-width: 250px;">
+                        <i class="fas fa-check-circle me-3"></i> نعم، أوافق على التقسيم
+                    </button>
+                </form>
+    
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="reject" class="btn-outline"
+                        style="padding: 18px 40px; border-radius: 15px; font-size: 1.1rem; width: 100%; min-width: 250px; border-color: #e74c3c; color: #e74c3c;">
+                        <i class="fas fa-times-circle me-3"></i> لا، أرفض (طلب تراضي)
+                    </button>
+                </form>
+            </div>
+            <p class="text-muted mt-4 small"><i class="fas fa-info-circle"></i> تنبيه: رفضك يعني الدخول في مسار الحوار مع الورثة (القسمة بالتراضي) وإلغاء هذا التوزيع.</p>
+            {% else %}
+            <h4 style="color: var(--primary-color); font-weight: 700;">المرحلة الحالية: جمع الرغبات والاختيار</h4>
+            <p>فضيلة القاضي شرّع الأبواب للورثة لبيان رغباتهم.</p>
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <button type="submit" name="action" value="reject" class="btn-primary"
+                    style="padding: 15px 40px; border-radius: 15px;">
+                    <i class="fas fa-hand-pointer me-2"></i> البدء باختيار الأصول والعينات
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% elif heir.acceptance_status == 'ACCEPTED' %}
+        <div class="alert alert-success text-center" style="border-radius: 20px; padding: 40px;">
+            <h4 style="font-weight: 800;"><i class="fas fa-check-circle"></i> تم قبول القسمة</h4>
+            <p style="font-size: 1.1rem;">شكراً لك، تم تسجيل موافقتك. ننتظر بقية الورثة لإتمام الإجراءات النهائية.</p>
+        </div>
+        {% endif %}
     {% endif %}
 
 </div>

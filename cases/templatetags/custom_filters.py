@@ -8,3 +8,10 @@ def abs_filter(value):
         return abs(float(value))
     except (ValueError, TypeError):
         return value
+
+@register.filter(name='subtract')
+def subtract(value, arg):
+    try:
+        return float(value) - float(arg)
+    except (ValueError, TypeError):
+        return value

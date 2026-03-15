@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* Shared Admin Premium Layout */
+    .admin-wrapper {
+        display: flex;
+        min-height: calc(100vh - 95px);
+        background: #030508;
+        position: relative;
+    }
+
+    .admin-sidebar {
+        width: 80px;
+        background: rgba(13, 17, 23, 0.95);
+        border-right: 1px solid rgba(212, 175, 55, 0.15);
+        transition: width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px 0;
+        z-index: 1000;
+        overflow: hidden;
+        position: sticky;
+        top: 95px;
+        height: calc(100vh - 95px);
+    }
+
+    .admin-sidebar:hover { width: 260px; }
+
+    .sidebar-item {
+        width: 100%;
+        padding: 15px 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .sidebar-item i {
+        font-size: 1.4rem;
+        color: var(--primary-color);
+        min-width: 30px;
+        text-align: center;
+    }
+
+    .sidebar-item span {
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .admin-sidebar:hover .sidebar-item span { opacity: 1; }
+
+    .sidebar-item:hover, .sidebar-item.active {
+        background: rgba(212, 175, 55, 0.1);
+        color: #fff;
+    }
+
+    .admin-main { flex: 1; padding: 40px; }
+
+    /* Header components */
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 40px;
+    }
+
+    .notif-dot {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        width: 12px;
+        height: 12px;
+        background: #e74c3c;
+        border-radius: 50%;
+        border: 2px solid #000;
+        box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+    }
+
+    #notifDropdown {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: 55px;
+        width: 350px;
+        background: #0f0f0f;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        z-index: 2000;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+</style>
+{% block admin_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <aside class="admin-sidebar">
+        <a href="{% url 'administration:dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-th-large"></i>
+            <span>مركز القيادة</span>
+        </a>
+        <a href="{% url 'administration:dashboard' %}#verification-hub" class="sidebar-item">
+            <i class="fas fa-user-shield"></i>
+            <span>محطة التحقق</span>
+        </a>
+        <a href="{% url 'administration:dashboard' %}#case-tracking" class="sidebar-item">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>خريطة القضايا</span>
+        </a>
+        <a href="{% url 'administration:dashboard' %}#market-oversight" class="sidebar-item">
+            <i class="fas fa-shopping-bag"></i>
+            <span>وحدة السوق</span>
+        </a>
+        <a href="{% url 'administration:dashboard' %}#heirs-management" class="sidebar-item">
+            <i class="fas fa-users"></i>
+            <span>إدارة الورثة</span>
+        </a>
+        <a href="{% url 'administration:dashboard' %}#reporting-unit" class="sidebar-item">
+            <i class="fas fa-file-invoice"></i>
+            <span>التقارير</span>
+        </a>
+        
+        <div style="flex: 1;"></div>
+        
+        <a href="{% url 'administration:user_management' %}" class="sidebar-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+            <i class="fas fa-users-cog"></i>
+            <span>إدارة الحسابات</span>
+        </a>
+        <a href="{% url 'administration:settings' %}" class="sidebar-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+            <i class="fas fa-cog"></i>
+            <span>الإعدادات</span>
+        </a>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-header">
+            <div>
+                {% block admin_header_title %}{% endblock %}
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="position: relative; cursor: pointer;" id="notifBell">
+                    <div style="width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-bell" style="font-size: 1.2rem; color: var(--primary-color);"></i>
+                        {% if admin_notifications %}<span class="notif-dot" id="bellDot"></span>{% endif %}
+                    </div>
+                    
+                    <div id="notifDropdown">
+                        <h4 style="color: var(--primary-color); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); margin: 0;">مركز التنبيهات</h4>
+                        <div id="notifList" style="max-height: 350px; overflow-y: auto; padding: 10px;">
+                            {% for n in admin_notifications %}
+                            <div class="notif-item" onclick="markRead('{{ n.id }}', this)" 
+                                 style="padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; transition: all 0.2s; cursor: pointer;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <span style="color: #fff; font-weight: 700; font-size: 0.9rem;">{{ n.title }}</span>
+                                    <span style="font-size: 0.7rem; color: #555;">{{ n.created_at|timesince }}</span>
+                                </div>
+                                <p style="margin: 0; font-size: 0.8rem; color: #888;">{{ n.message }}</p>
+                            </div>
+                            {% empty %}
+                            <p style="text-align: center; color: #444; padding: 20px;">لا توجد تنبيهات جديدة</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 45px; height: 45px; border-radius: 12px; background: linear-gradient(135deg, #d4af37, #f1c40f); color: #000; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    {{ user.username|first|upper }}
+                </div>
+            </div>
+        </header>
+
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const bell = document.getElementById('notifBell');
+    const dropdown = document.getElementById('notifDropdown');
+    const bellDot = document.getElementById('bellDot');
+
+    if (bell) {
+        bell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+    }
+
+    document.addEventListener('click', () => { if(dropdown) dropdown.style.display = 'none'; });
+
+    function markRead(id, element) {
+        fetch(`/administration/notifications/${id}/read/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(response => {
+            if (response.ok) {
+                element.style.opacity = '0.3';
+                element.style.pointerEvents = 'none';
+                // Check if any visible notifications left
+                const remaining = Array.from(document.querySelectorAll('.notif-item')).filter(el => el.style.opacity !== '0.3');
+                if (remaining.length === 0 && bellDot) {
+                    bellDot.style.display = 'none';
+                }
+            }
+        });
+    }
+</script>
+{% block admin_extra_js %}{% endblock %}
+{% endblock %}

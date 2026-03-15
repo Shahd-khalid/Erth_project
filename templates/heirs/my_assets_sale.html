@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load l10n %}
+
+{% block content %}
+<div class="container" style="margin-top: 50px; margin-bottom: 50px;">
+    
+    <div class="card dashboard-header-responsive"
+        style="margin-bottom: 40px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255,255,255,0.01) 100%);">
+        <div class="header-main" style="display: flex; align-items: center; gap: 20px;">
+            <div class="header-icon"
+                style="background: rgba(255,255,255,0.05); width: 65px; height: 65px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); border: 1px solid var(--glass-border);">
+                <i class="fas fa-store" style="font-size: 1.8rem;"></i>
+            </div>
+            <div>
+                <h1 class="header-title" style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">أصولي المتاحة للبيع</h1>
+                <p class="header-subtitle" style="color: var(--text-muted); margin: 5px 0 0; font-size: 1rem;">
+                    استعرض الأصول والعينات المخصصة لك، والمتاحة لعرضها للبيع على المنصة الرئيسية.
+                </p>
+            </div>
+        </div>
+        <a href="{% url 'heirs:dashboard' %}" class="btn-outline desktop-only" style="border-radius: 12px;">
+            <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+        </a>
+    </div>
+
+    <style>
+        .custom-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 20px;
+        }
+        @media (max-width: 1200px) { .custom-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .custom-grid { grid-template-columns: 1fr; } }
+    </style>
+
+    {% if my_components %}
+    <div class="custom-grid">
+        {% for component in my_components %}
+        <div class="card asset-card" style="border-radius: 25px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+            
+            {% if component.listing and component.listing.is_active %}
+            <div style="position: absolute; top: 15px; left: 15px; background: rgba(46, 204, 113, 0.9); backdrop-filter: blur(5px); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; z-index: 10;">
+                <i class="fas fa-eye"></i> معروض للبيع حالياً
+            </div>
+            {% endif %}
+
+            <!-- Asset Image -->
+            <div style="height: 200px; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--glass-border); position: relative;">
+                {% if component.asset.image %}
+                <img src="{{ component.asset.image.url }}" alt="{{ component.description }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                <i class="fas fa-home" style="font-size: 3rem; color: var(--primary-color); opacity: 0.5;"></i>
+                {% endif %}
+            </div>
+
+            <!-- Asset Info -->
+            <div style="padding: 25px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h4 style="margin: 0 0 10px; color: #fff; font-weight: 700;">{{ component.description }}</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">
+                        <i class="fas fa-fingerprint" style="color: var(--primary-color);"></i>
+                        الأصل الرئيسي: {{ component.asset.description }}
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">
+                        <i class="fas fa-folder" style="color: var(--primary-color);"></i>
+                        القضية: {{ component.asset.case.case_number }}
+                    </p>
+                    
+                    <div style="background: rgba(212, 175, 55, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.1); margin-bottom: 10px;">
+                        <span style="display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 5px;">القيمة المقدرة من القاضي:</span>
+                        <strong style="color: var(--primary-color); font-size: 1.2rem;">{{ component.value }} <small style="font-size: 0.8rem; font-weight: normal;">ريال</small></strong>
+                    </div>
+
+                    {% if component.listing and component.listing.is_active %}
+                    <div style="background: rgba(52, 152, 219, 0.08); padding: 15px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2); margin-bottom: 20px;">
+                        <span style="display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 5px;">سعر عرضك الحالي:</span>
+                        <strong style="color: #3498db; font-size: 1.4rem;">{{ component.listing.price }} <small style="font-size: 0.9rem; font-weight: normal;">ريال</small></strong>
+                    </div>
+                    {% else %}
+                    <div style="margin-bottom: 20px;"></div>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div style="display: flex; gap: 10px; flex-direction: column;">
+                    <button type="button" class="btn-primary" onclick="openSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                        <i class="fas fa-bullhorn" style="margin-left: 8px;"></i> عرض للبيع (بالبيانات الأصلية)
+                    </button>
+                    
+                    <button type="button" class="btn-outline" onclick="openEditSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                        <i class="fas fa-edit" style="margin-left: 8px;"></i> تعديل بيانات العينة قبل العرض
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px; background: rgba(255,255,255,0.02); border-radius: 30px; border: 1px dashed var(--glass-border);">
+        <i class="fas fa-box-open" style="font-size: 3.5rem; opacity: 0.1; display: block; margin-bottom: 20px; color: #fff;"></i>
+        <p style="color: var(--text-muted); font-size: 1.1rem; line-height: 1.6;">
+            لا توجد لديك أجزاء أو عينات مخصصة للبيع حالياً.<br>
+            ستظهر الأصول هنا بعد اعتماد القاضي لقسمتها وتخصيصها لك.
+        </p>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Modal: Sale with Original Data -->
+<div id="saleModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="card" style="width: 90%; max-width: 500px; padding: 30px; border-radius: 25px; border-bottom: 3px solid var(--primary-color); animation: slideDown 0.3s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3 style="margin: 0; color: #fff; font-weight: 700;">عرض العينة للبيع</h3>
+            <button onclick="closeModal('saleModal')" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
+            سيتم عرض هذه العينة في الواجهة الرئيسية للمنصة بناءً على القيمة والوصف الذي اعتمده القاضي مسبقاً.
+        </p>
+
+        <!-- Preview Box -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; margin-bottom: 25px;">
+            <div style="margin-bottom: 10px;">
+                <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">وصف العينة:</span>
+                <span id="previewOriginalDesc" style="color: #fff; font-weight: 600;"></span>
+            </div>
+            <div>
+                <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">المبلغ:</span>
+                <span id="previewOriginalPrice" style="color: #fff; font-weight: 600;"></span> <span>ريال</span>
+            </div>
+        </div>
+        
+        <form id="saleForm" method="post" action="">
+            {% csrf_token %}
+            <!-- Original data placeholders, sent if edit not requested -->
+            <input type="hidden" name="description" id="saleOriginalDesc" value="">
+            <input type="hidden" name="price" id="saleOriginalPrice" value="">
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">الاسم <span style="color: red;">*</span></label>
+                <input type="text" name="seller_name" class="form-control" required style="border-radius: 12px;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">البريد الإلكتروني <span style="color: red;">*</span></label>
+                <input type="email" name="seller_email" class="form-control" required style="border-radius: 12px;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">رقم التواصل <span style="color: red;">*</span></label>
+                <input type="text" name="seller_phone" class="form-control" required style="border-radius: 12px;" placeholder="رقم متاح للمراسلة أو الاتصال">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-outline" onclick="closeModal('saleModal')" style="height: 45px; border-radius: 10px;">إلغاء</button>
+                <button type="submit" class="btn-primary" style="height: 45px; border-radius: 10px; padding: 0 25px;">تأكيد العرض</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Edit Data before Sale -->
+<div id="editSaleModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; overflow-y: auto;">
+    <div class="card" style="width: 90%; max-width: 600px; padding: 30px; border-radius: 25px; border-bottom: 3px solid #3498db; animation: slideDown 0.3s ease; margin: 50px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3 style="margin: 0; color: #fff; font-weight: 700;">تعديل بيانات العينة وعرضها</h3>
+            <button onclick="closeModal('editSaleModal')" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        
+        <form id="editSaleForm" method="post" action="">
+            {% csrf_token %}
+            
+            <h5 style="color: var(--primary-color); margin: 0 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">البيانات الأصلية (للمرجعية)</h5>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; margin-bottom: 25px;">
+                <div style="margin-bottom: 10px;">
+                    <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">الوصف الحالي:</span>
+                    <span id="editReferenceDesc" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
+                </div>
+                <div>
+                    <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">المبلغ المعتمد:</span>
+                    <span id="editReferencePrice" style="color: #fff; font-weight: 600;"></span> <span>ريال</span>
+                </div>
+            </div>
+
+            <h5 style="color: var(--primary-color); margin: 0 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">بيانات العينة (رغبة التعديل)</h5>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">الوصف الجديد للعينة</label>
+                <textarea name="description" id="editDesc" class="form-control" style="border-radius: 12px; height: 100px; resize: none;"></textarea>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">السعر الجديد للعرض (ريال)</label>
+                <input type="number" step="0.01" name="price" id="editPrice" class="form-control" style="border-radius: 12px;">
+            </div>
+
+            <h5 style="color: var(--primary-color); margin: 25px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">بيانات التواصل للصيغة الإعلانية</h5>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">الاسم <span style="color: red;">*</span></label>
+                <input type="text" name="seller_name" class="form-control" required style="border-radius: 12px;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">البريد الإلكتروني <span style="color: red;">*</span></label>
+                <input type="email" name="seller_email" class="form-control" required style="border-radius: 12px;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">رقم التواصل <span style="color: red;">*</span></label>
+                <input type="text" name="seller_phone" class="form-control" required style="border-radius: 12px;" placeholder="رقم متاح للمراسلة أو الاتصال">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-outline" onclick="closeModal('editSaleModal')" style="height: 45px; border-radius: 10px;">إلغاء</button>
+                <button type="submit" class="btn-primary" style="height: 45px; border-radius: 10px; padding: 0 25px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">حفظ ونشر العرض</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    @keyframes slideDown {
+        from { transform: translateY(-30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
+
+<script>
+    function openSaleModal(componentId, desc, price) {
+        document.getElementById('saleForm').action = "/heirs/manage-listing/" + componentId + "/";
+        document.getElementById('saleOriginalDesc').value = desc;
+        document.getElementById('saleOriginalPrice').value = price;
+        
+        // Update Preview
+        document.getElementById('previewOriginalDesc').innerText = desc;
+        document.getElementById('previewOriginalPrice').innerText = price;
+        
+        document.getElementById('saleModal').style.display = 'flex';
+    }
+
+    function openEditSaleModal(componentId, desc, price) {
+        document.getElementById('editSaleForm').action = "/heirs/manage-listing/" + componentId + "/";
+        document.getElementById('editDesc').value = desc;
+        document.getElementById('editPrice').value = price;
+        
+        // Update Reference/Preview
+        document.getElementById('editReferenceDesc').innerText = desc;
+        document.getElementById('editReferencePrice').innerText = price;
+        
+        document.getElementById('editSaleModal').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+</script>
+
+{% endblock %}

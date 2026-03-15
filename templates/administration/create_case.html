@@ -1,33 +1,52 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container" style="max-width: 600px; margin-top: 30px;">
-    <div class="card">
-        <div class="card-header">
-            إنشاء قضية للوريث: {{ heir_user.full_name|default:heir_user.username }}
+<div class="container" style="max-width: 600px; margin-top: 60px; padding-bottom: 100px;">
+    <div class="card" style="border: 1px solid var(--glass-border); padding: 40px; border-radius: 30px; background: rgba(255,255,255,0.02);">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="width: 70px; height: 70px; background: rgba(212, 175, 55, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--primary-color); font-size: 2rem;">
+                <i class="fas fa-folder-plus"></i>
+            </div>
+            <h2 style="color: #fff; font-weight: 800;">إنشاء قضية جديدة</h2>
+            <p style="color: rgba(255,255,255,0.5);">للوريث: {{ heir_user.full_name|default:heir_user.username }}</p>
             {% if heir_user.deceased_name %}
-            <br><small style="font-size: 0.9rem; opacity: 0.8;">اسم المتوفى المدخل: ({{ heir_user.deceased_name }})</small>
+            <div style="display: inline-block; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; font-size: 0.85rem; color: var(--primary-color); margin-top: 10px;">
+                اسم المتوفى: {{ heir_user.deceased_name }}
+            </div>
             {% endif %}
         </div>
-        <form method="post">
+        
+        <form method="post" class="auth-form">
             {% csrf_token %}
-            <div class="form-group">
-                <label>رقم القضية:</label>
-                <input type="text" name="case_number" class="form-control" required>
+            <div class="form-group mb-4">
+                <label style="color: #fff; font-weight: 600; margin-bottom: 10px; display: block;">رقم القضية الرسمي</label>
+                <div style="position: relative;">
+                    <i class="fas fa-hashtag" style="position: absolute; right: 15px; top: 18px; color: var(--primary-color);"></i>
+                    <input type="text" class="form-control" value="سيتم توليد الرقم تلقائياً بالتسلسل" disabled style="padding-right: 45px; height: 55px; border-radius: 12px; appearance: none; background: rgba(255,255,255,0.05); color: #888; border: 1px solid rgba(255,255,255,0.1);">
+                </div>
             </div>
-            <div class="form-group">
-                <label>اختر القاضي:</label>
-                <select name="judge_id" class="form-control" required>
-                    <option value="">-- اختر القاضي --</option>
-                    {% for judge in judges %}
-                    <option value="{{ judge.id }}">{{ judge.full_name|default:judge.username }}
-                    </option>
-                    {% endfor %}
-                </select>
+            
+            <div class="form-group mb-4">
+                <label style="color: #fff; font-weight: 600; margin-bottom: 10px; display: block;">تعيين قاضي للدراسة</label>
+                <div style="position: relative;">
+                    <i class="fas fa-user-tie" style="position: absolute; right: 15px; top: 18px; color: var(--primary-color);"></i>
+                    <select name="judge_id" class="form-control" required style="padding-right: 45px; height: 55px; border-radius: 12px; appearance: none; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);">
+                        <option value="" disabled selected>-- اختر القاضي المعتمد --</option>
+                        {% for judge in judges %}
+                        <option value="{{ judge.id }}">{{ judge.full_name|default:judge.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <button type="submit" class="btn-primary" style="width: 100%;">تعيين وإنشاء</button>
-            <a href="{% url 'administration:dashboard' %}" class="btn-secondary"
-                style="margin-bottom: 20px; display: inline-block;">&larr; عودة</a>
+            
+            <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 15px;">
+                <button type="submit" class="btn-primary" style="height: 55px; border-radius: 15px; font-weight: 700; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(212,175,55,0.2);">
+                    تثبيت الإسناد وإنشاء الملف <i class="fas fa-check"></i>
+                </button>
+                <a href="{% url 'administration:dashboard' %}" style="text-align: center; color: rgba(255,255,255,0.5); font-weight: 600; text-decoration: none;">
+                    &larr; إلغاء والعودة للمركز
+                </a>
+            </div>
         </form>
     </div>
 </div>

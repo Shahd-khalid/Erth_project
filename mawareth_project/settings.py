@@ -21,14 +21,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-render-fallback-for-startup-only')
 if SECRET_KEY == 'django-insecure-render-fallback-for-startup-only' and not DEBUG:
     import warnings
     warnings.warn("SECRET_KEY is not set in environment variables! Using insecure fallback.")
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'clerks',
     'heirs',
     'administration',
+    
 ]
 
 MIDDLEWARE = [
@@ -83,6 +84,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 # Ensure CSRF processor is present (though middleware usually handles it)
                 'django.template.context_processors.csrf', 
+                'administration.context_processors.admin_notifications',
             ],
         },
     },
@@ -96,11 +98,13 @@ WSGI_APPLICATION = 'mawareth_project.wsgi.application'
 
 
 # Database Configuration
+
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
     }
 else:
+    # Use local settings only if no DATABASE_URL is provided (typical for local dev)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -158,13 +162,16 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 AUTH_USER_MODEL = 'users.User'
 
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = 'users:dashboard'
+LOGOUT_REDIRECT_URL = 'home'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = '/users/dashboard/'
-LOGOUT_REDIRECT_URL = 'home'
+# Removed duplicate/conflicting settings
 
 # Email Backend for Development (Console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

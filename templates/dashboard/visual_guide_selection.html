@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الدليل المرئي للمواريث | إرث{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-selection-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 70vh;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .guide-header {
+        margin-bottom: 50px;
+    }
+
+    .guide-header h1 {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        font-family: 'Tajawal', sans-serif;
+    }
+
+    .guide-header p {
+        color: var(--text-color);
+        font-size: 1.2rem;
+        opacity: 0.8;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .guide-cards-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+        width: 100%;
+        max-width: 900px;
+    }
+
+    .guide-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 16px;
+        padding: 40px 30px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .guide-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--accent-color);
+        box-shadow: 0 15px 40px rgba(212, 175, 55, 0.15);
+        background: rgba(212, 175, 55, 0.05);
+    }
+
+    .guide-icon {
+        font-size: 4rem;
+        color: var(--accent-color);
+        margin-bottom: 25px;
+        transition: transform 0.3s ease;
+    }
+
+    .guide-card:hover .guide-icon {
+        transform: scale(1.1);
+    }
+
+    .guide-card h3 {
+        color: #fff;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+        font-family: 'Tajawal', sans-serif;
+    }
+
+    .guide-card p {
+        color: #aaa;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .guide-cards-wrapper {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="guide-selection-container fade-in">
+    <div class="guide-header">
+        <h1>الدليل المرئي للمواريث</h1>
+        <p>اختر طريقة العرض المناسبة لك لاستكشاف أنصبة وحالات المواريث الشرعية.</p>
+    </div>
+
+    <div class="guide-cards-wrapper">
+        <a href="{% url 'dashboard:inheritance_tree' %}" class="guide-card">
+            <div class="guide-icon">
+                <i class="fas fa-sitemap"></i>
+            </div>
+            <h3>الشجرة الهيكلية</h3>
+            <p>عرض تفاعلي مرئي للمواريث يوضح خريطة القرابة (أصول، فروع، وحواشي) بشكل هندسي مع إمكانية استكشاف أنصبة كل
+                وارث وحالاته.</p>
+        </a>
+
+        <a href="{% url 'dashboard:inheritance_table' %}" class="guide-card">
+            <div class="guide-icon">
+                <i class="fas fa-table"></i>
+            </div>
+            <h3>الجدول الجامع</h3>
+            <p>عرض تفصيلي للحالات في صيغة جدول منظم يسهل قراءة شروط الإرث والنصيب لكل وارث بشكل مباشر ومقروء.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

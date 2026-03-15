@@ -1,0 +1,61 @@
+{% extends 'administration/admin_base.html' %}
+
+{% block admin_header_title %}
+    <h1 style="color: #fff; margin:0; font-size: 1.8rem; font-weight: 700;">الإعدادات</h1>
+    <p style="color: rgba(255,255,255,0.5); margin: 5px 0 0 0;">إدارة تفضيلات النظام والحساب</p>
+{% endblock %}
+
+{% block admin_content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
+    
+    <!-- Account Settings -->
+    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 30px;">
+        <h3 style="color: var(--primary-color); margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-user-circle"></i>
+            إعدادات الحساب
+        </h3>
+        
+        <form>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: rgba(255,255,255,0.7); margin-bottom: 10px;">الاسم الكامل</label>
+                <input type="text" value="{{ user.full_name|default:user.username }}" style="width: 100%; padding: 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: rgba(255,255,255,0.7); margin-bottom: 10px;">البريد الإلكتروني</label>
+                <input type="email" value="{{ user.email }}" style="width: 100%; padding: 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
+            </div>
+            <button type="button" style="background: var(--primary-color); color: #000; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; opacity: 0.5;">
+                حفظ التغييرات (قريباً)
+            </button>
+        </form>
+    </div>
+
+    <!-- System Preferences -->
+    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 30px;">
+        <h3 style="color: var(--primary-color); margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-sliders-h"></i>
+            تفضيلات النظام
+        </h3>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div>
+                <h4 style="color: #fff; margin: 0 0 5px 0;">تنبيهات البريد الإلكتروني</h4>
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 0;">استلام التنبيهات المهمة عبر البريد</p>
+            </div>
+            <div style="width: 50px; height: 26px; background: var(--primary-color); border-radius: 20px; position: relative; cursor: not-allowed; opacity: 0.5;">
+                <div style="width: 20px; height: 20px; background: #000; border-radius: 50%; position: absolute; left: 4px; top: 3px;"></div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h4 style="color: #fff; margin: 0 0 5px 0;">الوضع المظلم</h4>
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 0;">اللون الداكن مفعل دائماً في هذه اللوحة</p>
+            </div>
+            <div style="width: 50px; height: 26px; background: var(--primary-color); border-radius: 20px; position: relative; cursor: not-allowed; opacity: 0.5;">
+                <div style="width: 20px; height: 20px; background: #000; border-radius: 50%; position: absolute; left: 4px; top: 3px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

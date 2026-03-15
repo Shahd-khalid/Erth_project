@@ -11,6 +11,11 @@ class Case(models.Model):
         DATA_REVIEW = 'DATA_REVIEW', _('مراجعة البيانات (عند القاضي)')
         READY_FOR_CALCULATION = 'READY_FOR_CALCULATION', _('جاهزة للحساب')
         SESSION_ACTIVE = 'SESSION_ACTIVE', _('جلسة توزيع التركة جارية')
+        CONSENT_PENDING = 'CONSENT_PENDING', _('بانتظار موافقة الورثة (طلب تراضي)')
+        MUTUAL_SELECTION = 'MUTUAL_SELECTION', _('مرحلة التراضي (اختيار الأصول)')
+        ALTERNATIVE_SELECTION = 'ALTERNATIVE_SELECTION', _('مرحلة الاعتراض (اختيار بديل)')
+        RAFFLE_PHASE = 'RAFFLE_PHASE', _('مرحلة القرعة للنزاعات')
+        PAYMENTS_PHASE = 'PAYMENTS_PHASE', _('مرحلة السداد والتخارج (لوحة القاضي)')
         COMPLETED = 'COMPLETED', _('مكتملة')
 
     class JudgeAcceptanceStatus(models.TextChoices):
@@ -30,6 +35,10 @@ class Case(models.Model):
     )
     session_link = models.UUIDField(default=uuid.uuid4, editable=False, verbose_name=_('رابط الجلسة'))
     is_ready_for_calculation = models.BooleanField(default=False, verbose_name=_('جاهزة للحساب'))
+    
+    # New approval flag for Mutual Consent
+    judge_consents_to_mutual = models.BooleanField(default=False, verbose_name=_('موافقة القاضي على القسمة بالتراضي'))
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('تاريخ الإنشاء'))
 
     class Meta:
@@ -66,9 +75,6 @@ class Asset(models.Model):
     assigned_to = models.ForeignKey('Heir', on_delete=models.SET_NULL, null=True, blank=True, related_name='allocated_assets', verbose_name=_('مخصص لـ'))
     is_locked = models.BooleanField(default=False, verbose_name=_('مقفل (تم الاختيار)'))
 
-    # Liquidation Fields (Stage 4)
-    is_liquidated = models.BooleanField(default=False, verbose_name=_('تم التسييل/البيع'))
-    sold_price = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('سعر البيع الفعلي'))
 
     def __str__(self):
         return f"{self.description} - {self.value}"
@@ -146,10 +152,16 @@ class Heir(models.Model):
     
     class AcceptanceStatus(models.TextChoices):
         PENDING = 'PENDING', _('قيد الانتظار')
-        ACCEPTED = 'ACCEPTED', _('موافق')
-        REJECTED = 'REJECTED', _('غير موافق')
+        ACCEPTED = 'ACCEPTED', _('موافق (انتهاء)')
+        REJECTED = 'REJECTED', _('غير موافق (اعتراض)')
+        
+    class MutualConsentStatus(models.TextChoices):
+        NOT_VOTED = 'NOT_VOTED', _('لم يصوت')
+        AGREED = 'AGREED', _('موافق على القسمة بالتراضي')
+        DISAGREED = 'DISAGREED', _('غير موافق على القسمة بالتراضي')
         
     acceptance_status = models.CharField(max_length=20, choices=AcceptanceStatus.choices, default=AcceptanceStatus.PENDING, verbose_name=_('حالة القبول'))
+    mutual_consent_status = models.CharField(max_length=20, choices=MutualConsentStatus.choices, default=MutualConsentStatus.NOT_VOTED, verbose_name=_('حالة التصويت للتراضي'))
     allocation_description = models.TextField(blank=True, verbose_name=_('وصف القسمة (رسالة القاضي)'))
 
     def remaining_share(self):
@@ -170,10 +182,21 @@ class HeirAssetSelection(models.Model):
         REJECTED = 'REJECTED', _('مرفوض')
 
     heir = models.ForeignKey(Heir, on_delete=models.CASCADE, related_name='selections', verbose_name=_('الوريث'))
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='selection_intents', verbose_name=_('الأصل'))
-    wants_lottery = models.BooleanField(default=True, verbose_name=_('موافق على القرعة'))
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='selection_intents', null=True, blank=True, verbose_name=_('الأصل'))
+    component = models.ForeignKey('AssetComponent', on_delete=models.CASCADE, related_name='selection_intents', null=True, blank=True, verbose_name=_('جزء الأصل'))
     status = models.CharField(max_length=20, choices=SelectionStatus.choices, default=SelectionStatus.PENDING, verbose_name=_('حالة الاختيار'))
     selected_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, verbose_name=_('القيمة المختارة'))
+    
+    # Financial Pledge Tracking
+    requires_pledge = models.BooleanField(default=False, verbose_name=_('يتطلب تعهد مالي'))
+    pledge_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, verbose_name=_('مبلغ التعهد الاضافي'))
+    
+    # For Alternative Phase
+    is_challenging_owner = models.BooleanField(default=False, verbose_name=_('نزاع ضد مالك حالي'))
+    
+    # Processing status
+    is_processed = models.BooleanField(default=False, verbose_name=_('تم معالجته (تحويل لملكية أو نزاع)'))
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -183,3 +206,91 @@ class HeirAssetSelection(models.Model):
 
     def __str__(self):
         return f"{self.heir.name} -> {self.asset.description}"
+
+class AssetComponent(models.Model):
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='components', verbose_name=_('الأصل التابع له'))
+    description = models.CharField(max_length=255, verbose_name=_('وصف الجزء/العينة'))
+    value = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('القيمة'))
+    assigned_to = models.ForeignKey(Heir, on_delete=models.SET_NULL, null=True, blank=True, related_name='allocated_components', verbose_name=_('مخصص لـ'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('جزء من الأصل')
+        verbose_name_plural = _('أجزاء الأصول')
+
+    def __str__(self):
+        return f"{self.description} ({self.value}) - {self.asset.description}"
+
+class PublicAssetListing(models.Model):
+    component = models.OneToOneField(AssetComponent, on_delete=models.CASCADE, related_name='listing', verbose_name=_('العينة/الأصل'))
+    seller_name = models.CharField(max_length=255, verbose_name=_('اسم البائع'))
+    seller_email = models.EmailField(verbose_name=_('البريد الإلكتروني'))
+    seller_phone = models.CharField(max_length=20, verbose_name=_('رقم التواصل'))
+    price = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('سعر العرض'))
+    description = models.TextField(verbose_name=_('وصف العرض'))
+    is_active = models.BooleanField(default=True, verbose_name=_('نشط (يُعرض للبيع)'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('تاريخ العرض'))
+
+    class Meta:
+        verbose_name = _('عرض بيع أصل (عام)')
+        verbose_name_plural = _('عروض بيع الأصول (عامة)')
+
+    def __str__(self):
+        return f"{self.seller_name} - {self.component.description}"
+
+class DisputeRaffle(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='disputes', verbose_name=_('القضية'))
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('الأصل المتنازع عليه'))
+    component = models.ForeignKey(AssetComponent, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('الجزء المتنازع عليه'))
+    contenders = models.ManyToManyField(Heir, related_name='raffle_entries', verbose_name=_('المتنازعين'))
+    winner = models.ForeignKey(Heir, on_delete=models.SET_NULL, null=True, blank=True, related_name='won_raffles', verbose_name=_('الفائز بالقرعة'))
+    is_resolved = models.BooleanField(default=False, verbose_name=_('تم حل النزاع (إجراء القرعة)'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('نزاع / قرعة')
+        verbose_name_plural = _('النزاعات والقرعات')
+
+    def __str__(self):
+        target = self.asset.description if self.asset else self.component.description
+        return f"قرعة في قضية {self.case.case_number} على {target}"
+
+class PaymentSettlement(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='settlements', verbose_name=_('القضية'))
+    payer = models.ForeignKey(Heir, on_delete=models.CASCADE, related_name='payments_owed', verbose_name=_('الدافع (المتعهد)'))
+    original_owner = models.ForeignKey(Heir, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments_expected', verbose_name=_('المستلم الأصلي (إن وجد)'))
+    
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('الأصل المرتبط'))
+    component = models.ForeignKey(AssetComponent, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('الجزء المرتبط'))
+    
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('المبلغ'))
+    
+    # Track physical/external payment flow: Payer -> Judge -> Receiver
+    heir_confirmed_payment = models.BooleanField(default=False, verbose_name=_('قام الوريث بتأكيد السداد'))
+    is_paid_to_judge = models.BooleanField(default=False, verbose_name=_('تم استلام المبلغ من قبل القاضي'))
+    is_delivered_to_owner = models.BooleanField(default=False, verbose_name=_('تم تسليم المبلغ للمالك النهائي'))
+    
+    # Metadata
+    reason = models.CharField(max_length=255, verbose_name=_('سبب الدفعة (فرق قيمة، تعويض نزاع)'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('تسوية مالية')
+        verbose_name_plural = _('التسويات المالية')
+
+    def __str__(self):
+        return f"دفعة من {self.payer.name} بقيمة {self.amount}"
+
+class SelectionLog(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='selection_logs', verbose_name=_('القضية'))
+    heir = models.ForeignKey(Heir, on_delete=models.CASCADE, verbose_name=_('الوريث'))
+    action_text = models.TextField(verbose_name=_('نص الإجراء'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('وقت الإجراء'))
+
+    class Meta:
+        verbose_name = _('سجل اختيار أصل')
+        verbose_name_plural = _('سجلات اختيار الأصول')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.heir.name}: {self.action_text}"

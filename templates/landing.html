@@ -30,8 +30,8 @@
                 {% if user.is_authenticated %}
                 <a href="{% url 'dashboard:index' %}" class="login-link">لوحة التحكم</a>
                 {% else %}
-                <a href="{% url 'login' %}" class="login-link">تسجيل الدخول</a>
-                <a href="{% url 'register_heir' %}" class="btn-signup">حساب جديد</a>
+                <a href="{% url 'users:login' %}" class="login-link">تسجيل الدخول</a>
+                <a href="{% url 'users:register' %}" class="btn-signup">حساب جديد</a>
                 {% endif %}
             </div>
         </header>
@@ -45,7 +45,7 @@
                     احسب أنصبة الميراث المعقدة بكل سهولة ودقة شرعية متناهية، وفق الأنظمة المعمول بها.
                 </p>
                 <div class="hero-btns">
-                    <a href="{% url 'portal' %}" class="btn-calc">المنصة الرئيسية</a>
+                    <a href="{% url 'users:portal' %}" class="btn-calc">المنصة الرئيسية</a>
                     <a href="{% url 'public_calculator' %}" class="btn-learn">احسب الآن</a>
                 </div>
             </div>
@@ -58,6 +58,80 @@
                 </div>
             </div>
         </section>
+
+        <!-- Public Listings Section -->
+        {% if public_listings %}
+        <section class="public-listings-section" style="padding: 60px 0; max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="color: #fff; font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">السوق العقاري للأصول المتوارثة</h2>
+                <p style="color: rgba(255,255,255,0.6); max-width: 600px; margin: 0 auto; font-size: 1.1rem;">تصفح الأصول الشرعية المتاحة للبيع من قبل الورثة والموثقة قضائياً.</p>
+            </div>
+            
+            <div class="public-grid">
+                {% for listing in public_listings %}
+                <div class="listing-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    
+                    <!-- Image Area -->
+                    <div style="height: 220px; background: rgba(0,0,0,0.2); position: relative; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        {% if listing.component.asset.image %}
+                        <img src="{{ listing.component.asset.image.url }}" alt="{{ listing.description }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                        <i class="fas fa-gem" style="font-size: 4rem; color: #d4af37; opacity: 0.3;"></i>
+                        {% endif %}
+                        <div style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.3);">
+                            <strong style="color: #d4af37; font-size: 1.2rem;">{{ listing.price }} <small style="font-size: 0.8rem; font-weight: normal; color: rgba(255,255,255,0.7);">ريال</small></strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Area -->
+                    <div style="padding: 25px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 10px; color: #fff; font-size: 1.25rem;">{{ listing.description }}</h3>
+                            
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                                <span style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">
+                                    <i class="fas fa-folder" style="color: #d4af37;"></i> قضية رقم: {{ listing.component.asset.case.case_number }}
+                                </span>
+                                <span style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">
+                                    <i class="fas fa-gavel" style="color: #d4af37;"></i> موثق قضائياً
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Seller Info Box -->
+                        <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; border: 1px dashed rgba(255,255,255,0.1);">
+                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 8px;">
+                                <i class="fas fa-user" style="color: #d4af37; width: 20px;"></i> البائع: {{ listing.seller_name }}
+                            </div>
+                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 8px;">
+                                <i class="fas fa-phone" style="color: #d4af37; width: 20px;"></i> {{ listing.seller_phone }}
+                            </div>
+                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+                                <i class="fas fa-envelope" style="color: #d4af37; width: 20px;"></i> <a href="mailto:{{ listing.seller_email }}" style="color: rgba(255,255,255,0.8); text-decoration: none;">{{ listing.seller_email }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <style>
+                .public-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 30px;
+                }
+                @media (max-width: 1200px) { .public-grid { grid-template-columns: repeat(2, 1fr); } }
+                @media (max-width: 768px) { .public-grid { grid-template-columns: 1fr; } }
+
+                .listing-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+                    border-color: rgba(212, 175, 55, 0.3) !important;
+                }
+            </style>
+        </section>
+        {% endif %}
 
         <!-- Stats Footer -->
         <div class="landing-footer-stats">

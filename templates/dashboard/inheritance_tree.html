@@ -1,0 +1,480 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}شجرة المواريث | إرث{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --node-bg: rgba(255, 255, 255, 0.03);
+        --node-border: #d4af37;
+        --line-color: rgba(212, 175, 55, 0.4);
+        --text-gold: #f39c12;
+    }
+
+    .simulator-container {
+        height: 85vh;
+        width: 100%;
+        background: radial-gradient(circle at center, #0a0e14 0%, #030508 100%);
+        border-radius: 30px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    #tree-canvas {
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+    }
+
+    #tree-canvas:active {
+        cursor: grabbing;
+    }
+
+    .controls-overlay {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 15px;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .control-btn {
+        background: var(--node-bg);
+        border: 1px solid var(--node-border);
+        color: #fff;
+        padding: 8px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .control-btn:hover {
+        background: var(--node-border);
+        color: #000;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 20px; padding-bottom: 50px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #fff; font-weight: 800; font-size: 2.2rem; margin-bottom: 10px;">شجرة المواريث (الهيكل العام)
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">اضغط على أي وارث لمعرفة شروط ميراثه، ثم اضغط على الشرط
+            لمعرفة نصيبه.</p>
+    </div>
+
+    <div class="simulator-container">
+        <!-- Controls -->
+        <div class="controls-overlay">
+            <button class="control-btn" onclick="resetView()"><i class="fas fa-sync-alt"></i> تصفير العرض</button>
+            <button class="control-btn" onclick="zoomIn()"><i class="fas fa-search-plus"></i> تكبير</button>
+            <button class="control-btn" onclick="zoomOut()"><i class="fas fa-search-minus"></i> تصغير</button>
+        </div>
+
+        <!-- Canvas for Vis.js -->
+        <div id="tree-canvas"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Vis.js Library -->
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script>
+    let network = null;
+    let nodes = null;
+    let edges = null;
+
+    /* 
+     * Base Data for the Tree
+     * Type: 'heir', 'condition', 'share'
+     */
+    const treeData = [
+        // Center
+        { id: 'deceased', label: 'الميت', title: 'المتوفى (بدون تحديد)', x: 0, y: 0, type: 'center', color: { background: '#d4af37', border: '#fff' } },
+
+        // الأصول (Top)
+        { id: 'father', label: 'الأب', group: 'usoul_1', x: -100, y: -150, type: 'heir', color: { background: '#2c3e50', border: '#3498db' } },
+        { id: 'mother', label: 'الأم', group: 'usoul_1', x: 100, y: -150, type: 'heir', color: { background: '#2c3e50', border: '#f1c40f' } },
+        { id: 'grandfather', label: 'الجد', group: 'usoul_2', x: -100, y: -300, type: 'heir', color: { background: '#2c3e50', border: '#3498db' } },
+        { id: 'grandmother', label: 'الجدة', group: 'usoul_2', x: 100, y: -300, type: 'heir', color: { background: '#2c3e50', border: '#f1c40f' } },
+
+        // الفروع (Bottom)
+        { id: 'son', label: 'الابن', group: 'foroua_1', x: -100, y: 150, type: 'heir', color: { background: '#2c3e50', border: '#2ecc71' } },
+        { id: 'daughter', label: 'البنت', group: 'foroua_1', x: 100, y: 150, type: 'heir', color: { background: '#2c3e50', border: '#9b59b6' } },
+        { id: 'grandson', label: 'ابن الابن', group: 'foroua_2', x: -100, y: 300, type: 'heir', color: { background: '#2c3e50', border: '#2ecc71' } },
+        { id: 'granddaughter', label: 'بنت الابن', group: 'foroua_2', x: 100, y: 300, type: 'heir', color: { background: '#2c3e50', border: '#9b59b6' } },
+
+        // حواشي الميت (Right & Left) - Swapped per user request
+        { id: 'bro_full', label: 'أخ شقيق', group: 'hawashi_mayyet', x: -250, y: 0, type: 'heir', color: { background: '#2c3e50', border: '#e67e22' } },
+        { id: 'sis_full', label: 'أخت شقيقة', group: 'hawashi_mayyet', x: -250, y: -80, type: 'heir', color: { background: '#2c3e50', border: '#e67e22' } },
+        { id: 'bro_ab', label: 'أخ لأب', group: 'hawashi_mayyet', x: -400, y: 0, type: 'heir', color: { background: '#2c3e50', border: '#e67e22' } },
+        { id: 'sis_ab', label: 'أخت لأب', group: 'hawashi_mayyet', x: -400, y: -80, type: 'heir', color: { background: '#2c3e50', border: '#e67e22' } },
+
+        { id: 'bro_om', label: 'أخ لأم', group: 'hawashi_mayyet', x: 250, y: 0, type: 'heir', color: { background: '#2c3e50', border: '#e74c3c' } },
+        { id: 'sis_om', label: 'أخت لأم', group: 'hawashi_mayyet', x: 250, y: -80, type: 'heir', color: { background: '#2c3e50', border: '#e74c3c' } },
+
+        { id: 'nephew_full', label: 'ابن أخ شقيق', group: 'hawashi_mayyet_2', x: -250, y: 80, type: 'heir', color: { background: '#2c3e50', border: '#e67e22' } },
+        { id: 'nephew_ab', label: 'ابن أخ لأب', group: 'hawashi_mayyet_2', x: -400, y: 80, type: 'heir', color: { background: '#2c3e50', border: '#e67e22' } },
+
+        // حواشي الأب (Attached to Top nodes)
+        { id: 'uncle_full', label: 'عم شقيق', group: 'hawashi_ab', x: -250, y: -150, type: 'heir', color: { background: '#2c3e50', border: '#1abc9c' } },
+        { id: 'uncle_ab', label: 'عم لأب', group: 'hawashi_ab', x: -400, y: -150, type: 'heir', color: { background: '#2c3e50', border: '#1abc9c' } },
+        { id: 'cousin_full', label: 'ابن عم شقيق', group: 'hawashi_ab_2', x: -250, y: -80, type: 'heir', color: { background: '#2c3e50', border: '#1abc9c' } },
+        { id: 'cousin_ab', label: 'ابن عم لأب', group: 'hawashi_ab_2', x: -400, y: -80, type: 'heir', color: { background: '#2c3e50', border: '#1abc9c' } },
+
+        // الزوجين
+        { id: 'husband', label: 'الزوج', group: 'spouse', x: 0, y: -80, type: 'heir', color: { background: '#2c3e50', border: '#8e44ad' } },
+        { id: 'wife', label: 'الزوجة', group: 'spouse', x: 0, y: 80, type: 'heir', color: { background: '#2c3e50', border: '#8e44ad' } },
+    ];
+
+    const baseEdges = [
+        // Usoul
+        { from: 'deceased', to: 'father' }, { from: 'deceased', to: 'mother' },
+        { from: 'father', to: 'grandfather' }, { from: 'mother', to: 'grandmother' }, { from: 'father', to: 'grandmother' },
+        // Foroua
+        { from: 'deceased', to: 'son' }, { from: 'deceased', to: 'daughter' },
+        { from: 'son', to: 'grandson' }, { from: 'son', to: 'granddaughter' },
+        // Hawashi Mayyet (Brothers limit to deceased logic)
+        { from: 'deceased', to: 'bro_full' }, { from: 'deceased', to: 'sis_full' },
+        { from: 'deceased', to: 'bro_ab' }, { from: 'deceased', to: 'sis_ab' },
+        { from: 'deceased', to: 'bro_om' }, { from: 'deceased', to: 'sis_om' },
+        { from: 'bro_full', to: 'nephew_full' }, { from: 'bro_ab', to: 'nephew_ab' },
+        // Hawashi Ab
+        { from: 'father', to: 'uncle_full' }, { from: 'father', to: 'uncle_ab' },
+        { from: 'uncle_full', to: 'cousin_full' }, { from: 'uncle_ab', to: 'cousin_ab' },
+        // Spouses (Arrows point TO deceased per user request)
+        { from: 'husband', to: 'deceased', dashes: true }, { from: 'wife', to: 'deceased', dashes: true }
+    ];
+
+    // Conditions and Shares Mapping for each Heir
+    // Format: { heirId: [ { text: '...', share: '...' } ] }
+    const mawarethLogic = {
+        'husband': [
+            { id: 'c_h1', text: 'عدم وجود فرع وارث للزوجة', share: 'النصف (1/2)' },
+            { id: 'c_h2', text: 'وجود فرع وارث للزوجة', share: 'الربع (1/4)' }
+        ],
+        'wife': [
+            { id: 'c_w1', text: 'عدم وجود فرع وارث للزوج', share: 'الربع (1/4)' },
+            { id: 'c_w2', text: 'وجود فرع وارث للزوج', share: 'الثمن (1/8)' }
+        ],
+        'daughter': [
+            { id: 'c_d1', text: 'واحدة ولم يوجد ابن', share: 'النصف (1/2)' },
+            { id: 'c_d2', text: 'اثنتان فأكثر ولم يوجد ابن', share: 'الثلثان (2/3)' },
+            { id: 'c_d3', text: 'وجود ابن (ذكر وأنثى)', share: 'تعصيب بالغير' }
+        ],
+        'son': [
+            { id: 'c_s1', text: 'يرث دائماً ويحجب الحواشي', share: 'عصبة بالنفس' }
+        ],
+        'father': [
+            { id: 'c_f1', text: 'مع وجود فرع وارث مذكر', share: 'السدس (1/6)' },
+            { id: 'c_f2', text: 'مع وجود فرع وارث مؤنث', share: 'السدس + الباقي تعصيباً' },
+            { id: 'c_f3', text: 'عدم وجود فرع وارث', share: 'عصبة بالنفس' }
+        ],
+        'mother': [
+            { id: 'c_m1', text: 'عدم وجود فرع وارث وعدم وجود جمع إخوة', share: 'الثلث (1/3)' },
+            { id: 'c_m2', text: 'وجود فرع وارث أو جمع إخوة', share: 'السدس (1/6)' }
+        ],
+        'sis_full': [
+            { id: 'c_sf1', text: 'واحدة وعدم وجود أصل أو فرع أو خ أخ', share: 'النصف (1/2)' },
+            { id: 'c_sf2', text: 'اثنتان فأكثر', share: 'الثلثان (2/3)' },
+            { id: 'c_sf3', text: 'مع أخ شقيق', share: 'تعصيب بالغير' },
+            { id: 'c_sf4', text: 'مع بنات الميت', share: 'تعصيب مع الغير' }
+        ],
+        'bro_full': [
+            { id: 'c_bf1', text: 'عدم وجود أصل مذكر أو فرع مذكر', share: 'عصبة بالنفس' }
+        ],
+        'bro_om': [
+            { id: 'c_bm1', text: 'واحد (عدم وجود أصل، فرع)', share: 'السدس (1/6)' },
+            { id: 'c_bm2', text: 'اثنان فأكثر', share: 'الثلث (1/3) يقتسمونه' }
+        ],
+        'sis_om': [
+            { id: 'c_sm1', text: 'واحدة (عدم وجود أصل وفرع)', share: 'السدس (1/6)' },
+            { id: 'c_sm2', text: 'اثنتان فأكثر', share: 'الثلث (1/3) يقتسمونه' }
+        ],
+        'grandson': [
+            { id: 'c_gs1', text: 'يرث إذا لم يوجد ابن', share: 'عصبة بالنفس' }
+        ],
+        'granddaughter': [
+            { id: 'c_gd1', text: 'واحدة (عدم وجود ابن، ابن ابن أعلى، بنت)', share: 'النصف (1/2)' },
+            { id: 'c_gd2', text: 'اثنتان فأكثر (عدم وجود ابن، ابن ابن أعلى، بنت)', share: 'الثلثان (2/3)' },
+            { id: 'c_gd3', text: 'مع بنت صلبية واحدة', share: 'السدس (1/6) تكملة للثلثين' },
+            { id: 'c_gd4', text: 'مع ابن ابن موازٍ لها', share: 'تعصيب بالغير' }
+        ],
+        'nephew_full': [
+            { id: 'c_nf1', text: 'عدم وجود أخ شقيق ومن يحجبه', share: 'عصبة بالنفس' }
+        ],
+        'nephew_ab': [
+            { id: 'c_na1', text: 'عدم وجود أخ لأب ومن يحجبه', share: 'عصبة بالنفس' }
+        ],
+        'uncle_full': [
+            { id: 'c_uf1', text: 'عدم وجود أب أو جد', share: 'عصبة بالنفس' }
+        ],
+        'uncle_ab': [
+            { id: 'c_ua1', text: 'عدم وجود أب، جد، أو عم شقيق', share: 'عصبة بالنفس' }
+        ],
+        'cousin_full': [
+            { id: 'c_cf1', text: 'عدم وجود عم شقيق ومن يحجبه', share: 'عصبة بالنفس' }
+        ],
+        'cousin_ab': [
+            { id: 'c_ca1', text: 'عدم وجود عم لأب ومن يحجبه', share: 'عصبة بالنفس' }
+        ],
+        'bro_ab': [
+            { id: 'c_ba1', text: 'عدم وجود ابن أو أخ شقيق', share: 'عصبة بالنفس' },
+            { id: 'c_ba2', text: 'يعصب أخته لأب إذا وجدت', share: 'تعصيب بالغير' }
+        ],
+        'sis_ab': [
+            { id: 'c_sa1', text: 'واحدة (عدم وجود إخوة أشقاء، ابن، أب)', share: 'النصف (1/2)' },
+            { id: 'c_sa2', text: 'اثنتان فأكثر', share: 'الثلثان (2/3)' },
+            { id: 'c_sa3', text: 'مع أخت شقيقة واحدة', share: 'السدس (1/6) تكملة للثلثين' },
+            { id: 'c_sa4', text: 'مع أخ لأب', share: 'تعصيب بالغير' },
+            { id: 'c_sa5', text: 'مع بنات الميت', share: 'تعصيب مع الغير' }
+        ],
+        'grandfather': [
+            { id: 'c_gf1', text: 'مع وجود فرع وارث مذكر (عدم وجود أب)', share: 'السدس (1/6)' },
+            { id: 'c_gf2', text: 'مع وجود فرع وارث مؤنث (عدم وجود أب)', share: 'السدس + الباقي تعصيباً' },
+            { id: 'c_gf3', text: 'عدم وجود فرع وارث (عدم وجود أب)', share: 'عصبة بالنفس' }
+        ],
+        'grandmother': [
+            { id: 'c_gm1', text: 'واحدة أو أكثر (عدم وجود الأم)', share: 'السدس (1/6)' }
+        ]
+    };
+
+    let activeConditionNodes = [];
+    let expandedHeir = null;
+
+    function initTree() {
+        if (typeof vis === 'undefined') {
+            const canvas = document.getElementById('tree-canvas');
+            if (canvas) {
+                canvas.innerHTML = '<div style="color: #d4af37; text-align: center; padding: 100px 20px; font-size: 1.2rem;">نعتذر، لم يتم تحميل مكتبة الشجرة التفاعلية (Vis.js) بشكل صحيح. يرجى التأكد من اتصال الإنترنت وإعادة تحميل الصفحة.</div>';
+            }
+            return;
+        }
+
+        if (!nodes) nodes = new vis.DataSet([]);
+        if (!edges) edges = new vis.DataSet([]);
+
+        nodes.clear();
+        edges.clear();
+        activeConditionNodes = [];
+        expandedHeir = null;
+
+        treeData.forEach(node => {
+            nodes.add({
+                id: node.id,
+                label: node.label,
+                x: node.x,
+                y: node.y,
+                fixed: true, // Lock position to maintain the structural view
+                shape: 'box',
+                color: node.color,
+                font: { color: '#fff', size: node.type === 'center' ? 18 : 14, face: 'Tajawal' },
+                borderWidth: node.type === 'center' ? 3 : 1,
+                shadow: true,
+                type: node.type
+            });
+        });
+
+        baseEdges.forEach(edge => {
+            edges.add({
+                id: edge.from + '-' + edge.to,
+                from: edge.from,
+                to: edge.to,
+                color: { color: edge.dashes ? 'rgba(142, 68, 173, 0.5)' : 'rgba(212, 175, 55, 0.4)' },
+                dashes: edge.dashes ? true : false,
+                width: 2,
+                arrows: { to: { enabled: true, scaleFactor: 0.5 } }
+            });
+        });
+
+        const container = document.getElementById('tree-canvas');
+        const data = { nodes: nodes, edges: edges };
+        const options = {
+            physics: false, // Turn off physics entirely for fixed structural view
+            interaction: {
+                hover: true,
+                zoomView: true,
+                dragView: true
+            }
+        };
+
+        network = new vis.Network(container, data, options);
+
+        network.on("click", function (params) {
+            handleCanvasClick(params);
+        });
+    }
+
+    function handleCanvasClick(params) {
+        if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
+            const selectedNode = nodes.get(nodeId);
+
+            if (!selectedNode) return;
+
+            // Handle clicking the exact same heir
+            if (selectedNode.type === 'heir' && expandedHeir === nodeId) {
+                clearActiveConditions();
+                return;
+            }
+
+            // Clicked a new heir
+            if (selectedNode.type === 'heir') {
+                clearActiveConditions();
+                expandedHeir = nodeId;
+
+                const conditions = mawarethLogic[nodeId] || [{ id: 'c_def', text: 'يرث حسب قواعد الحجب', share: 'يختلف' }];
+                showConditionsForHeir(selectedNode, conditions);
+
+                // Focus a little offset
+                network.focus(nodeId, { scale: 1.1, animation: true });
+            }
+
+            // Clicked a condition
+            if (selectedNode.type === 'condition') {
+                toggleShareForCondition(selectedNode);
+                network.focus(nodeId, { scale: 1.3, animation: true });
+            }
+
+        } else {
+            // Clicked background
+            clearActiveConditions();
+        }
+    }
+
+    function showConditionsForHeir(heirNode, conditions) {
+        // Calculate offset side based on the x position (left or right)
+        // If x=0 then we use right by default
+        let isRight = heirNode.x >= 0;
+        let xOffset = isRight ? 180 : -180;
+
+        // Render condition nodes
+        conditions.forEach((cond, index) => {
+            const condId = heirNode.id + '_cond_' + index;
+            // Spread vertically
+            let yOffset = (index - ((conditions.length - 1) / 2)) * 60;
+
+            let finalX = heirNode.x + xOffset;
+            let finalY = heirNode.y + yOffset;
+
+            // Avoid colliding with deceased center node when the heir is also x=0
+            if (heirNode.x === 0 && Math.abs(finalY) < 100) {
+                finalX += isRight ? 50 : -50;
+            }
+
+            const cNode = {
+                id: condId,
+                label: cond.text,
+                shareText: cond.share,
+                parentHeir: heirNode.id,
+                x: finalX,
+                y: finalY,
+                shape: 'box',
+                color: { background: '#2980b9', border: '#fff' }, // Blue
+                font: { color: '#fff', size: 12, face: 'Tajawal' },
+                type: 'condition',
+                fixed: true,
+                shadow: true
+            };
+
+            nodes.add(cNode);
+            edges.add({ id: 'e_' + condId, from: heirNode.id, to: condId, color: { color: '#3498db' }, dashes: true });
+            activeConditionNodes.push(condId);
+        });
+    }
+
+    function toggleShareForCondition(condNode) {
+        const shareId = condNode.id + '_share';
+
+        if (nodes.get(shareId)) {
+            // Already showing, hide it
+            nodes.remove(shareId);
+            edges.remove('e_' + shareId);
+            return;
+        }
+
+        // Hide any other share nodes globally to only show one Share at a time
+        activeConditionNodes.forEach(id => {
+            const n = nodes.get(id);
+            if (n && n.type === 'share') {
+                nodes.remove(id);
+                edges.remove('e_' + id);
+            }
+        });
+
+        // Use same side logic, but make the distance dynamic based on the text length of the condition
+        let isRight = condNode.x >= 0;
+
+        // Approximate width: base width + (characters * approx pixels per char)
+        let textLen = condNode.label ? condNode.label.length : 10;
+        let calculatedOffset = 100 + (textLen * 5); // Base distance + variable distance
+
+        // Clamp the offset to ensure it's neither too close nor too far
+        if (calculatedOffset < 140) calculatedOffset = 140;
+        if (calculatedOffset > 220) calculatedOffset = 220;
+
+        let xOffset = isRight ? calculatedOffset : -calculatedOffset;
+
+        const sNode = {
+            id: shareId,
+            label: `النصيب:\n${condNode.shareText}`,
+            x: condNode.x + xOffset,
+            y: condNode.y,
+            shape: 'box',
+            color: { background: '#d35400', border: '#f1c40f' }, // Orange with gold
+            font: { color: '#fff', size: 14, face: 'Tajawal', bold: true },
+            type: 'share',
+            fixed: true,
+            shadow: true
+        };
+
+        nodes.add(sNode);
+        edges.add({ id: 'e_' + shareId, from: condNode.id, to: shareId, color: { color: '#f39c12' }, width: 3, arrows: 'to' });
+        activeConditionNodes.push(shareId);
+    }
+
+    function clearActiveConditions() {
+        activeConditionNodes.forEach(id => {
+            if (nodes.get(id)) nodes.remove(id);
+            if (edges.get('e_' + id)) edges.remove('e_' + id);
+        });
+        activeConditionNodes = [];
+        expandedHeir = null;
+    }
+
+    function resetView() {
+        clearActiveConditions();
+        network.fit({ animation: { duration: 800 } });
+    }
+
+    function zoomIn() {
+        if (!network) return;
+        network.moveTo({ scale: network.getScale() * 1.2 });
+    }
+
+    function zoomOut() {
+        if (!network) return;
+        network.moveTo({ scale: network.getScale() / 1.2 });
+    }
+
+    // Initialize on load
+    window.addEventListener('load', initTree);
+</script>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print { display: none !important; }
+        body { background: #fff !important; color: #000 !important; }
+        .report-page { border: none !important; box-shadow: none !important; padding: 0 !important; width: 100% !important; margin: 0 !important; }
+        .card { border: 1px solid #ddd !important; background: #fff !important; color: #000 !important; }
+        th, td { border-bottom: 1px solid #eee !important; color: #000 !important; }
+        .badge { border: 1px solid #000 !important; color: #000 !important; background: transparent !important; }
+    }
+    
+    .report-page {
+        max-width: 1000px;
+        margin: 50px auto;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 50px;
+    }
+    
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 20px;
+        margin-bottom: 40px;
+    }
+    
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    
+    .report-table th {
+        text-align: right;
+        padding: 15px;
+        background: rgba(255,255,255,0.05);
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    
+    .report-table td {
+        padding: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container no-print" style="margin-top: 20px; display: flex; justify-content: space-between;">
+    <a href="{% url 'administration:dashboard' %}" class="btn-outline" style="padding: 10px 20px;">&rarr; العودة للوحة التحكم</a>
+    <button onclick="window.print()" class="btn-primary" style="padding: 10px 30px;"><i class="fas fa-print"></i> طباعة / حفظ PDF</button>
+</div>
+
+<div class="report-page" id="printableReport">
+    <div class="report-header">
+        <div>
+            <h1 style="color: var(--primary-color); font-weight: 800; margin: 0;">تقرير العمليات الشهري</h1>
+            <p style="color: #888; margin: 5px 0 0;">منظومة إرث الرقمية - الإدارة العليا</p>
+        </div>
+        <div style="text-align: left;">
+            <p style="margin: 0; font-weight: 700;">التاريخ: {{ date|date:"d/m/Y" }}</p>
+            <p style="margin: 5px 0 0; color: #666;">الرقم المرجعي: ERTH-{{ date|date:"Ym" }}-01</p>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px;">
+        <div class="card" style="padding: 20px; text-align: center;">
+            <span style="display: block; color: #888; font-size: 0.9rem;">إجمالي القضايا</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #fff;">{{ cases|length }}</span>
+        </div>
+        <div class="card" style="padding: 20px; text-align: center;">
+            <span style="display: block; color: #888; font-size: 0.9rem;">قيمة التركات</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #2ecc71;">{{ total_value|floatformat:0 }} ر.س</span>
+        </div>
+        <div class="card" style="padding: 20px; text-align: center;">
+            <span style="display: block; color: #888; font-size: 0.9rem;">طلبات معلقة</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #e67e22;">{{ pending_count }}</span>
+        </div>
+    </div>
+    
+    <h3 style="color: #fff; margin-bottom: 20px;">سجل القضايا والعمليات</h3>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>رقم القضية</th>
+                <th>القاضي المسؤول</th>
+                <th>الحالة الحالية</th>
+                <th>تاريخ الفتح</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for case in cases %}
+            <tr>
+                <td style="font-weight: 700; color: var(--primary-color);">#{{ case.case_number }}</td>
+                <td>{{ case.judge.full_name|default:case.judge.username }}</td>
+                <td>{{ case.get_status_display }}</td>
+                <td>{{ case.created_at|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 80px; display: flex; justify-content: space-between; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <div style="text-align: center; width: 200px;">
+            <p style="margin-bottom: 30px; color: #888;">ختم الإدارة</p>
+            <div style="height: 60px;"></div>
+            <p style="border-top: 1px solid #444; padding-top: 5px;">توقيع المدير العام</p>
+        </div>
+        <div style="text-align: right; color: #555; font-size: 0.8rem;">
+            <p>تم استخراج هذا التقرير آلياً من منصة إرث</p>
+            <p>لا يعتد بهذا التقرير بدون الأختام الرسمية المعتمدة</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

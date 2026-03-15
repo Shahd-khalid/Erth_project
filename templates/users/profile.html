@@ -1,0 +1,835 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الملف الشخصي | إرث{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.6s ease-out;
+        display: flex;
+        gap: 30px;
+    }
+
+    /* Sidebar Section */
+    .profile-sidebar {
+        width: 300px;
+        flex-shrink: 0;
+    }
+
+    /* Header Card inside Sidebar */
+    .profile-header-card {
+        background: rgba(26, 35, 47, 0.7);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 20px;
+        padding: 30px 20px;
+        text-align: center;
+        backdrop-filter: blur(15px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+
+    .profile-header-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-color), transparent);
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: rgba(212, 175, 55, 0.1);
+        border: 3px solid var(--accent-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--accent-color);
+        font-weight: bold;
+        box-shadow: 0 0 25px rgba(212, 175, 55, 0.25);
+        margin: 0 auto 20px auto;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .profile-avatar:hover {
+        transform: scale(1.05);
+        border-color: #fff;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-upload-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        color: #fff;
+        font-size: 1.5rem;
+    }
+
+    .profile-avatar:hover .avatar-upload-overlay {
+        opacity: 1;
+    }
+
+    .avatar-edit-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 50%;
+        transform: translateX(50%);
+        background: var(--accent-color);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        border: 2px solid #1a232f;
+        z-index: 5;
+    }
+
+    .profile-info h1 {
+        color: #fff;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        background: rgba(212, 175, 55, 0.15);
+        color: var(--accent-color);
+        border: 1px solid var(--accent-color);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .profile-meta {
+        color: #aaa;
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .profile-meta span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Sidebar Navigation Links */
+    .sidebar-nav {
+        background: rgba(13, 17, 23, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+        border-right: 3px solid transparent;
+        color: #aaa;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1.05rem;
+        padding: 18px 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: right;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .tab-btn:not(:last-child) {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+        color: var(--accent-color);
+        font-weight: 600;
+        background: rgba(212, 175, 55, 0.05);
+        border-right-color: var(--accent-color);
+    }
+
+    .tab-btn i {
+        font-size: 1.2rem;
+        width: 25px;
+        text-align: center;
+    }
+
+    /* Main Content Area */
+    .profile-content {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Form Styles */
+    .glass-card {
+        background: rgba(13, 17, 23, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 40px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .glass-card-title {
+        color: #fff;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1.6rem;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .glass-card-title i {
+        color: var(--accent-color);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+        transition: transform 0.2s ease;
+    }
+
+    .form-group:hover {
+        transform: translateY(-2px);
+    }
+
+    .form-group label {
+        display: block;
+        color: #ddd;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .custom-field-wrapper input {
+        width: 100%;
+        padding: 14px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .custom-field-wrapper input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+    }
+
+    .custom-field-wrapper input:disabled,
+    .custom-field-wrapper input[readonly] {
+        background: rgba(0, 0, 0, 0.2);
+        color: #888;
+        cursor: not-allowed;
+        border-color: transparent;
+    }
+
+    .btn-save {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 14px 35px;
+        border-radius: 12px;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(30, 99, 68, 0.4);
+    }
+
+    .btn-save:hover {
+        background: #1a5c40;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(30, 99, 68, 0.5);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 25px;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        border-radius: 16px;
+        padding: 30px 20px;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--accent-color);
+        background: rgba(212, 175, 55, 0.05);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-icon {
+        font-size: 2.8rem;
+        color: var(--accent-color);
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1);
+    }
+
+    .stat-value {
+        font-size: 2.8rem;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 8px;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+
+    .stat-label {
+        color: #bbb;
+        font-size: 1.05rem;
+        font-weight: 500;
+    }
+
+    /* Messages / Toasts */
+    .toast-container {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .toast-alert {
+        padding: 15px 25px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-weight: 600;
+        font-family: 'Tajawal', sans-serif;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        animation: slideInLeft 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), fadeOut 0.5s ease 4.5s forwards;
+        backdrop-filter: blur(10px);
+    }
+
+    .toast-success {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #4ade80;
+        /* Green to match request */
+    }
+
+    .toast-error {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #f87171;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+            visibility: hidden;
+        }
+    }
+
+    .password-help {
+        font-size: 0.85rem;
+        color: #888;
+        margin-top: 8px;
+    }
+
+    .password-help ul {
+        padding-right: 20px;
+        margin-top: 5px;
+    }
+
+    @media (max-width: 900px) {
+        .profile-container {
+            flex-direction: column;
+        }
+
+        .profile-sidebar {
+            width: 100%;
+        }
+
+        .sidebar-nav {
+            flex-direction: row;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            border-right: none;
+            border-bottom: 3px solid transparent;
+            text-align: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .tab-btn:not(:last-child) {
+            border-bottom: 3px solid transparent;
+            border-left: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .tab-btn.active {
+            border-right-color: transparent;
+            border-bottom-color: var(--accent-color);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+
+    <!-- Toast Messages -->
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast-alert {% if message.tags == 'error' %}toast-error{% else %}toast-success{% endif %}">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"
+                style="font-size: 1.5rem;"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Sidebar -->
+    <aside class="profile-sidebar">
+        <!-- Profile Card -->
+        <div class="profile-header-card">
+            <div class="profile-avatar" onclick="document.getElementById('profile_picture_input').click()">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" id="profile-preview-img" alt="{{ user.username }}">
+                {% else %}
+                <span id="profile-avatar-initial">{{ user.username|slice:":1"|upper }}</span>
+                {% endif %}
+                <div class="avatar-upload-overlay">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="avatar-edit-btn">
+                    <i class="fas fa-pen"></i>
+                </div>
+            </div>
+            <div class="profile-info">
+                <h1>{{ user.first_name }} {{ user.last_name }}
+                    {% if not user.first_name and not user.last_name %}
+                    {{ user.username }}
+                    {% endif %}
+                </h1>
+                <div class="role-badge">
+                    <i class="fas fa-id-badge"></i> {{ user.get_role_display }}
+                </div>
+                <div class="profile-meta">
+                    <span><i class="fas fa-envelope"></i> {{ user.email }}</span>
+                    <span><i class="fas fa-clock"></i> انضم: {{ user.date_joined|date:"M Y" }}</span>
+                    {% if user.role == 'JUDGE' or user.role == 'CLERK' %}
+                    <span style="margin-top: 5px;">
+                        <i class="fas fa-shield-alt"></i>
+                        حالة التحقق:
+                        <strong
+                            class="{% if user.verification_status == 'APPROVED' %}text-success{% else %}text-warning{% endif %}">
+                            {{ user.get_verification_status_display }}
+                        </strong>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Links (Sidebar Tabs) -->
+        <div class="sidebar-nav">
+            <button class="tab-btn active" onclick="switchTab('info')">
+                <i class="fas fa-{% if user.role == 'ADMIN' %}landmark{% else %}user-edit{% endif %}"></i> 
+                {% if user.role == 'ADMIN' %}بيانات المحكمة الرسمية{% else %}المعلومات الشخصية{% endif %}
+            </button>
+            <button class="tab-btn" onclick="switchTab('security')">
+                <i class="fas fa-user-shield"></i> إعدادات الأمان
+            </button>
+            {% if stats %}
+            <button class="tab-btn" onclick="switchTab('activity')">
+                <i class="fas fa-chart-line"></i> لوحة النشاط والإحصائيات
+            </button>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="profile-content">
+
+        <!-- Tab: Personal Info -->
+        <div id="tab-info" class="tab-content active glass-card">
+            <h2 class="glass-card-title">
+                <i class="fas fa-{% if user.role == 'ADMIN' %}landmark{% else %}address-card{% endif %}"></i> 
+                {% if user.role == 'ADMIN' %}البيانات الرسمية للمنظمة{% else %}البيانات الشخصية{% endif %}
+            </h2>
+            <form method="post" action="{% url 'users:profile' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Hidden Image Input -->
+                <input type="file" name="profile_picture" id="profile_picture_input" style="display: none;"
+                    accept="image/*" onchange="previewImage(this)">
+
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px 30px;">
+                    <div class="form-group">
+                        <label>{% if user.role == 'ADMIN' %}اسم المحكمة/الجهة الرسمي{% else %}الاسم الكامل{% endif %}</label>
+                        <div class="custom-field-wrapper">
+                            {% if user.role == 'ADMIN' %}
+                            <input type="text" name="court_name" value="{{ user.court_name|default:'' }}" placeholder="مثلاً: المحكمة العامة الرياض">
+                            {% else %}
+                            <input type="text" name="full_name" value="{{ user.full_name|default:'' }}" placeholder="الاسم الرباعي كما في الهوية">
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <div class="custom-field-wrapper">
+                            <input type="email" name="email" value="{{ user.email }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الجوال</label>
+                        <div class="custom-field-wrapper">
+                            <input type="text" name="phone_number" value="{{ user.phone_number|default:'' }}"
+                                placeholder="مثال: 05XXXXXXXX">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>اسم المستخدم (مرجع للدخول)</label>
+                        <div class="custom-field-wrapper">
+                            <input type="text" value="{{ user.username }}" readonly disabled>
+                        </div>
+                    </div>
+
+                    {% if user.role == 'ADMIN' %}
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>العنوان الرسمي والعنوان الوطني</label>
+                        <div class="custom-field-wrapper">
+                            <textarea name="court_address" rows="3" 
+                                style="width: 100%; padding: 14px 20px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #fff; font-family: inherit;"
+                                placeholder="أدخل العنوان التفصيلي للمحكمة...">{{ user.court_address|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>الختم الرسمي للمصادقة</label>
+                        <div class="custom-field-wrapper" style="display: flex; gap: 15px; align-items: center;">
+                            <input type="file" name="official_stamp" style="flex: 1;">
+                            {% if user.official_stamp %}
+                            <div style="width: 100px; height: 100px; background: #fff; border-radius: 10px; padding: 5px;">
+                                <img src="{{ user.official_stamp.url }}" style="width: 100%; height: 100%; object-fit: contain;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 5px;">يستخدم هذا الختم في تذييل التقارير والصكوك الصادرة من النظام.</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Role Specific Fields -->
+                    {% if user.role == 'JUDGE' %}
+                    <div class="form-group">
+                        <label>رقم رخصة القاضي</label>
+                        <div class="custom-field-wrapper">
+                            <input type="text" name="judge_license" value="{{ user.judge_license|default:'' }}">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.role == 'HEIR' %}
+                    <div class="form-group">
+                        <label>الجنس</label>
+                        <div class="custom-field-wrapper">
+                            <select name="gender" class="form-control"
+                                style="width:100%; padding:14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; outline:none;">
+                                <option value="ذكر" {% if user.gender == 'ذكر' %}selected{% endif %}>ذكر</option>
+                                <option value="أنثى" {% if user.gender == 'أنثى' %}selected{% endif %}>أنثى</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>اسم المتوفى المرتبط بحسابك</label>
+                        <div class="custom-field-wrapper">
+                            <input type="text" name="deceased_name" value="{{ user.deceased_name|default:'' }}"
+                                placeholder="اسم المورث">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>صلة القرابة</label>
+                        <div class="custom-field-wrapper">
+                            <select name="relationship_to_deceased" class="form-control"
+                                style="width:100%; padding:14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; outline:none;">
+                                {% for choice in user.Relationship.choices %}
+                                <option value="{{ choice.0 }}" {% if user.relationship_to_deceased == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>وثيقة إثبات (هوية / صك حصر ورثة)</label>
+                        <div class="custom-field-wrapper" style="display: flex; gap: 15px; align-items: center;">
+                            <input type="file" name="document_file" style="flex: 1;">
+                            {% if user.document_file %}
+                            <a href="{{ user.document_file.url }}" target="_blank" class="btn-outline"
+                                style="padding: 10px 20px; white-space: nowrap; font-size: 0.9rem;">
+                                <i class="fas fa-file-download"></i> عرض الملف الحالي
+                            </a>
+                            {% endif %}
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 5px;">يرجى رفع ملف PDF أو صورة واضحة.</p>
+                    </div>
+                    {% endif %} <!-- End of HEIR check -->
+                </div>
+
+                <div
+                    style="margin-top: 35px; text-align: left; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
+                    <button type="submit" name="update_profile" class="btn-save">
+                        <i class="fas fa-check-circle"></i> حفظ التعديلات
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab: Security -->
+        <div id="tab-security" class="tab-content glass-card">
+            <h2 class="glass-card-title"><i class="fas fa-lock"></i> إعدادات الأمان</h2>
+            <form method="post" action="{% url 'users:profile' %}">
+                {% csrf_token %}
+                <div style="max-width: 500px;">
+                    {% for field in password_form %}
+                    <div class="form-group">
+                        <label>{{ field.label }}</label>
+                        <div class="custom-field-wrapper">
+                            {{ field }}
+                        </div>
+                        {% if field.help_text %}
+                        <div class="password-help">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div
+                    style="margin-top: 35px; text-align: left; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
+                    <button type="submit" name="change_password" class="btn-save">
+                        <i class="fas fa-key"></i> تحديث كلمة المرور
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab: Activity & Stats -->
+        {% if stats %}
+        <div id="tab-activity" class="tab-content glass-card">
+            <h2 class="glass-card-title"><i class="fas fa-chart-line"></i> نظرة عامة على نشاطك</h2>
+
+            <div class="stats-grid">
+                {% if user.role == 'JUDGE' %}
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
+                    <div class="stat-value">{{ stats.total_cases }}</div>
+                    <div class="stat-label">إجمالي القضايا المنجزة</div>
+                </div>
+                <div class="stat-card" style="border-color: rgba(255, 193, 7, 0.3);">
+                    <div class="stat-icon" style="color: #ffc107;"><i class="fas fa-gavel"></i></div>
+                    <div class="stat-value">{{ stats.pending_cases }}</div>
+                    <div class="stat-label">الجلسات القادمة والتسويات</div>
+                </div>
+                <div class="stat-card" style="border-color: rgba(74, 222, 128, 0.3);">
+                    <div class="stat-icon" style="color: #4ade80;"><i class="fas fa-check-double"></i></div>
+                    <div class="stat-value">{{ stats.completed_cases }}</div>
+                    <div class="stat-label">قضايا مغلقة أصولاً</div>
+                </div>
+                {% elif user.role == 'HEIR' %}
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #60a5fa;"><i class="fas fa-folder-open"></i></div>
+                    <div class="stat-value">{{ stats.total_requests }}</div>
+                    <div class="stat-label">المعاملات الإجمالية</div>
+                </div>
+                <div class="stat-card" style="border-color: rgba(255, 193, 7, 0.3);">
+                    <div class="stat-icon" style="color: #ffc107;"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="stat-value">{{ stats.active_requests }}</div>
+                    <div class="stat-label">ملفات قيد المراجعة</div>
+                </div>
+                {% elif user.role == 'CLERK' %}
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                    <div class="stat-value">{{ stats.assigned_cases }}</div>
+                    <div class="stat-label">القضايا المسندة إليك</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </main>
+</div>
+
+{% block extra_js %}
+<script>
+    function switchTab(tabId) {
+        // Hide all contents
+        document.querySelectorAll('.tab-content').forEach(el => {
+            el.classList.remove('active');
+            // Brief timeout to allow display to set before opacity transitions if needed
+        });
+
+        // Remove active class from buttons
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('active');
+        });
+
+        // Show selected content and activate button
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // Auto dismiss toasts after 5 seconds as fallback
+    document.addEventListener("DOMContentLoaded", function () {
+        const toasts = document.querySelectorAll('.toast-alert');
+        if (toasts.length > 0) {
+            setTimeout(() => {
+                toasts.forEach(toast => {
+                    toast.style.display = 'none';
+                });
+            }, 5000);
+        }
+    });
+
+    // Live Preview for Profile Picture
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const previewImg = document.getElementById('profile-preview-img');
+                const initial = document.getElementById('profile-avatar-initial');
+
+                if (previewImg) {
+                    previewImg.src = e.target.result;
+                } else if (initial) {
+                    // Create image if it doesn't exist
+                    const avatarDiv = initial.parentElement;
+                    const img = document.createElement('img');
+                    img.id = 'profile-preview-img';
+                    img.src = e.target.result;
+                    img.alt = 'Preview';
+                    avatarDiv.innerHTML = '';
+                    avatarDiv.appendChild(img);
+
+                    // Add overlays back
+                    const overlay = document.createElement('div');
+                    overlay.className = 'avatar-upload-overlay';
+                    overlay.innerHTML = '<i class="fas fa-camera"></i>';
+                    avatarDiv.appendChild(overlay);
+
+                    const editBtn = document.createElement('div');
+                    editBtn.className = 'avatar-edit-btn';
+                    editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+                    avatarDiv.appendChild(editBtn);
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

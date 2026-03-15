@@ -14,5 +14,5 @@ urlpatterns = [
     path('judges/', include('judges.urls')),
     path('clerks/', include('clerks.urls')),
     path('heirs/', include('heirs.urls')),
-    path('admin_custom/', include('administration.urls')),
+    path('administration/', include('administration.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

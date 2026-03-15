@@ -54,10 +54,14 @@
 
     <!-- My Case Records -->
     <div>
-        <h3
-            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
-            <i class="fas fa-folder-open" style="color: var(--primary-color);"></i> ملفات القضايا المنتمي إليها
-        </h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+            <h3 style="margin: 0; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
+                <i class="fas fa-folder-open" style="color: var(--primary-color);"></i> ملفات القضايا المنتمي إليها
+            </h3>
+            <a href="{% url 'heirs:my_assets_for_sale' %}" class="btn-primary" style="border-radius: 12px; height: 45px; display: inline-flex; align-items: center; padding: 0 20px;">
+                <i class="fas fa-store" style="margin-left: 8px;"></i> عرض أصولي للبيع
+            </a>
+        </div>
 
         {% if my_heir_records %}
         <div class="dashboard-grid">
@@ -79,23 +83,114 @@
                     <div
                         style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 15px; border: 1px solid var(--glass-border);">
                         <p style="margin: 0 0 10px; color: #fff;"><strong
-                                style="color: var(--primary-color);">المتوفى:</strong> {{
-                            record.case.deceased.name|default:"جاري التدقيق..." }}</p>
+                                style="color: var(--primary-color);">المتوفى:</strong> {{ record.case.deceased.name|default:"جاري التدقيق..." }}</p>
                         <p style="margin: 0; color: #fff;"><strong style="color: var(--primary-color);">صفتك:</strong>
                             {{ record.get_relationship_display }}</p>
                     </div>
+
+                    {% if record.bills or record.receipts_waiting %}
+                    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                        {% for bill in record.bills %}
+                        <div class="alert alert-danger" style="padding: 12px; border-radius: 10px; font-size: 0.9rem; border: 1px solid #e74c3c; background: rgba(231, 76, 60, 0.1); margin: 0;">
+                            <i class="fas fa-money-bill-wave" style="margin-left: 5px;"></i> عليك سداد <strong>{{ bill.amount }}</strong> ريال للقاضي
+                            <small style="display: block; opacity: 0.8;">السبب: {{ bill.reason }}</small>
+                        </div>
+                        {% endfor %}
+                        
+                        {% for receipt in record.receipts_waiting %}
+                        <div class="alert alert-success" style="padding: 12px; border-radius: 10px; font-size: 0.9rem; border: 1px solid #2ecc71; background: rgba(46, 204, 113, 0.1); margin: 0;">
+                            <form method="post" action="{% url 'heirs:confirm_receipt' receipt.id %}" style="display: flex; justify-content: space-between; align-items: center;">
+                                {% csrf_token %}
+                                <span><i class="fas fa-hand-holding-usd"></i> استلمت مبلغ <strong>{{ receipt.amount }}</strong> من القاضي؟</span>
+                                <button type="submit" class="btn-success" style="padding: 2px 10px; border-radius: 5px; font-size: 0.8rem;">نعم، استلمت</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if record.case.recent_logs %}
+                    <div style="margin-top: 20px;">
+                        <label style="font-size: 0.8rem; color: var(--primary-color); font-weight: 700; margin-bottom: 8px; display: block;">أحدث التحركات في الجلسة:</label>
+                        <div style="background: rgba(0,0,0,0.15); border-radius: 10px; padding: 10px; font-size: 0.8rem;">
+                            {% for log in record.case.recent_logs %}
+                            <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding: 5px 0; color: #bbb;">
+                                <strong style="color: var(--primary-color);">{{ log.heir.name }}:</strong> {{ log.action_text|truncatechars:40 }}
+                                <span style="float: left; opacity: 0.5;">{{ log.created_at|date:"H:i" }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div style="margin-top: 30px;">
-                    {% if record.case.status == 'SESSION_ACTIVE' %}
+                    {% if record.case.status == 'CONSENT_PENDING' %}
+                        {% if record.acceptance_status == 'REJECTED' %}
+                            <div style="background: rgba(243, 156, 18, 0.1); color: #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; font-weight: 700; border: 1px solid rgba(243, 156, 18, 0.3);">
+                                <i class="fas fa-hourglass-half" style="margin-left: 8px;"></i> بانتظار موافقة الورثة (طلب تراضي)
+                            </div>
+                        {% else %}
+                            <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); padding: 20px; border-radius: 15px; margin-bottom: 15px; text-align: center;">
+                                {% if record.mutual_consent_status == 'NOT_VOTED' %}
+                                    <h4 style="color: #e74c3c; margin-bottom: 15px; font-weight: 800;"><i class="fas fa-exclamation-circle"></i> طلب قسمة بالتراضي</h4>
+                                    <p style="color: #fff; font-size: 1.1rem; margin-bottom: 5px;">قام الوريث {% for o_heir in record.case.objecting_heirs %}<strong style="color: #f39c12;">"{{ o_heir.name }}"</strong>{% if not forloop.last %} و {% endif %}{% endfor %} باعتراضه على تقسيم القاضي وطلب القسمة بالتراضي.</p>
+                                    <p style="color: #aaa; margin-bottom: 20px;">هل توافق على الدخول في مسار القسمة بالتراضي وتجاهل قسمة القاضي؟</p>
+                                    
+                                    <form method="post" action="{% url 'heirs:dashboard' %}" style="display: flex; gap: 10px; justify-content: center;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="heir_id" value="{{ record.id }}">
+                                        <button type="submit" name="action" value="agree_mutual" class="btn btn-success" style="padding: 10px 25px; border-radius: 10px; font-weight: 600;">
+                                            <i class="fas fa-check"></i> أوافق
+                                        </button>
+                                        <button type="submit" name="action" value="disagree_mutual" class="btn btn-outline-danger" style="padding: 10px 25px; border-radius: 10px; font-weight: 600;">
+                                            <i class="fas fa-times"></i> أرفض
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <p style="color: #fff; margin: 0; font-size: 1.1rem;"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> تم تسجيل تصويتك. بانتظار قرار بقية الورثة...</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% elif record.case.status == 'MUTUAL_SELECTION' or record.case.status == 'ALTERNATIVE_SELECTION' %}
+                    <div style="background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; font-weight: 700; border: 1px solid rgba(52, 152, 219, 0.3);">
+                        <i class="fas fa-gavel" style="margin-left: 8px;"></i> مرحلة اختيار الأصول وفض النزاعات
+                    </div>
+                    <a href="{% url 'heirs:session_home' link=record.case.session_link heir_id=record.id %}"
+                        class="btn-primary" style="width: 100%; border-radius: 12px; height: 55px; background: #3498db; border-color: #3498db;">
+                        <i class="fas fa-sign-in-alt"></i> الدخول لاختيار الأصول
+                    </a>
+                    {% elif record.case.status == 'COMPLETED' %}
+                    <div
+                        style="background: rgba(243, 156, 18, 0.1); color: #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; font-weight: 700; border: 1px solid rgba(243, 156, 18, 0.3);">
+                        <i class="fas fa-check-circle" style="margin-left: 8px;"></i> تم اكتمال القضية واعتماد التوزيع
+                    </div>
+                    <a href="{% url 'heirs:final_report' case_id=record.case.id heir_id=record.id %}"
+                        class="btn-primary"
+                        style="width: 100%; border-radius: 12px; height: 55px; background: linear-gradient(135deg, #f39c12 0%, #d35400 100%); border: none;">
+                        <i class="fas fa-file-contract"></i> عرض التقرير النهائي للورثة
+                    </a>
+                    {% elif record.case.status == 'SESSION_ACTIVE' %}
                     <div
                         style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; font-weight: 700; border: 1px solid rgba(46, 204, 113, 0.3);">
-                        <i class="fas fa-video-slash fa-flip-horizontal" style="margin-left: 8px;"></i> الجلسة القضائية
-                        مفتوحة الآن
+                        <i class="fas fa-video-slash fa-flip-horizontal" style="margin-left: 8px;"></i> الجلسة القضائية مفتوحة الآن
                     </div>
                     <a href="{% url 'heirs:session_home' link=record.case.session_link heir_id=record.id %}"
                         class="btn-primary" style="width: 100%; border-radius: 12px; height: 55px;">
                         <i class="fas fa-sign-in-alt"></i> الدخول لمركز الجلسة
+                    </a>
+                    {% elif record.case.status == 'RAFFLE_PHASE' or record.case.status == 'PAYMENTS_PHASE' %}
+                    <div style="background: rgba(241, 196, 15, 0.1); color: #f1c40f; padding: 15px; border-radius: 12px; text-align: center; font-weight: 700; border: 1px dashed rgba(241, 196, 15, 0.3); margin-bottom: 20px;">
+                        <i class="fas fa-balance-scale" style="margin-left: 8px;"></i> 
+                        {% if record.case.status == 'RAFFLE_PHASE' %}
+                            القضية تحت المراجعة النهائية والقرعة من القاضي
+                        {% else %}
+                            تم حسم القرعة وبدأت مرحلة التسويات المالية
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'heirs:session_home' link=record.case.session_link heir_id=record.id %}"
+                        class="btn-primary" style="width: 100%; border-radius: 12px; height: 55px; background: #f39c12; border-color: #f39c12;">
+                        <i class="fas fa-poll-h"></i> عرض نتائج القرعة والتسويات
                     </a>
                     {% else %}
                     <div

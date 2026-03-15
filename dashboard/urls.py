@@ -4,7 +4,9 @@ from . import views
 app_name = 'dashboard'
 
 urlpatterns = [
-    path('', views.dashboard, name='index'), # Changed name to index to avoid conflict if needed, but 'dashboard' is fine if namespaced. 
-    # Actually, the project urls include it as 'dashboard/', so this is 'dashboard:index' or just 'dashboard' if no app_name.
-    # Let's keep it simple.
+    path('', views.dashboard, name='index'),
+    path('simulator/', views.simulator, name='visual_guide_selection'),
+    path('simulator/tree/', views.inheritance_tree, name='inheritance_tree'),
+    path('simulator/table/', views.inheritance_table, name='inheritance_table'),
+    path('help/', views.help_page, name='help'),
 ]

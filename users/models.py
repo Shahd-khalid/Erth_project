@@ -26,6 +26,7 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.PUBLIC)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, verbose_name=_('صورة الملف الشخصي'))
     is_verified = models.BooleanField(default=False)
     verification_status = models.CharField(
         max_length=20,
@@ -49,6 +50,12 @@ class User(AbstractUser):
     deceased_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('اسم المتوفى'))
     relationship_to_deceased = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('صلة القرابة بالمتوفى'))
     gender = models.CharField(max_length=10, choices=Gender.choices, blank=True, null=True, verbose_name=_('الجنس'))
+    previous_role = models.CharField(max_length=20, choices=Role.choices, blank=True, null=True, verbose_name=_('الدور السابق'))
+
+    # Admin/Court specific fields
+    court_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('اسم المحكمة/المنظمة'))
+    court_address = models.TextField(blank=True, null=True, verbose_name=_('العنوان الرسمي'))
+    official_stamp = models.ImageField(upload_to='stamps/', blank=True, null=True, verbose_name=_('الختم الرسمي'))
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

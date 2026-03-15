@@ -27,13 +27,11 @@
                             <div class="small text-muted">
                                 المختار:
                                 {% for intent in stat.intents.all %}
-                                <span class="badge {% if intent.wants_lottery %}bg-info{% else %}bg-warning{% endif %}"
-                                    title="{% if intent.wants_lottery %}موافق على القرعة{% else %}يرفض القرعة (يطلب البيع){% endif %}">
-                                    {{ intent.asset.description }}
-                                    {% if not intent.wants_lottery %}<i class="fas fa-gavel"></i>{% endif %}
+                                <span class="badge bg-info">
+                                    {% if intent.asset %}{{ intent.asset.description }}{% else %}{{ intent.component.description }}{% endif %}
                                 </span>
                                 {% empty %}
-                                <span class="text-muted">لا يوجد</span>
+                                <span class="text-muted">نفس المخصص مسبقاً من القاضي</span>
                                 {% endfor %}
                             </div>
                         </td>
@@ -57,6 +55,58 @@
     </div>
 </div>
 
+{% if pending_payments %}
+<div class="container mt-4">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white mt-1">
+            <i class="fas fa-money-bill-wave"></i> تسويات مالية معلقة (يجب تحصيلها قبل الاعتماد)
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>الدافع (تجاوز النصيب)</th>
+                        <th>المبلغ المطلوب سداده للقاضي</th>
+                        <th>السبب</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in pending_payments %}
+                    <tr>
+                        <td>{{ payment.payer.name }}</td>
+                        <td class="text-danger fw-bold">
+                            {{ payment.amount }} ريال
+                            {% if payment.heir_confirmed_payment %}
+                                <div class="badge bg-success mt-1 d-block" style="font-size: 0.7rem;">
+                                    <i class="fas fa-check-double"></i> أفاد بالسداد
+                                </div>
+                            {% else %}
+                                <div class="badge bg-secondary mt-1 d-block" style="font-size: 0.7rem; opacity: 0.7;">
+                                    بانتظار التحويل
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ payment.reason }}</td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="payment_id" value="{{ payment.id }}">
+                                <button type="submit" name="action" value="mark_paid" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> تأكيد استلام المبلغ
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="container mt-4">
 {% if system_warnings %}
 <div class="card mb-4 border-warning">
     <div class="card-header bg-warning text-dark">
@@ -111,9 +161,6 @@
                     <i class="fas fa-random"></i> فتح باب القرعة
                 </button>
 
-                <a href="{% url 'liquidation' case.id %}" class="btn btn-danger">
-                    <i class="fas fa-gavel"></i> الانتقال للمزاد (تسييل)
-                </a>
             </div>
         </form>
     </div>

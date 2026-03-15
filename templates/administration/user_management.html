@@ -1,0 +1,154 @@
+{% extends 'administration/admin_base.html' %}
+{% load static %}
+
+{% block admin_extra_css %}
+<style>
+    .user-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    .user-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--primary-color);
+        transform: translateX(-5px);
+    }
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #000;
+    }
+    .role-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .badge-admin { background: rgba(212, 175, 55, 0.1); color: #d4af37; border: 1px solid #d4af37; }
+    .badge-judge { background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid #3498db; }
+    .badge-clerk { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid #2ecc71; }
+    .badge-pending { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid #e74c3c; }
+
+    .action-group {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-promote:hover { background: #d4af37; color: #000; border-color: #d4af37; }
+    .btn-demote:hover { background: #3498db; color: #fff; border-color: #3498db; }
+    .btn-delete:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+    .btn-approve:hover { background: #2ecc71; color: #fff; border-color: #2ecc71; }
+
+    .search-bar {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 12px 20px;
+        color: #fff;
+        width: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block admin_header_title %}
+    <h1 style="color: #fff; font-weight: 800; margin: 0; font-size: 2rem;">إدارة الحسابات</h1>
+    <p style="color: #888; margin-top: 5px;">التحكم في صلاحيات الوصول والأدوار الإدارية</p>
+{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: flex-end; margin-bottom: 30px; gap: 15px;">
+    <form method="GET" action="." style="display: flex; gap: 10px;">
+        <input type="text" name="q" value="{{ query }}" placeholder="بحث عن مستخدم..." class="search-bar">
+        <select name="status" class="search-bar" style="width: 150px;" onchange="this.form.submit()">
+            <option value="ALL" {% if status_filter == 'ALL' %}selected{% endif %}>الكل</option>
+            <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>المقبولين</option>
+            <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>بانتظار الموافقة</option>
+        </select>
+    </form>
+</div>
+
+<div class="user-list">
+    {% for u in managed_users %}
+    <div class="user-card">
+        <div class="user-info">
+            <div class="user-avatar">{{ u.username|first|upper }}</div>
+            <div>
+                <h3 style="color: #fff; margin: 0; font-size: 1.1rem;">{{ u.full_name|default:u.username }}</h3>
+                <p style="color: #666; font-size: 0.85rem; margin: 3px 0;">{{ u.email }} | بتاريـخ: {{ u.date_joined|date:"d/m/Y" }}</p>
+                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                    <span class="role-badge {% if u.role == 'ADMIN' %}badge-admin{% elif u.role == 'JUDGE' %}badge-judge{% else %}badge-clerk{% endif %}">
+                        {{ u.get_role_display }}
+                    </span>
+                    {% if u.verification_status == 'PENDING' %}
+                    <span class="role-badge badge-pending">بانتظار التفعيل</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="action-group">
+            {% if u.verification_status == 'PENDING' %}
+            <form action="{% url 'administration:approve_user' u.id %}" method="POST" title="قبول الطلب وتفعيل الصلاحيات">
+                {% csrf_token %}
+                <button type="submit" class="btn-action btn-approve"><i class="fas fa-check"></i></button>
+            </form>
+            {% else %}
+                {% if u.role == 'ADMIN' %}
+                    {% if u.previous_role %}
+                    <form action="{% url 'administration:demote_user' u.id %}" method="POST" title="إلغاء الترقية والعودة للدور السابق">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action btn-demote"><i class="fas fa-user-minus"></i></button>
+                    </form>
+                    {% endif %}
+                {% else %}
+                <form action="{% url 'administration:promote_to_admin' u.id %}" method="POST" title="ترقية إلى مدير نظام">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-action btn-promote"><i class="fas fa-user-shield"></i></button>
+                </form>
+                {% endif %}
+            {% endif %}
+
+            <form action="{% url 'administration:delete_user' u.id %}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')" title="حذف الحساب نهائياً">
+                {% csrf_token %}
+                <button type="submit" class="btn-action btn-delete"><i class="fas fa-trash-alt"></i></button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 100px; color: #444;">
+        <i class="fas fa-users-slash" style="font-size: 4rem; margin-bottom: 20px; display: block;"></i>
+        <p>لا يوجد مستخدمين يطابقون خيارات البحث</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

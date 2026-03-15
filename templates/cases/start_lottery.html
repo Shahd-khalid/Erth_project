@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>القرعة الإلكترونية ({{ case.case_number }})</h2>
-    <p class="lead">تستخدم القرعة لفك النزاع على الأصول التي يرغب فيها أكثر من وارث.</p>
+    <h2>القرعة الإلكترونية وحل النزاعات ({{ case.case_number }})</h2>
+    <p class="lead">تستخدم القرعة لفك النزاع الآلي بين الورثة الذين اختاروا نفس الأصول أو العينات.</p>
 
     {% if messages %}
     <div class="alert alert-info">
@@ -14,86 +14,78 @@
     {% endif %}
 
     <div class="row">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">إعداد القرعة</div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">اختر الأصل المتنازع عليه:</label>
-                            <select name="asset_id" class="form-select" required>
-                                <option value="">-- اختر الأصل --</option>
-                                {% for asset in lottery_assets %}
-                                <option value="{{ asset.id }}">
-                                    {{ asset.description }} ({{ asset.value }} ريال)
-                                    {% if asset.selection_intents.count > 1 %} [متنازع عليه - {{ asset.selection_intents.count }} ورثة] {% endif %}
-                                </option>
-                                {% empty %}
-                                <option disabled>لا توجد أصول غير موزعة.</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">اختر الورثة المتنافسين:</label>
-                            <div class="list-group">
-                                {% for heir in heirs %}
-                                <label class="list-group-item">
-                                    <input class="form-check-input me-1" type="checkbox" name="participants"
-                                        value="{{ heir.id }}">
-                                    {{ heir.name }} (نصيبه: {{ heir.share_value }})
-                                </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-warning w-100">
-                            <i class="fas fa-random"></i> إجراء القرعة الآن
-                        </button>
-                    </form>
+        <div class="col-md-8">
+            <h4>النزاعات النشطة (بانتظار القرعة)</h4>
+            {% if active_disputes %}
+                {% for dispute in active_disputes %}
+                <div class="card mb-3 border-warning">
+                    <div class="card-header bg-warning text-dark fw-bold">
+                        نزاع على: {% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p><strong>المتنافسون:</strong></p>
+                        <ul>
+                            {% for heir in dispute.contenders.all %}
+                            <li>{{ heir.name }} (رصيده المتبقي: {{ heir.remaining_share }} ريال)</li>
+                            {% endfor %}
+                        </ul>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="dispute_id" value="{{ dispute.id }}">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-random"></i> إجراء القرعة العشوائية
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-success">لا توجد نزاعات نشطة حالياً.</div>
+                {% if case.status == 'PAYMENTS_PHASE' %}
+                <a href="{% url 'review_distribution' case.id %}" class="btn btn-success mt-3">الانتقال لمرحلة السداد والتخارج</a>
+                {% endif %}
+            {% endif %}
+
+            <h4 class="mt-5">النزاعات المحسومة</h4>
+            {% if resolved_disputes %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>الأصل/العينة</th>
+                                <th>الفائز</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dispute in resolved_disputes %}
+                            <tr>
+                                <td>{% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}</td>
+                                <td><span class="badge bg-success">{{ dispute.winner.name }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">لم يتم حسم أي نزاعات بعد.</p>
+            {% endif %}
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card bg-light">
                 <div class="card-body">
                     <h5>كيف تعمل القرعة؟</h5>
                     <ol>
-                        <li>يحدد القاضي الأصل.</li>
-                        <li>يحدد الورثة الذين يرغبون فيه ويملكون الرصيد الكافي (أو يتعهدون بدفع الفرق).</li>
-                        <li>يقوم النظام باختيار فائز واحد عشوائياً.</li>
-                        <li>يتم تخصيص الأصل للفائز فوراً.</li>
+                        <li>يقوم النظام تلقائياً برصد جميع التعارضات في اختيارات الورثة.</li>
+                        <li>ينشئ نزاعاً لكل أصل وعينة عليها طلب مشترك.</li>
+                        <li>بضغطك على زر إجراء القرعة، يختار النظام فائزاً عشوائياً.</li>
+                        <li>في حال كان الأصل أغلى من نصيب الفائز، يتحول جزء منه إلى "تعهد سداد".</li>
                     </ol>
                     <hr>
-                    <a href="{% url 'review_distribution' case.id %}" class="btn btn-secondary">عودة للمراجعة</a>
+                    <a href="{% url 'review_distribution' case.id %}" class="btn btn-secondary w-100 mb-2">العودة للوحة القضية</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    const conflictMap = {{ conflict_map_json| safe }};
-    const assetSelect = document.querySelector('select[name="asset_id"]');
-    const participantChecks = document.querySelectorAll('input[name="participants"]');
-
-    assetSelect.addEventListener('change', function () {
-        const assetId = this.value;
-        const interestedHeirs = conflictMap[assetId] || [];
-
-        participantChecks.forEach(check => {
-            // Auto-check if the heir is in the interested list for this asset
-            check.checked = interestedHeirs.map(id => id.toString()).includes(check.value.toString());
-
-            // Highlight the row for better visibility
-            if (check.checked) {
-                check.closest('.list-group-item').classList.add('list-group-item-warning');
-            } else {
-                check.closest('.list-group-item').classList.remove('list-group-item-warning');
-            }
-        });
-    });
-</script>
 {% endblock %}

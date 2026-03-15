@@ -13,15 +13,13 @@
             </div>
             <div>
                 <h1 class="header-title" style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">تفاصيل
-                    القضية: {{
-                    case.case_number }}</h1>
+                    القضية: {{ case.case_number }}</h1>
                 <p class="header-subtitle" style="color: var(--text-muted); margin: 5px 0 0;">إدارة بيانات الورثة،
                     الأصول، والديون الشرعية.</p>
             </div>
         </div>
         <span class="badge status-badge"
-            style="background: var(--primary-color); color: #000; font-size: 1rem; padding: 10px 20px; border-radius: 10px; font-weight: 800;">{{
-            case.get_status_display }}</span>
+            style="background: var(--primary-color); color: #000; font-size: 1rem; padding: 10px 20px; border-radius: 10px; font-weight: 800;">{{ case.get_status_display }}</span>
     </div>
 
     <!-- Main Content Grid -->
@@ -96,8 +94,7 @@
                         <div
                             style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <p style="margin: 0; color: #fff; font-weight: 700;">{{
-                                    p_heir.full_name|default:p_heir.username }}</p>
+                                <p style="margin: 0; color: #fff; font-weight: 700;">{{ p_heir.full_name|default:p_heir.username }}</p>
                                 <small style="color: var(--text-muted);">{{ p_heir.relationship_to_deceased }}</small>
                             </div>
                             <form method="post" style="margin: 0;">

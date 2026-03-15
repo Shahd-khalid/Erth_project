@@ -45,10 +45,8 @@
                     <tbody>
                         {% for judge in pending_judges %}
                         <tr>
-                            <td style="padding: 20px; color: #fff; font-weight: 600;">{{
-                                judge.full_name|default:judge.username }}</td>
-                            <td style="padding: 20px; color: var(--primary-color); font-weight: 700;">{{
-                                judge.judge_license }}</td>
+                            <td style="padding: 20px; color: #fff; font-weight: 600;">{{ judge.full_name|default:judge.username }}</td>
+                            <td style="padding: 20px; color: var(--primary-color); font-weight: 700;">{{ judge.judge_license }}</td>
                             <td style="padding: 20px; color: var(--text-muted);">{{ judge.date_joined|date:"Y-m-d" }}
                             </td>
                             <td style="padding: 20px; display: flex; gap: 10px;">

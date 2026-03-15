@@ -26,7 +26,7 @@
                 <br>
                 يرجى التواصل مع الإدارة للمزيد من التفاصيل.
             </p>
-            <form action="{% url 'logout' %}" method="post" class="d-inline">
+            <form action="{% url 'users:logout' %}" method="post" class="d-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-secondary mt-3">تسجيل الخروج</button>
             </form>

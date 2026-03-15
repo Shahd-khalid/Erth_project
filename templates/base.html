@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.1">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.2">
     <style>
         @media (max-width: 992px) {
             .nav-toggle {
@@ -53,55 +53,282 @@
                 display: block;
             }
         }
+
+        /* Premium Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .toast-message {
+            pointer-events: auto;
+            background: rgba(10, 15, 20, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            overflow: hidden;
+            max-width: 90vw;
+            width: fit-content;
+            padding: 12px 18px 12px 24px;
+            animation: slideDownFade 0.5s ease;
+        }
+
+        @keyframes slideDownFade {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .toast-message.shrunk {
+            max-width: 58px;
+            padding: 12px 14px;
+            opacity: 0.7;
+            border-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast-icon {
+            font-size: 1.6rem;
+            width: 30px;
+            height: 30px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0;
+        }
+
+        .toast-content-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            overflow: hidden;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+            margin-right: 15px;
+        }
+
+        .toast-message.shrunk .toast-content-wrapper {
+            opacity: 0;
+            margin-right: 0;
+            gap: 0;
+        }
+
+        .toast-content {
+            font-size: 0.95rem;
+            font-weight: 600;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .toast-success .toast-icon {
+            color: #2ecc71;
+            text-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .toast-error .toast-icon {
+            color: #e74c3c;
+            text-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .toast-warning .toast-icon,
+        .toast-info .toast-icon {
+            color: #d4af37;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .toast-success {
+            border-bottom: 2px solid #2ecc71;
+        }
+
+        .toast-error {
+            border-bottom: 2px solid #e74c3c;
+        }
+
+        .toast-warning {
+            border-bottom: 2px solid #d4af37;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: 0.3s;
+            padding: 0;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .toast-close:hover {
+            color: #e74c3c;
+            transform: scale(1.2) rotate(90deg);
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <a href="/" class="logo">
-                <i class="fas fa-balance-scale"></i>
-                <span style="font-family: 'IBM Plex Sans Arabic', sans-serif;">إرث</span>
+        <div class="container navbar-container">
+            <!-- Right side (Logo) -->
+            <a href="/" class="navbar-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">إرث</span>
+                    <span class="logo-subtitle">نظام المواريث الشرعي</span>
+                </div>
             </a>
 
             <!-- Mobile Menu Toggle -->
-            <button class="nav-toggle mobile-only" id="navToggle"
-                style="background: none; border: none; color: var(--primary-color); font-size: 1.8rem; cursor: pointer; padding: 10px;">
+            <button class="nav-toggle mobile-only" id="navToggle" aria-label="القائمة">
                 <i class="fas fa-bars"></i>
             </button>
 
-            <div class="nav-right desktop-only" id="navRight" style="display: flex; align-items: center; gap: 40px;">
-                <ul class="nav-links" style="display: flex; gap: 20px; align-items: center;">
-                    {% if user.is_authenticated %}
-                    <li><a href="{% url 'dashboard:index' %}"><i class="fas fa-th-large"></i> لوحة التحكم</a></li>
+            <!-- Left side (Links & Actions) -->
+            <div class="nav-content" id="navRight">
+
+                <!-- Desktop Links -->
+                <ul class="nav-links desktop-only">
                     <li>
-                        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                        <a href="{% url 'dashboard:visual_guide_selection' %}" class="nav-link">
+                            <i class="fas fa-sitemap"></i> الدليل المرئي
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_calculator' %}" class="nav-link">
+                            <i class="fas fa-calculator"></i> احسب إرثك
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Desktop Actions -->
+                <div class="nav-actions desktop-only">
+                    {% if user.is_authenticated %}
+                    <div class="user-menu-wrapper">
+                        <a href="{% url 'users:dashboard' %}" class="nav-link" title="لوحة التحكم">
+                            <i class="fas fa-th-large"></i> لوحة التحكم
+                        </a>
+                        <a href="{% url 'users:profile' %}" class="nav-link user-profile-link">
+                            <div class="nav-avatar">
+                                {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
+                                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                {% else %}
+                                {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                {% endif %}
+                            </div>
+                            <span>{{ user.first_name|default:user.username }}</span>
+                        </a>
+                        <form action="{% url 'users:logout' %}" method="post" class="inline-form">
                             {% csrf_token %}
-                            <button type="submit" class="btn-outline"
-                                style="padding: 0.5rem 1.5rem; border-radius: 6px; font-size: 0.95rem; cursor: pointer;">
+                            <button type="submit" class="btn-logout" title="تسجيل الخروج">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'users:login' %}" class="nav-link login-link">تسجيل الدخول</a>
+                    <a href="{% url 'users:register' %}" class="btn-primary nav-btn-primary">
+                        ابدأ الآن <i class="fas fa-arrow-left"></i>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Menu Content -->
+                <div class="mobile-menu-wrapper mobile-only" id="mobileMenu">
+                    {% if user.is_authenticated %}
+                    <div class="mobile-user-profile">
+                        <div class="nav-avatar large">
+                            {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
+                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            {% else %}
+                            {{ user.first_name|default:user.username|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="mobile-user-details">
+                            <span class="greeting">مرحباً بك</span>
+                            <span class="name">{{ user.first_name|default:user.username }}</span>
+                            <span class="role">{{ user.get_role_display|default:user.role }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mobile-links-container">
+                        <a href="{% url 'dashboard:visual_guide_selection' %}" class="mobile-link">
+                            <i class="fas fa-sitemap"></i> الدليل المرئي للمواريث
+                        </a>
+                        <a href="{% url 'public_calculator' %}" class="mobile-link">
+                            <i class="fas fa-calculator"></i> احسب إرثك
+                        </a>
+
+                        {% if user.is_authenticated %}
+                        <div class="mobile-divider"></div>
+                        <a href="{% url 'users:dashboard' %}" class="mobile-link">
+                            <i class="fas fa-th-large"></i> لوحة التحكم
+                        </a>
+                        <a href="{% url 'users:profile' %}" class="mobile-link">
+                            <i class="fas fa-user-circle"></i> ملفي الشخصي
+                        </a>
+                        <form action="{% url 'users:logout' %}" method="post" style="margin-top: 15px;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-outline full-width">
                                 <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
                             </button>
                         </form>
-                    </li>
-                    {% else %}
-                    <li><a href="{% url 'login' %}">تسجيل الدخول</a></li>
-                    <li><a href="{% url 'register_heir' %}" class="btn-primary" style="padding: 0.6rem 1.8rem;">ابدأ
-                            الآن</a></li>
-                    {% endif %}
-                </ul>
+                        {% else %}
+                        <div class="mobile-auth-buttons">
+                            <a href="{% url 'users:login' %}" class="btn-outline full-width">تسجيل الدخول</a>
+                            <a href="{% url 'users:register' %}" class="btn-primary full-width">ابدأ الآن</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
             </div>
         </div>
     </nav>
 
     <main class="container main-content" style="padding-top: 40px;">
         {% if messages %}
-        <div class="messages">
+        <div class="toast-container" id="toastContainer">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                <i
-                    class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
-                {{ message }}
+            <div class="toast-message toast-{{ message.tags }}">
+                <div class="toast-icon">
+                    <i
+                        class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                </div>
+                <div class="toast-content-wrapper">
+                    <div class="toast-content">{{ message }}</div>
+                    <button class="toast-close" onclick="this.closest('.toast-message').remove()"
+                        title="إغلاق">&times;</button>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -120,6 +347,12 @@
             </div>
             <p style="opacity: 0.5; font-size: 0.9rem;">&copy; 2025 منصة إرث - التقنية في خدمة المواريث الشرعية
             </p>
+            <div style="margin-top: 15px;">
+                <a href="{% url 'dashboard:help' %}"
+                    style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 700;">
+                    <i class="fas fa-book-open"></i> دليل استخدام المنصة (Manual)
+                </a>
+            </div>
         </div>
     </footer>
 
@@ -134,6 +367,28 @@
                 navToggle.querySelector('i').classList.toggle('fa-times');
             });
         }
+
+        // Premium Toast logic
+        const toasts = document.querySelectorAll('.toast-message');
+        toasts.forEach(toast => {
+            // Wait 5 seconds, then shrink
+            let shrinkTimer = setTimeout(() => {
+                toast.classList.add('shrunk');
+            }, 5000);
+
+            // Expand on hover
+            toast.addEventListener('mouseenter', () => {
+                clearTimeout(shrinkTimer);
+                toast.classList.remove('shrunk');
+            });
+
+            // Shrink again shortly after mouse leaves
+            toast.addEventListener('mouseleave', () => {
+                shrinkTimer = setTimeout(() => {
+                    toast.classList.add('shrunk');
+                }, 3000);
+            });
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>

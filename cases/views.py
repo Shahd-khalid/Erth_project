@@ -48,16 +48,12 @@ def review_distribution(request, case_id):
     
     # Security check: Only assigned Judge
     if request.user != case.judge:
-        # return redirect('dashboard') # Or 403
-        pass # Allow for dev/test or multiple judges logic if needed
+        pass 
+
+    from .models import PaymentSettlement, AssetComponent
 
     heirs = case.heirs.all()
     
-    # Conflict Detection: Assets with more than 1 selection intent
-    conflicting_assets = Asset.objects.filter(case=case).annotate(
-        selection_count=Count('selection_intents')
-    ).filter(selection_count__gt=1)
-
     # Get warnings from service
     system_warnings = get_allocation_warnings(case)
 
@@ -66,43 +62,33 @@ def review_distribution(request, case_id):
     all_balanced = True
 
     for heir in heirs:
-        # We look at both: directly assigned (by judge) AND selection intents (by heir)
         intents = HeirAssetSelection.objects.filter(heir=heir)
-        selected_value = sum(i.asset.value for i in intents)
+        intent_value = sum(i.asset.value if i.asset else i.component.value for i in intents)
+        
+        assigned_assets_val = sum(a.value for a in heir.allocated_assets.all())
+        assigned_comps_val = sum(c.value for c in heir.allocated_components.all())
+        
+        selected_value = intent_value + assigned_assets_val + assigned_comps_val
         diff = selected_value - heir.share_value
         
-        # Determine if this heir has any "anti-lottery" intents on conflicted assets
-        refused_lottery_conflicts = intents.filter(
-            asset__in=conflicting_assets, 
-            wants_lottery=False
-        )
-        has_refusal = refused_lottery_conflicts.exists()
-        
-        has_selected = intents.exists()
+        has_selected = intents.exists() or heir.allocated_assets.exists() or heir.allocated_components.exists()
         if not has_selected:
             all_selected = False
             
         status_label = "لم يختر بعد"
         if has_selected:
-            # Check if any of their selections are in conflict
-            my_conflicts = conflicting_assets.filter(selection_intents__heir=heir)
-            if my_conflicts.exists():
-                if has_refusal:
-                    status_label = f"تعارض (مرفوض للقرعة: {refused_lottery_conflicts.count()})"
-                else:
-                    status_label = f"تعارض (جاهز للقرعة: {my_conflicts.count()})"
-                all_balanced = False
+            if case.status in [Case.Status.MUTUAL_SELECTION, Case.Status.ALTERNATIVE_SELECTION, Case.Status.CONSENT_PENDING]:
+                status_label = "بانتظار الإغلاق/القرعة"
+            elif case.status == Case.Status.RAFFLE_PHASE:
+                status_label = "في مرحلة القرعة"
             else:
-                if abs(diff) < 0.1:
-                    status_label = "متطابق"
-                elif diff > 0:
+                if diff > 0:
                     status_label = f"عليه دفع فرق ({diff})"
-                    # We might want to set all_balanced = False if they need to pay, 
-                    # but here we allow the judge to decide.
-                else:
+                elif diff < 0:
                     status_label = f"لم يكمل النصيب (باقي {abs(diff)})"
-                    # all_balanced = False # We allow partial now, but Judge might want to know
-        
+                else:
+                    status_label = "إغلاق سليم"
+
         heir_stats.append({
             'name': heir.name,
             'share_value': heir.share_value,
@@ -113,19 +99,60 @@ def review_distribution(request, case_id):
             'intents': intents
         })
 
+    pending_payments = PaymentSettlement.objects.filter(case=case, is_paid_to_judge=False)
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'approve':
-            # 1. Finalize assignments from intents to actual Asset fields
+        
+        if action == 'mark_paid':
+            payment_id = request.POST.get('payment_id')
+            payment = get_object_or_404(PaymentSettlement, id=payment_id, case=case)
+            payment.is_paid_to_judge = True
+            payment.save()
+            
+            # Official ownership transfer
+            target = payment.asset or payment.component
+            if target:
+                target.assigned_to = payment.payer
+                target.save()
+                
+                # Update allocated share
+                payer = payment.payer
+                payer.allocated_share += target.value
+                payer.save()
+                
+                from .models import SelectionLog
+                SelectionLog.objects.create(
+                    case=case,
+                    heir=payment.payer,
+                    action_text=f"تم نقل ملكية {target.description} له بشكل رسمي بعد توفية الالتزامات المالية (عبر المراجعة)."
+                )
+
+            messages.success(request, f'تم إثبات استلام الدفعة بقيمة {payment.amount} من {payment.payer.name} وتحويل الملكية له.')
+            
+            # If paid, we need to assign the asset back to them maybe?
+            # Actually, start_lottery kept it `assigned_to = None` until paid. Let's just trust it's tracked.
+            
+            return redirect('review_distribution', case_id=case.id)
+
+        elif action == 'approve':
+            if pending_payments.exists():
+                messages.error(request, 'لا يمكن اعتماد القسمة لوجود مبالغ معلقة لم يتم تسويتها بعد.')
+                return redirect('review_distribution', case_id=case.id)
+                
+            # 1. Finalize assignments from intents
             for h in heirs:
                 intents = HeirAssetSelection.objects.filter(heir=h)
                 for intent in intents:
-                    intent.asset.assigned_to = h
-                    intent.asset.save()
-                    
-                    # Update allocated_share
-                    h.allocated_share += intent.asset.value
-                    h.save()
+                    if intent.asset:
+                        intent.asset.assigned_to = h
+                        intent.asset.save()
+                        h.allocated_share += intent.asset.value
+                    if intent.component:
+                        intent.component.assigned_to = h
+                        intent.component.save()
+                        h.allocated_share += intent.component.value
+                h.save()
                 
                 h.acceptance_status = Heir.AcceptanceStatus.ACCEPTED
                 h.save()
@@ -139,8 +166,8 @@ def review_distribution(request, case_id):
             
             messages.success(request, 'تم اعتماد التوزيع بنجاح، تقسيم الباقي تلقائياً وإغلاق القضية.')
             return redirect('final_report', case_id=case.id)
+            
         elif action == 'escalate':
-            # Redirect to lottery page to pick items for lottery
             return redirect('start_lottery', case_id=case.id)
 
     return render(request, 'cases/review_distribution.html', {
@@ -149,6 +176,7 @@ def review_distribution(request, case_id):
         'all_selected': all_selected,
         'all_balanced': all_balanced,
         'system_warnings': system_warnings,
+        'pending_payments': pending_payments,
     })
 
 import random
@@ -159,87 +187,100 @@ def start_lottery(request, case_id):
     if request.user != case.judge:
         pass # Security
 
-    # Assets with conflicts (more than 1 intent)
-    conflicted_assets = Asset.objects.filter(case=case).annotate(
-        selection_count=Count('selection_intents')
-    ).filter(selection_count__gt=1)
+    from .models import DisputeRaffle, PaymentSettlement, AssetComponent
 
-    # All unassigned assets for the dropdown
-    lottery_assets = Asset.objects.filter(case=case, assigned_to__isnull=True)
+    # 1. Automatically generate missing disputes if in RAFFLE_PHASE
+    if case.status in [Case.Status.RAFFLE_PHASE, Case.Status.PAYMENTS_PHASE]:
+        conflicted_assets = Asset.objects.filter(case=case).annotate(
+            selection_count=Count('selection_intents')
+        ).filter(selection_count__gt=1)
+        
+        for asset in conflicted_assets:
+            dispute, created = DisputeRaffle.objects.get_or_create(case=case, asset=asset)
+            if created:
+                conflict_heirs = Heir.objects.filter(selections__asset=asset)
+                dispute.contenders.set(conflict_heirs)
+                
+        conflicted_comps = AssetComponent.objects.filter(asset__case=case).annotate(
+            selection_count=Count('selection_intents')
+        ).filter(selection_count__gt=1)
+        
+        for comp in conflicted_comps:
+            dispute, created = DisputeRaffle.objects.get_or_create(case=case, component=comp)
+            if created:
+                conflict_heirs = Heir.objects.filter(selections__component=comp)
+                dispute.contenders.set(conflict_heirs)
+                
+        challenges = HeirAssetSelection.objects.filter(heir__case=case, is_challenging_owner=True)
+        for chal in challenges:
+            if chal.asset:
+               dispute, created = DisputeRaffle.objects.get_or_create(case=case, asset=chal.asset)
+               if created:
+                   dispute.contenders.add(chal.heir)
+                   if chal.asset.assigned_to:
+                       dispute.contenders.add(chal.asset.assigned_to)
+            if chal.component:
+               dispute, created = DisputeRaffle.objects.get_or_create(case=case, component=chal.component)
+               if created:
+                   dispute.contenders.add(chal.heir)
+                   if chal.component.assigned_to:
+                       dispute.contenders.add(chal.component.assigned_to)
+
+    active_disputes = DisputeRaffle.objects.filter(case=case, is_resolved=False)
+    resolved_disputes = DisputeRaffle.objects.filter(case=case, is_resolved=True)
     
     if request.method == 'POST':
-        asset_id = request.POST.get('asset_id')
-        participant_ids = request.POST.getlist('participants')
+        dispute_id = request.POST.get('dispute_id')
+        dispute = get_object_or_404(DisputeRaffle, id=dispute_id, case=case)
         
-        target_asset = get_object_or_404(Asset, id=asset_id, case=case)
-        participants = Heir.objects.filter(id__in=participant_ids, case=case)
-        
-        if participants.exists():
-            winner = random.choice(list(participants))
+        contenders = list(dispute.contenders.all())
+        if contenders:
+            winner = random.choice(contenders)
+            dispute.winner = winner
+            dispute.is_resolved = True
+            dispute.save()
             
-            # Assign
-            target_asset.assigned_to = winner
-            target_asset.save()
+            target = dispute.asset if dispute.asset else dispute.component
+            val = target.value
+            old_owner = target.assigned_to
             
-            # Decrement winner's effective balance? 
-            # In our model, we just assign. The "Review" page calculates diff.
-            # If winner now exceeds share, they must pay diff. This is consistent.
+            if old_owner and old_owner != winner:
+                old_owner.allocated_share -= val
+                old_owner.save()
+                
+            winner_remaining = winner.share_value - winner.allocated_share
             
-            messages.success(request, f'تم إجراء القرعة على "{target_asset.description}". الفائز: {winner.name}')
-            return redirect('review_distribution', case_id=case.id)
-        else:
-            messages.error(request, 'يجب اختيار مشارك واحد على الأقل.')
-
-    # Create a mapping of asset_id -> list of heir_ids for JS
-    conflict_map = {}
-    all_assets = Asset.objects.filter(case=case)
-    for a in all_assets:
-        heir_ids = list(a.selection_intents.values_list('heir_id', flat=True))
-        if heir_ids:
-            conflict_map[a.id] = heir_ids
+            if val > winner_remaining:
+                diff = val - winner_remaining
+                PaymentSettlement.objects.create(
+                    case=case, 
+                    payer=winner, 
+                    original_owner=old_owner if old_owner != winner else None,
+                    asset=target if isinstance(target, Asset) else None,
+                    component=target if isinstance(target, AssetComponent) else None,
+                    amount=diff, 
+                    reason=f'دفع فرق لقاء كسب القرعة على {target.description}'
+                )
+                target.assigned_to = None # Wait for payment
+                target.save()
+                messages.success(request, f'فاز {winner.name} بقرعة {target.description}، ويتوجب عليه سداد فرق {diff} ريال للقاضي ليتم إدراجها في أملاكه.')
+            else:
+                target.assigned_to = winner
+                target.save()
+                winner.allocated_share += val
+                winner.save()
+                messages.success(request, f'فاز {winner.name} بقرعة {target.description} وحصل عليه فوراً.')
+            
+            if not DisputeRaffle.objects.filter(case=case, is_resolved=False).exists():
+                case.status = Case.Status.PAYMENTS_PHASE
+                case.save()
+            
+        return redirect('start_lottery', case_id=case.id)
 
     return render(request, 'cases/start_lottery.html', {
         'case': case,
-        'lottery_assets': lottery_assets,
-        'heirs': case.heirs.all(),
-        'conflict_map_json': conflict_map
-    })
-
-@login_required
-def liquidation_view(request, case_id):
-    case = get_object_or_404(Case, id=case_id)
-    if request.user != case.judge:
-        pass
-
-    # Assets eligible for liquidation (Unassigned or explicitly marked)
-    # Usually items moved to Stage 4
-    assets = Asset.objects.filter(case=case, assigned_to__isnull=True, is_liquidated=False)
-    
-    if request.method == 'POST':
-        asset_ids = request.POST.getlist('asset_ids')
-        
-        # Simple loop to process sold items
-        for aid in asset_ids:
-            sold_price = request.POST.get(f'price_{aid}')
-            if sold_price:
-                asset = Asset.objects.get(id=aid, case=case)
-                asset.is_liquidated = True
-                asset.sold_price = sold_price
-                # Calculate difference from estimated value if needed
-                # asset.value = sold_price # Maybe update value to reflect reality?
-                # For distribution, we treat this as Cash now.
-                asset.save()
-        
-        messages.success(request, 'تم تسييل الأصول المختارة وتحديث قيمتها.')
-        return redirect('liquidation', case_id=case_id)
-
-    # Show liquidated items too
-    liquidated_assets = Asset.objects.filter(case=case, is_liquidated=True)
-
-    return render(request, 'cases/liquidation.html', {
-        'case': case,
-        'assets': assets,
-        'liquidated_assets': liquidated_assets
+        'active_disputes': active_disputes,
+        'resolved_disputes': resolved_disputes
     })
 
 @login_required

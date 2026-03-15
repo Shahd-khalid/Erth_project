@@ -215,109 +215,111 @@
 
                 <!-- Desktop Links -->
                 <ul class="nav-links desktop-only">
-            <div class="nav-right" id="navRight" style="display: flex; align-items: center; gap: 40px;">
-                <ul class="nav-links" style="display: flex; gap: 20px; align-items: center;">
-                    <li><a href="{% url 'chat_page' %}"><i class="fas fa-robot"></i> المستشار الذكي</a></li>
-                    {% if user.is_authenticated %}
-                    <li><a href="{% url 'dashboard:index' %}"><i class="fas fa-th-large"></i> لوحة التحكم</a></li>
-                    <li>
-                        <a href="{% url 'dashboard:visual_guide_selection' %}" class="nav-link">
-                            <i class="fas fa-sitemap"></i> الدليل المرئي
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_calculator' %}" class="nav-link">
-                            <i class="fas fa-calculator"></i> احسب إرثك
-                        </a>
-                    </li>
-                </ul>
+                    <div class="nav-right" id="navRight" style="display: flex; align-items: center; gap: 40px;">
+                        <ul class="nav-links" style="display: flex; gap: 20px; align-items: center;">
+                            <li><a href="{% url 'chat_page' %}"><i class="fas fa-robot"></i> المستشار الذكي</a></li>
+                            {% if user.is_authenticated %}
+                            <li><a href="{% url 'dashboard:index' %}"><i class="fas fa-th-large"></i> لوحة التحكم</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'dashboard:visual_guide_selection' %}" class="nav-link">
+                                    <i class="fas fa-sitemap"></i> الدليل المرئي
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'public_calculator' %}" class="nav-link">
+                                    <i class="fas fa-calculator"></i> احسب إرثك
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
 
-                <!-- Desktop Actions -->
-                <div class="nav-actions desktop-only">
-                    {% if user.is_authenticated %}
-                    <div class="user-menu-wrapper">
-                        <a href="{% url 'users:dashboard' %}" class="nav-link" title="لوحة التحكم">
-                            <i class="fas fa-th-large"></i> لوحة التحكم
-                        </a>
-                        <a href="{% url 'users:profile' %}" class="nav-link user-profile-link">
-                            <div class="nav-avatar">
-                                {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
-                                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                                {% else %}
-                                {{ user.first_name|default:user.username|slice:":1"|upper }}
-                                {% endif %}
+                        <!-- Desktop Actions -->
+                        <div class="nav-actions desktop-only">
+                            {% if user.is_authenticated %}
+                            <div class="user-menu-wrapper">
+                                <a href="{% url 'users:dashboard' %}" class="nav-link" title="لوحة التحكم">
+                                    <i class="fas fa-th-large"></i> لوحة التحكم
+                                </a>
+                                <a href="{% url 'users:profile' %}" class="nav-link user-profile-link">
+                                    <div class="nav-avatar">
+                                        {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
+                                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                        {% else %}
+                                        {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                        {% endif %}
+                                    </div>
+                                    <span>{{ user.first_name|default:user.username }}</span>
+                                </a>
+                                <form action="{% url 'users:logout' %}" method="post" class="inline-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-logout" title="تسجيل الخروج">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </button>
+                                </form>
                             </div>
-                            <span>{{ user.first_name|default:user.username }}</span>
-                        </a>
-                        <form action="{% url 'users:logout' %}" method="post" class="inline-form">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-logout" title="تسجيل الخروج">
-                                <i class="fas fa-sign-out-alt"></i>
-                            </button>
-                        </form>
-                    </div>
-                    {% else %}
-                    <a href="{% url 'users:login' %}" class="nav-link login-link">تسجيل الدخول</a>
-                    <a href="{% url 'users:register' %}" class="btn-primary nav-btn-primary">
-                        ابدأ الآن <i class="fas fa-arrow-left"></i>
-                    </a>
-                    {% endif %}
-                </div>
-
-                <!-- Mobile Menu Content -->
-                <div class="mobile-menu-wrapper mobile-only" id="mobileMenu">
-                    {% if user.is_authenticated %}
-                    <div class="mobile-user-profile">
-                        <div class="nav-avatar large">
-                            {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
-                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                             {% else %}
-                            {{ user.first_name|default:user.username|slice:":1"|upper }}
+                            <a href="{% url 'users:login' %}" class="nav-link login-link">تسجيل الدخول</a>
+                            <a href="{% url 'users:register' %}" class="btn-primary nav-btn-primary">
+                                ابدأ الآن <i class="fas fa-arrow-left"></i>
+                            </a>
                             {% endif %}
                         </div>
-                        <div class="mobile-user-details">
-                            <span class="greeting">مرحباً بك</span>
-                            <span class="name">{{ user.first_name|default:user.username }}</span>
-                            <span class="role">{{ user.get_role_display|default:user.role }}</span>
+
+                        <!-- Mobile Menu Content -->
+                        <div class="mobile-menu-wrapper mobile-only" id="mobileMenu">
+                            {% if user.is_authenticated %}
+                            <div class="mobile-user-profile">
+                                <div class="nav-avatar large">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                    {% else %}
+                                    {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                    {% endif %}
+                                </div>
+                                <div class="mobile-user-details">
+                                    <span class="greeting">مرحباً بك</span>
+                                    <span class="name">{{ user.first_name|default:user.username }}</span>
+                                    <span class="role">{{ user.get_role_display|default:user.role }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="mobile-links-container">
+                                <a href="{% url 'dashboard:visual_guide_selection' %}" class="mobile-link">
+                                    <i class="fas fa-sitemap"></i> الدليل المرئي للمواريث
+                                </a>
+                                <a href="{% url 'public_calculator' %}" class="mobile-link">
+                                    <i class="fas fa-calculator"></i> احسب إرثك
+                                </a>
+
+                                {% if user.is_authenticated %}
+                                <div class="mobile-divider"></div>
+                                <a href="{% url 'users:dashboard' %}" class="mobile-link">
+                                    <i class="fas fa-th-large"></i> لوحة التحكم
+                                </a>
+                                <a href="{% url 'users:profile' %}" class="mobile-link">
+                                    <i class="fas fa-user-circle"></i> ملفي الشخصي
+                                </a>
+                                <form action="{% url 'users:logout' %}" method="post" style="margin-top: 15px;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-outline full-width">
+                                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                                    </button>
+                                </form>
+                                {% else %}
+                                <div class="mobile-auth-buttons">
+                                    <a href="{% url 'users:login' %}" class="btn-outline full-width">تسجيل الدخول</a>
+                                    <a href="{% url 'users:register' %}" class="btn-primary full-width">ابدأ الآن</a>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
+
                     </div>
-                    {% endif %}
-
-                    <div class="mobile-links-container">
-                        <a href="{% url 'dashboard:visual_guide_selection' %}" class="mobile-link">
-                            <i class="fas fa-sitemap"></i> الدليل المرئي للمواريث
-                        </a>
-                        <a href="{% url 'public_calculator' %}" class="mobile-link">
-                            <i class="fas fa-calculator"></i> احسب إرثك
-                        </a>
-
-                        {% if user.is_authenticated %}
-                        <div class="mobile-divider"></div>
-                        <a href="{% url 'users:dashboard' %}" class="mobile-link">
-                            <i class="fas fa-th-large"></i> لوحة التحكم
-                        </a>
-                        <a href="{% url 'users:profile' %}" class="mobile-link">
-                            <i class="fas fa-user-circle"></i> ملفي الشخصي
-                        </a>
-                        <form action="{% url 'users:logout' %}" method="post" style="margin-top: 15px;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-outline full-width">
-                                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-                            </button>
-                        </form>
-                        {% else %}
-                        <div class="mobile-auth-buttons">
-                            <a href="{% url 'users:login' %}" class="btn-outline full-width">تسجيل الدخول</a>
-                            <a href="{% url 'users:register' %}" class="btn-primary full-width">ابدأ الآن</a>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-
             </div>
-        </div>
     </nav>
 
     <main class="container main-content" style="padding-top: 40px;">

@@ -8,8 +8,9 @@ import numpy as np
 from groq import Groq
 import faiss
 from huggingface_hub import InferenceClient
-
+from dotenv import load_dotenv
 # المتغيرات العالمية للكاش
+load_dotenv()
 _index = None
 _chunks = None
 _client_groq = None
@@ -94,11 +95,21 @@ def chat(request):
         client_groq = get_groq_client()
         completion = client_groq.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "أنت خبير فقهي متخصص في علم الفرائض والمواريث. أجب عن السؤال استناداً إلى السياق المرفق فقط. يجب أن تحدد الأنصبة باستخدام الفروض الشرعية المقدرة (مثل: النصف، الربع، الثمن، الثلثين، الثلث، السدس) أو بالتعصيب. إذا لم تجد الإجابة في السياق بوضوح، قل 'لا توجد معلومات كافية في المستندات للإجابة'."},
+                  messages=[
+                {"role": "system", "content": """أنت خبير فقهي متخصص في علم الفرائض والمواريث. 
+هدفك تقديم إجابة دقيقة وشاملة وصحيحة شرعاً بناءً على السياق المرفق.
+
+قواعد صارمة للإجابة:
+1. الشمولية في ذكر الحالات: عند السؤال عن نصيب أي وارث، يجب عليك ذكر جميع حالاته الشرعية الممكنة (مثلاً: الزوجة ترث الربع في حال عدم وجود فرع وارث، وترث الثمن في حال وجود فرع وارث). لا تكتفِ أبداً بذكر حالة واحدة فقط.
+2. التحقق من اسم الوارث: تأكد تماماً أن النص المرفق يتحدث عن الوارث المطلوب في السؤال قبل الإجابة.
+3. تجنب الأسهم الحسابية: اذكر الأنصبة كفروض (نصف، ربع، ثمن..) ولا تذكر عدد الأسهم (مثل 8 أسهم) إلا إذا طُلب منك حساب مسألة محددة.
+4. الدقة الفقهية: الثمن للزوجة فقط، والربع للزوج أو الزوجة، والسدس والثلث للأم أو الورثة الآخرين حسب شروطهم.
+5. في حال نقص المعلومات: إذا لم تجد كل الحالات في السياق، اذكر ما وجدته بوضوح وقل 'هذا ما ورد في المستندات'."""},
 
                 {"role": "user", "content": f"السياق المرجعي:\n{context}\n\nالسؤال:\n{question}"}
             ],
+
+
             temperature=0.7,
             max_tokens=1024,
         )
@@ -111,4 +122,4 @@ def chat(request):
         return JsonResponse({"answer": f"حدث خطأ فني: {str(e)}"}, status=500, json_dumps_params={'ensure_ascii': False})
 
 def chat_page(request):
-    return render(request, "chat.html")
+    return render(request, "chat.html")  

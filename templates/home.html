@@ -22,7 +22,7 @@
         <div class="bento-item main-calc"
             style="grid-column: span 8; grid-row: span 2; position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.02) 100%); border: 1px solid var(--glass-border); border-radius: 30px; padding: 60px; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="z-index: 2;">
-                <i class="fas fa-calculator"
+                <i class="fa-solid fa-calculator app-fa-icon"
                     style="font-size: 4rem; color: var(--primary-color); margin-bottom: 30px; display: block;"></i>
                 <h2 style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 20px;">حاسبة المواريث الذكية
                 </h2>
@@ -30,7 +30,7 @@
                     style="font-size: 1.2rem; color: var(--text-muted); max-width: 450px; margin-bottom: 40px; line-height: 1.6;">
                     محرك حسابي متطور يعالج كافة حالات المراجعة، الحجب، العول، والرد بدقة مطلقة وفق الشريعة الإسلامية.
                 </p>
-                <a href="{% url 'public_calculator' %}" class="btn-primary"
+                <a href="{% url 'calculator:public_calculator' %}" class="btn-primary"
                     style="padding: 1rem 3rem; font-size: 1.2rem; border-radius: 12px;">
                     ابدأ الحساب الآن
                 </a>
@@ -44,7 +44,7 @@
         <!-- Feature: Sharia Approved -->
         <div class="bento-item side-feature"
             style="grid-column: span 4; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 40px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: var(--transition);">
-            <i class="fas fa-scroll" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+            <i class="fa-solid fa-scroll app-fa-icon" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 20px;"></i>
             <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">اعتماد مجلس العلماء</h3>
             <p style="color: var(--text-muted); font-size: 1rem;">موثقية شرعية تامة لكافة الحسابات.</p>
         </div>
@@ -52,7 +52,7 @@
         <!-- Feature: Secure & Private -->
         <div class="bento-item side-feature"
             style="grid-column: span 4; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 40px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-            <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+            <i class="fa-solid fa-shield-halved app-fa-icon" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 20px;"></i>
             <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">آمن وموثوق</h3>
             <p style="color: var(--text-muted); font-size: 1rem;">حماية تامة للبيانات والوثائق.</p>
         </div>
@@ -63,7 +63,7 @@
             <div style="display: flex; align-items: center; gap: 30px;">
                 <div
                     style="background: var(--primary-color); width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i class="fas fa-robot" style="font-size: 2.5rem; color: #000;"></i>
+                    <i class="fa-solid fa-robot app-fa-icon" style="font-size: 2.5rem; color: #000;"></i>
                 </div>
                 <div>
                     <h3 style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 8px;">المستشار القانوني
@@ -83,7 +83,7 @@
             style="grid-column: span 6; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; display: flex; align-items: center; gap: 30px;">
             <div
                 style="background: rgba(212, 175, 55, 0.1); width: 100px; height: 100px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="fas fa-gavel" style="font-size: 3rem; color: var(--primary-color);"></i>
+                <i class="fa-solid fa-gavel app-fa-icon" style="font-size: 3rem; color: var(--primary-color);"></i>
             </div>
             <div>
                 <h3 style="font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 10px;">بوابة القضاء</h3>
@@ -92,7 +92,7 @@
                 {% if not user.is_authenticated %}
                 <a href="{% url 'users:login' %}"
                     style="color: var(--primary-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                    دخول القضاة والموظفين <i class="fas fa-arrow-left"></i>
+                    دخول القضاة والموظفين <i class="fa-solid fa-arrow-left app-fa-icon"></i>
                 </a>
                 {% endif %}
             </div>
@@ -103,7 +103,7 @@
             style="grid-column: span 6; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; display: flex; align-items: center; gap: 30px;">
             <div class="role-icon"
                 style="background: rgba(212, 175, 55, 0.1); width: 100px; height: 100px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="fas fa-users" style="font-size: 3rem; color: var(--primary-color);"></i>
+                <i class="fa-solid fa-users app-fa-icon" style="font-size: 3rem; color: var(--primary-color);"></i>
             </div>
             <div class="role-text">
                 <h3 style="font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 10px;">حسابات الورثة</h3>
@@ -112,7 +112,7 @@
                 {% if not user.is_authenticated %}
                 <a href="{% url 'users:register' %}"
                     style="color: var(--primary-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                    انضم إلينا الآن <i class="fas fa-arrow-left"></i>
+                    انضم إلينا الآن <i class="fa-solid fa-arrow-left app-fa-icon"></i>
                 </a>
                 {% endif %}
             </div>
@@ -180,6 +180,129 @@
 
         .role-access a {
             justify-content: center !important;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .portal-wrapper {
+            padding: 8px 0 24px !important;
+        }
+
+        .welcome-header {
+            margin-bottom: 24px !important;
+            padding: 0 8px;
+        }
+
+        .welcome-title {
+            font-size: 2rem !important;
+            line-height: 1.2 !important;
+            margin-bottom: 12px !important;
+        }
+
+        .welcome-subtitle {
+            font-size: 0.98rem !important;
+            line-height: 1.9 !important;
+        }
+
+        .bento-grid {
+            gap: 16px !important;
+        }
+
+        .bento-item {
+            border-radius: 24px !important;
+            padding: 22px !important;
+        }
+
+        .main-calc {
+            min-height: auto !important;
+            padding: 24px !important;
+        }
+
+        .main-calc > div:first-child {
+            z-index: 2 !important;
+        }
+
+        .main-calc h2 {
+            font-size: 1.45rem !important;
+            line-height: 1.45 !important;
+            margin-bottom: 12px !important;
+        }
+
+        .main-calc p {
+            font-size: 0.95rem !important;
+            line-height: 1.8 !important;
+            max-width: 100% !important;
+            margin-bottom: 18px !important;
+        }
+
+        .main-calc i {
+            font-size: 2.2rem !important;
+            margin-bottom: 18px !important;
+        }
+
+        .main-calc a.btn-primary,
+        .ai-assistant a.btn-primary {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+            padding: 0.95rem 1.25rem !important;
+            font-size: 1rem !important;
+        }
+
+        .main-calc > div:last-child {
+            width: 180px !important;
+            height: 180px !important;
+            right: -70px !important;
+            bottom: -70px !important;
+            opacity: 0.08 !important;
+        }
+
+        .side-feature h3,
+        .role-access h3 {
+            font-size: 1.28rem !important;
+            margin-bottom: 8px !important;
+        }
+
+        .side-feature p,
+        .role-access p {
+            font-size: 0.95rem !important;
+            line-height: 1.75 !important;
+        }
+
+        .ai-assistant {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            text-align: right !important;
+            padding: 24px !important;
+            gap: 18px !important;
+        }
+
+        .ai-assistant > div:first-child {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 18px !important;
+        }
+
+        .ai-assistant h3 {
+            font-size: 1.45rem !important;
+            line-height: 1.45 !important;
+            margin-bottom: 8px !important;
+        }
+
+        .ai-assistant p {
+            font-size: 0.95rem !important;
+            line-height: 1.8 !important;
+            max-width: 100% !important;
+        }
+
+        .role-access {
+            padding: 24px !important;
+        }
+
+        .role-icon,
+        .role-access > div:first-child,
+        .side-feature i {
+            transform: scale(0.82);
         }
     }
 </style>

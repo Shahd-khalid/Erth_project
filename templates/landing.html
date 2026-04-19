@@ -1,186 +1,434 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إرث | التقنية في خدمة العدالة</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=1.9">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('ar_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إرث | المنصة الرئيسية</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Amiri+Quran&family=Reem+Kufi+Ink&family=Tajawal:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=1.12">
+  <style>
+    .fa-fallback-mode .fa-fallback::before {
+      content: attr(data-fa-fallback) !important;
+      font-family: inherit !important;
+      font-weight: 700 !important;
+      font-style: normal !important;
+      display: inline-block;
+      line-height: 1;
+    }
+  </style>
 </head>
 
-<body class="landing-page">
-    <div class="landing-container">
-        <!-- Header -->
-        <header class="landing-header">
-            <a href="/" class="landing-logo">
-                <i class="fas fa-balance-scale"></i>
-                <span>إرث</span>
-            </a>
-            <nav class="landing-nav">
-                <a href="#">المنهجية</a>
-                <a href="#">المجلس العلمي</a>
-                <a href="#">الفتاوى</a>
-                <a href="#">الأسعار</a>
-            </nav>
-            <div class="auth-btns">
-                {% if user.is_authenticated %}
-                <a href="{% url 'dashboard:index' %}" class="login-link">لوحة التحكم</a>
-                {% else %}
-                <a href="{% url 'users:login' %}" class="login-link">تسجيل الدخول</a>
-                <a href="{% url 'users:register' %}" class="btn-signup">حساب جديد</a>
-                {% endif %}
-            </div>
-        </header>
+<body>
 
-        <!-- Hero -->
-        <section class="landing-hero">
-            <!-- Content Side (Right in RTL) -->
-            <div class="hero-content">
-                <h1>حاسبة المواريث الشرعية <br> التقنية تلتقي بالعدالة</h1>
-                <p>
-                    احسب أنصبة الميراث المعقدة بكل سهولة ودقة شرعية متناهية، وفق الأنظمة المعمول بها.
-                </p>
-                <div class="hero-btns">
-                    <a href="{% url 'users:portal' %}" class="btn-calc">المنصة الرئيسية</a>
-                    <a href="{% url 'public_calculator' %}" class="btn-learn">احسب الآن</a>
-                    <a href="{% url 'users:portal' %}" class="btn-calc">المنصة الرئيسية</a>
-                    <a href="{% url 'chat_page' %}" class="btn-learn"
-                        style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--primary-color);">المستشار
-                        الذكي (AI)</a>
-                </div>
-            </div>
+  <div class="pattern-overlay"></div>
 
-            <!-- Visual Side (Left in RTL) -->
-            <div class="hero-visual">
-                <div class="hero-image-container">
-                    <img src="{% static 'images/hero_hand_scale_v2.jpg' %}" alt="Technology Justice"
-                        class="hero-original-img">
-                </div>
-            </div>
-        </section>
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <div class="logo-icon">
+        <i class="fas fa-scale-balanced"></i>
+      </div>
+      <div>
+        <h2>إرث</h2>
+        <p>منصة إدارة وتقسيم التركات</p>
+      </div>
+    </a>
 
-        <!-- Public Listings Section -->
-        {% if public_listings %}
-        <section class="public-listings-section" style="padding: 60px 0; max-width: 1200px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 40px;">
-                <h2 style="color: #fff; font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">السوق العقاري للأصول
-                    المتوارثة</h2>
-                <p style="color: rgba(255,255,255,0.6); max-width: 600px; margin: 0 auto; font-size: 1.1rem;">تصفح
-                    الأصول الشرعية المتاحة للبيع من قبل الورثة والموثقة قضائياً.</p>
-            </div>
+    <nav class="sidebar-menu">
+      <a href="/" class="menu-link active">
+        <i class="fas fa-house"></i>
+        <span>المنصة الرئيسية</span>
+      </a>
 
-            <div class="public-grid">
-                {% for listing in public_listings %}
-                <div class="listing-card"
-                    style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+      <a href="{% url 'chat_page' %}" class="menu-link">
+        <i class="fas fa-robot"></i>
+        <span>المستشار الذكي</span>
+      </a>
 
-                    <!-- Image Area -->
-                    <div
-                        style="height: 220px; background: rgba(0,0,0,0.2); position: relative; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        {% if listing.component.asset.image %}
-                        <img src="{{ listing.component.asset.image.url }}" alt="{{ listing.description }}"
-                            style="width: 100%; height: 100%; object-fit: cover;">
-                        {% else %}
-                        <i class="fas fa-gem" style="font-size: 4rem; color: #d4af37; opacity: 0.3;"></i>
-                        {% endif %}
-                        <div
-                            style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.3);">
-                            <strong style="color: #d4af37; font-size: 1.2rem;">{{ listing.price }} <small
-                                    style="font-size: 0.8rem; font-weight: normal; color: rgba(255,255,255,0.7);">ريال</small></strong>
-                        </div>
-                    </div>
+      <a href="{% url 'calculator:public_calculator' %}" class="menu-link">
+        <i class="fas fa-calculator"></i>
+        <span>الحاسبة الشرعية</span>
+      </a>
 
-                    <!-- Content Area -->
-                    <div
-                        style="padding: 25px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div style="margin-bottom: 20px;">
-                            <h3 style="margin: 0 0 10px; color: #fff; font-size: 1.25rem;">{{ listing.description }}
-                            </h3>
+      <a href="{% url 'dashboard:visual_guide_selection' %}" class="menu-link">
+        <i class="fas fa-photo-film"></i>
+        <span>الدليل المرئي</span>
+      </a>
 
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
-                                <span
-                                    style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">
-                                    <i class="fas fa-folder" style="color: #d4af37;"></i> قضية رقم: {{
-                                    listing.component.asset.case.case_number }}
-                                </span>
-                                <span
-                                    style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">
-                                    <i class="fas fa-gavel" style="color: #d4af37;"></i> موثق قضائياً
-                                </span>
-                            </div>
-                        </div>
+      <a href="{% url 'dashboard:index' %}" class="menu-link">
+        <i class="fas fa-chart-line"></i>
+        <span>لوحة التحكم</span>
+      </a>
 
-                        <!-- Seller Info Box -->
-                        <div
-                            style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; border: 1px dashed rgba(255,255,255,0.1);">
-                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 8px;">
-                                <i class="fas fa-user" style="color: #d4af37; width: 20px;"></i> البائع: {{
-                                listing.seller_name }}
-                            </div>
-                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 8px;">
-                                <i class="fas fa-phone" style="color: #d4af37; width: 20px;"></i> {{
-                                listing.seller_phone }}
-                            </div>
-                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">
-                                <i class="fas fa-envelope" style="color: #d4af37; width: 20px;"></i> <a
-                                    href="mailto:{{ listing.seller_email }}"
-                                    style="color: rgba(255,255,255,0.8); text-decoration: none;">{{ listing.seller_email
-                                    }}</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+      <a href="{% url 'dashboard:library' %}" class="menu-link">
+        <i class="fas fa-book-open"></i>
+        <span>المكتبة الفقهية</span>
+      </a>
 
-            <style>
-                .public-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 30px;
-                }
+      <a href="{% url 'users:profile' %}" class="menu-link">
+        <i class="fas fa-user-circle"></i>
+        <span>البروفايل</span>
+      </a>
 
-                @media (max-width: 1200px) {
-                    .public-grid {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
-                }
+      <a href="#marketplace" class="menu-link">
+        <i class="fas fa-tags"></i>
+        <span>المعروضات للبيع</span>
+      </a>
+    </nav>
 
-                @media (max-width: 768px) {
-                    .public-grid {
-                        grid-template-columns: 1fr;
-                    }
-                }
-
-                .listing-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-                    border-color: rgba(212, 175, 55, 0.3) !important;
-                }
-            </style>
-        </section>
-        {% endif %}
-
-        <!-- Stats Footer -->
-        <div class="landing-footer-stats">
-            <div class="stat-item">
-                <i class="fas fa-scroll"></i>
-                <div class="stat-text">معتمد من المجلس العلمي</div>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-shield-alt"></i>
-                <div class="stat-text">تحت إشراف كبار العلماء</div>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-lock"></i>
-                <div class="stat-text">آمن، دقيق وموثوق</div>
-            </div>
-        </div>
+    <div class="sidebar-footer">
+      <div class="arabesque"></div>
+      <h4>هوية شرعية وقضائية</h4>
+      <p>
+        <!-- واجهة حديثة تجمع بين الفخامة، الثقة، والطابع القضائي المناسب لمنصة المواريث. -->
+      </p>
+      <a href="{% url 'users:portal' %}" class="btn btn-gold" style="width: 100%;">
+        <i class="fas fa-right-to-bracket"></i>
+        الدخول للمنصة
+      </a>
     </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-wrapper">
+
+    <!-- ===== TOPBAR ===== -->
+    <header class="topbar">
+      <div class="container topbar-inner">
+
+        <div class="topbar-brand">
+          <i class="fas fa-gavel"></i>
+          <span>منصة إرث</span>
+        </div>
+
+        <div class="verse-strip">
+          <div class="arabesque"></div>
+          <p>لِّلرِّجَالِ نَصِيبٌ مِّمَّا تَرَكَ الْوَالِدَانِ وَالْأَقْرَبُونَ وَلِلنِّسَاءِ نَصِيبٌ مِّمَّا تَرَكَ
+            الْوَالِدَانِ وَالْأَقْرَبُونَ مِمَّا قَلَّ مِنْهُ أَوْ كَثُرَ ۚ نَصِيبًا مَّفْرُوضًا
+          </p>
+        </div>
+
+        <div class="topbar-actions">
+          {% if user.is_authenticated %}
+          <a href="{% url 'dashboard:index' %}" class="btn btn-outline">
+            <i class="fas fa-chart-line"></i>
+            لوحة التحكم
+          </a>
+          <form id="logout-form" action="{% url 'users:logout' %}" method="post" style="display: none;">
+            {% csrf_token %}
+          </form>
+          <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();" class="btn btn-gold">
+            <i class="fas fa-sign-out-alt"></i>
+            خروج
+          </a>
+          {% else %}
+          <a href="{% url 'users:login' %}" class="btn btn-outline">
+            <i class="fas fa-right-to-bracket"></i>
+            دخول النظام
+          </a>
+          <a href="{% url 'users:register' %}" class="btn btn-gold">
+            <i class="fas fa-user-plus"></i>
+            حساب جديد
+          </a>
+          {% endif %}
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+      <div class="container hero-grid">
+
+        <div class="hero-card">
+          <div class="arabesque"></div>
+
+          <div class="eyebrow">
+            <i class="fas fa-landmark"></i>
+            منصة رقمية لإدارة التركات وفق الضوابط الشرعية والقضائية
+          </div>
+
+          <div class="prophet-intro">
+            <span>قال رسول الله صلى الله عليه وسلم</span>
+          </div>
+
+          <h1 class="hero-title">
+            تَعَلَّمُوا <span class="gold">الْفَرَائِضَ</span> <br>
+            وَعَلِّمُوهَا النَّاسَ
+          </h1>
+
+          <p class="hero-desc">
+            تمثل منصة <strong>إرث</strong> تحولًا جذريًا في قطاع التقنيات العدلية ، حيث تتجاوز كونها نظامًا رقميًا
+            تقليديًا لتعمل كمحرك خوارزمي ذكي يحوّل أعقد مسائل علم الفرائض إلى نماذج حسابية دقيقة ومؤتمتة بكفاءة عالية.
+
+            تعيد المنصة تعريف إدارة القضايا الإرثية عبر منظومة متكاملة تبدأ بحصر التركات وتسوية الالتزامات المالية
+            آليًا، وتمتد إلى هندسة مسارات القسمة بالتراضي، وتنتهي بـحل النزاعات برمجيًا من خلال نظام قرعة ديناميكي يرسّخ
+            مبادئ العدالة والشفافية.
+
+            وتتجسد قوة المنصة في لوحة تحكم مركزية متقدمة، تمكّن القاضي من ممارسة الحوكمة والرقابة بكفاءة، وتسهم في
+            اختزال زمن التقاضي من سنوات معقدة إلى جلسات رقمية سريعة ودقيقة.
+          </p>
+
+          <div class="hero-actions">
+            <a href="{% url 'users:portal' %}" class="btn btn-gold">
+              <i class="fas fa-right-to-bracket"></i>
+              الدخول للمنصة
+            </a>
+
+            <a href="{% url 'cases:case_list' %}" class="btn btn-outline">
+              <i class="fas fa-scale-balanced"></i>
+              استعراض القضايا
+            </a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-box">
+              <h3>+{{ total_assets_count|default:"1,240" }}</h3>
+              <p>أصل تم توثيقه وربطه بالقضايا والملفات القضائية داخل النظام.</p>
+            </div>
+
+            <div class="stat-box">
+              <h3>+{{ total_cases_count|default:"350" }}</h3>
+              <p>قضية قضائية تم إدارتها وإنجاز إجراءات القسمة فيها عبر المنصة.</p>
+            </div>
+
+            <div class="stat-box">
+              <h3>24/7</h3>
+              <p>إتاحة رقمية لمتابعة ملفات التركات من أي وقت ومن أي مكان.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-slider" id="heroSlider">
+            {% if latest_listings %}
+            {% for listing in latest_listings %}
+            <div class="slide {% if forloop.first %}active{% endif %}">
+              {% if listing.component.asset.image %}
+              <img src="{{ listing.component.asset.image.url }}">
+              {% else %}
+              <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80">
+              {% endif %}
+              <div class="slide-overlay"></div>
+              <div class="slide-caption">
+                <h3>{{ listing.description|truncatechars:40 }}</h3>
+                <p>معروض بقيمة {{ listing.price }} ريال ضمن ملف التركة رقم {{ listing.component.asset.case.case_number
+                  }}</p>
+              </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <!-- Fallback Slides -->
+            <div class="slide active">
+              <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80">
+              <div class="slide-overlay"></div>
+              <div class="slide-caption">
+                <h3>سوق أصول فاخر داخل منصة التركات</h3>
+                <p>عرض العقارات والممتلكات بطريقة جذابة ومنظمة تخدم التصفية أو القسمة العينية.</p>
+              </div>
+            </div>
+            <div class="slide">
+              <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80">
+              <div class="slide-overlay"></div>
+              <div class="slide-caption">
+                <h3>تنظيم القضايا والموافقات</h3>
+                <p>متابعة قرارات الورثة، الاعتراضات، وإجراءات الجلسات في بيئة موثوقة وواضحة.</p>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mini-panels">
+            <div class="mini-card">
+              <i class="fas fa-file-signature"></i>
+              <h4>توثيق واعتماد</h4>
+              <p>ربط المستندات، الجلسات، والقرارات القضائية ضمن ملف موحد ومنظم.</p>
+            </div>
+
+            <div class="mini-card">
+              <i class="fas fa-brain"></i>
+              <h4>مساعد ذكي</h4>
+              <p>الوصول إلى المستشار الذكي لتبسيط المفاهيم والإجراءات الشرعية والقانونية.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>الوحدات الرئيسية في المنصة</h2>
+            <p>
+              كل جزء في النظام مصمم ليعكس وظيفة حقيقية في بيئة المواريث:
+              من الإرشاد الذكي، إلى القسمة الشرعية، إلى متابعة الجلسات والملفات.
+            </p>
+          </div>
+        </div>
+
+        <div class="features-grid">
+          <a href="{% url 'chat_page' %}" class="feature-card">
+            <div class="feature-icon"><i class="fas fa-robot"></i></div>
+            <h3>المستشار الذكي</h3>
+            <p>مساعد رقمي يجيب عن الأسئلة ويوجه المستخدم داخل إجراءات التركة والقسمة.</p>
+          </a>
+
+          <a href="{% url 'calculator:public_calculator' %}" class="feature-card">
+            <div class="feature-icon"><i class="fas fa-calculator"></i></div>
+            <h3>الحاسبة الشرعية</h3>
+            <p>احتساب الأنصبة الشرعية بطريقة واضحة ومهيأة لتجربة المستخدم العربي.</p>
+          </a>
+
+          <a href="#" class="feature-card">
+            <div class="feature-icon"><i class="fas fa-photo-film"></i></div>
+            <h3>الدليل المرئي</h3>
+            <p>محتوى بصري يشرح الخطوات والإجراءات وكيفية التعامل مع القضايا والأصول.</p>
+          </a>
+
+          <a href="{% url 'dashboard:index' %}" class="feature-card">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>لوحة التحكم</h3>
+            <p>متابعة الإحصائيات، القضايا، الورثة، والإجراءات من لوحة تحكم حديثة ومركزية.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ASSETS ===== -->
+    <section class="section" id="marketplace">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>المعروضات للبيع</h2>
+            <p>
+              قسم مخصص لعرض الأصول المندرجة ضمن التركات بشكل راقٍ ومنظم يساعد في البيع أو التصفية.
+            </p>
+          </div>
+
+          <a href="#" class="btn btn-outline">
+            <i class="fas fa-tags"></i>
+            جميع المعروضات
+          </a>
+        </div>
+
+        <div class="assets-grid">
+          {% if public_listings %}
+          {% for listing in public_listings %}
+          <div class="asset-card">
+            <div class="asset-image">
+              {% if listing.component.asset.image %}
+              <img src="{{ listing.component.asset.image.url }}" alt="{{ listing.description }}">
+              {% else %}
+              <div style="height: 100%; width: 100%; background: #111; display: grid; place-items: center;">
+                <i class="fas fa-gem" style="font-size: 3rem; color: var(--gold); opacity: 0.2;"></i>
+              </div>
+              {% endif %}
+              <div class="asset-badge">جاهز للبيع</div>
+              <div class="asset-price">{{ listing.price }} ريال</div>
+            </div>
+            <div class="asset-body">
+              <h3 class="asset-title">{{ listing.description }}</h3>
+              <div class="asset-meta">
+                <span><i class="fas fa-folder"></i> رقم القضية: {{ listing.component.asset.case.case_number }}</span>
+                <span><i class="fas fa-file-circle-check"></i> موثق قضائياً</span>
+              </div>
+              <div
+                style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; border: 1px dashed var(--stroke); font-size: 0.85rem; margin-bottom: 15px;">
+                <div style="margin-bottom: 4px;"><i class="fas fa-user" style="color: var(--gold); width: 18px;"></i>
+                  البائع: {{ listing.seller_name }}</div>
+                <div><i class="fas fa-phone" style="color: var(--gold); width: 18px;"></i> {{ listing.seller_phone }}
+                </div>
+              </div>
+              <div class="asset-footer">
+                <a href="mailto:{{ listing.seller_email }}" class="btn btn-gold" style="flex: 1;">
+                  <i class="fas fa-envelope"></i> تواصل مع البائع
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <!-- Fallback Static Items if no data -->
+          <div class="asset-card">
+            <div class="asset-image">
+              <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200"
+                alt="قصر">
+              <div class="asset-badge">جاهز للبيع</div>
+              <div class="asset-price">48,000,000 ر.ي</div>
+            </div>
+            <div class="asset-body">
+              <h3 class="asset-title">قصر النخيل — أصل فاخر</h3>
+              <p class="asset-desc">أصل عقاري فاخر داخل ملف التركة، معروض ضمن إجراءات التصفية والبيع.</p>
+              <div class="asset-footer">
+                <a href="mailto:support@erth.sa" class="btn btn-gold" style="flex: 1;">
+                  <i class="fas fa-envelope"></i> تواصل مع البائع
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+      <div class="container footer-inner">
+        <div>© 2026 إرث — منصة رقمية لإدارة وتقسيم التركات</div>
+        <div class="footer-links">
+          <a href="#">الخصوصية</a>
+          <a href="#">الشروط</a>
+          <a href="#">الدعم</a>
+          <a href="#">الأسئلة الشائعة</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="{% static 'js/icon_fallback.js' %}?v=1.0"></script>
+  <script>
+    const slides = document.querySelectorAll('#heroSlider .slide');
+    let currentSlide = 0;
+
+    function rotateSlides() {
+      const prevSlide = slides[currentSlide];
+      prevSlide.classList.remove('active');
+      prevSlide.classList.add('prev');
+
+      currentSlide = (currentSlide + 1) % slides.length;
+      const nextSlide = slides[currentSlide];
+      nextSlide.classList.remove('prev');
+      nextSlide.classList.add('active');
+
+      // Cleanup
+      setTimeout(() => {
+        prevSlide.classList.remove('prev');
+      }, 1200);
+    }
+
+    if (slides.length > 1) {
+      setInterval(rotateSlides, 5000);
+    }
+  </script>
+
 </body>
 
 </html>

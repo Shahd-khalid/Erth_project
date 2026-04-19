@@ -34,12 +34,65 @@
         @media (max-width: 768px) { .custom-grid { grid-template-columns: 1fr; } }
     </style>
 
+    {% if my_assets or my_components %}
+    {% if my_assets %}
+    <div style="margin-bottom: 30px;">
+        <h3 style="color: #fff; margin: 0 0 16px; font-weight: 800;">الأصول المعتمدة كاملة باسمك</h3>
+        <div class="custom-grid">
+            {% for asset in my_assets %}
+            <div class="card asset-card" style="border-radius: 25px; overflow: hidden; border: 1px solid var(--glass-border);">
+                <div style="height: 200px; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--glass-border);">
+                    {% if asset.image %}
+                    <img src="{{ asset.image.url }}" alt="{{ asset.description }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <i class="fas fa-building" style="font-size: 3rem; color: var(--primary-color); opacity: 0.5;"></i>
+                    {% endif %}
+                </div>
+                <div style="padding: 24px;">
+                    <h4 style="margin: 0 0 10px; color: #fff; font-weight: 700;">{{ asset.description }}</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 8px;">
+                        <i class="fas fa-folder" style="color: var(--primary-color);"></i>
+                        القضية: {{ asset.case.case_number }}
+                    </p>
+                    <div style="background: rgba(212, 175, 55, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.1);">
+                        <span style="display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 5px;">القيمة المعتمدة:</span>
+                        <strong style="color: var(--primary-color); font-size: 1.2rem;">{{ asset.value }} <small style="font-size: 0.8rem; font-weight: normal;">ريال</small></strong>
+                    </div>
+
+                    {% if asset.is_sold_by_heir %}
+                    <div style="margin-top: 15px; width: 100%; background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border);">
+                        <i class="fas fa-check-double" style="margin-left: 8px;"></i> تم البيع
+                    </div>
+                    {% else %}
+                    <form method="post" action="{% url 'heirs:mark_asset_sold' %}" style="margin-top: 15px; width: 100%;">
+                        {% csrf_token %}
+                        <input type="hidden" name="item_type" value="asset">
+                        <input type="hidden" name="item_id" value="{{ asset.id }}">
+                        <button type="submit" class="btn" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center; background: #2ecc71; color: white; display: flex; align-items: center; font-weight: bold; border: none; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onclick="return confirm('هل أنت متأكد من بيعك لهذا الأصل بالكامل؟ سيتم تعطيل الأصل كمباع ولا يمكن التراجع.')">
+                            <i class="fas fa-check-circle" style="margin-left: 8px;"></i> إنهاء و تأكيد البيع
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     {% if my_components %}
+    <div style="margin-bottom: 18px;">
+        <h3 style="color: #fff; margin: 0 0 16px; font-weight: 800;">الأجزاء والأعيان المعتمدة والقابلة للعرض في المتجر</h3>
+    </div>
     <div class="custom-grid">
         {% for component in my_components %}
         <div class="card asset-card" style="border-radius: 25px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
             
-            {% if component.listing and component.listing.is_active %}
+            {% if component.is_sold_by_heir %}
+            <div style="position: absolute; top: 15px; left: 15px; background: rgba(100, 100, 100, 0.9); backdrop-filter: blur(5px); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; z-index: 10;">
+                <i class="fas fa-check-double"></i> تم البيع
+            </div>
+            {% elif component.listing and component.listing.is_active %}
             <div style="position: absolute; top: 15px; left: 15px; background: rgba(46, 204, 113, 0.9); backdrop-filter: blur(5px); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; z-index: 10;">
                 <i class="fas fa-eye"></i> معروض للبيع حالياً
             </div>
@@ -84,24 +137,46 @@
 
                 <!-- Actions -->
                 <div style="display: flex; gap: 10px; flex-direction: column;">
-                    <button type="button" class="btn-primary" onclick="openSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
-                        <i class="fas fa-bullhorn" style="margin-left: 8px;"></i> عرض للبيع (بالبيانات الأصلية)
-                    </button>
-                    
-                    <button type="button" class="btn-outline" onclick="openEditSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
-                        <i class="fas fa-edit" style="margin-left: 8px;"></i> تعديل بيانات العينة قبل العرض
-                    </button>
+                    {% if component.is_sold_by_heir %}
+                        <div style="width: 100%; background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border);">
+                            <i class="fas fa-check-double" style="margin-left: 8px;"></i> هذا الجزء تم بيعه
+                        </div>
+                    {% else %}
+                        {% if component.listing and component.listing.is_active %}
+                            <button type="button" class="btn-outline" onclick="openEditSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                                <i class="fas fa-edit" style="margin-left: 8px;"></i> تعديل بيانات العرض
+                            </button>
+                            
+                            <form method="post" action="{% url 'heirs:mark_asset_sold' %}" style="margin-top: 5px; width: 100%;">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_type" value="component">
+                                <input type="hidden" name="item_id" value="{{ component.id }}">
+                                <button type="submit" class="btn" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center; background: #2ecc71; color: white; display: flex; align-items: center; font-weight: bold; border: none; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onclick="return confirm('هل أنت متأكد من بيعك لهذه العينة/الجزء؟ سيتم إنهاء عرضها وتعطيلها كمباع ولن تتمكن من التراجع.')">
+                                    <i class="fas fa-check-circle" style="margin-left: 8px;"></i> إنهاء و تأكيد البيع
+                                </button>
+                            </form>
+                        {% else %}
+                            <button type="button" class="btn-primary" onclick="openSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                                <i class="fas fa-bullhorn" style="margin-left: 8px;"></i> عرض للبيع (بالبيانات الأصلية)
+                            </button>
+                            
+                            <button type="button" class="btn-outline" onclick="openEditSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                                <i class="fas fa-edit" style="margin-left: 8px;"></i> تعديل بيانات العينة قبل العرض
+                            </button>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
+    {% endif %}
     {% else %}
     <div style="text-align: center; padding: 60px; background: rgba(255,255,255,0.02); border-radius: 30px; border: 1px dashed var(--glass-border);">
         <i class="fas fa-box-open" style="font-size: 3.5rem; opacity: 0.1; display: block; margin-bottom: 20px; color: #fff;"></i>
         <p style="color: var(--text-muted); font-size: 1.1rem; line-height: 1.6;">
             لا توجد لديك أجزاء أو عينات مخصصة للبيع حالياً.<br>
-            ستظهر الأصول هنا بعد اعتماد القاضي لقسمتها وتخصيصها لك.
+            ستظهر الأصول هنا بمجرد قيام فضيلة القاضي بـ <strong>إنهاء القضية واعتماد المحضر النهائي</strong> رسميًا.
         </p>
     </div>
     {% endif %}

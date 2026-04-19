@@ -1,0 +1,57 @@
+{% extends 'administration/admin_base.html' %}
+
+{% block admin_header_title %}
+    <h1 style="font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 8px;">إدارة الورثة</h1>
+    <p style="color: rgba(255,255,255,0.58); font-weight: 600;">
+        يمكنك إنشاء قضية جديدة للوريث أو إسناده إلى قضية سابقة، حتى لو كان مرتبطًا بقضايا أخرى بالفعل.
+    </p>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card" style="padding: 0; overflow: hidden;">
+    <table style="width: 100%;">
+        <thead>
+            <tr style="background: rgba(255,255,255,0.03);">
+                <th style="padding: 18px;">الاسم</th>
+                <th style="padding: 18px;">المتوفى</th>
+                <th style="padding: 18px;">حالة الارتباط</th>
+                <th style="padding: 18px;">الإجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for heir in new_heirs %}
+            <tr>
+                <td style="padding: 18px; color: #fff; font-weight: 700;">{{ heir.full_name|default:heir.username }}</td>
+                <td style="padding: 18px; color: rgba(255,255,255,0.62);">{{ heir.deceased_name|default:"غير محدد" }}</td>
+                <td style="padding: 18px; color: rgba(255,255,255,0.62);">
+                    {% if heir.linked_case_count %}
+                        مرتبط بـ {{ heir.linked_case_count }} قضية
+                    {% else %}
+                        غير مرتبط بأي قضية
+                    {% endif %}
+                </td>
+                <td style="padding: 18px;">
+                    {% if heir.linked_case_count %}
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <form action="{% url 'administration:reassign_heir' heir.id %}" method="post" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-outline">إعادة إسناد</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a href="{% url 'administration:create_case_for_heir' heir.id %}" class="btn-primary">قضية جديدة</a>
+                        <a href="{% url 'administration:assign_to_existing_case' heir.id %}" class="btn-outline">قضية قائمة</a>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="padding: 24px; color: rgba(255,255,255,0.6);">لا يوجد ورثة مسجلون حاليًا.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">التوزيع المعتمد</h3>
+        <p class="mb-0 text-muted">كشف التخصيصات النهائية أو المعتمدة من القاضي حتى هذه اللحظة.</p>
+    </div>
+    <div class="review-card-body">
+        <div class="table-responsive">
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>الوارث</th>
+                        <th>الأصول والعينات</th>
+                        <th>الإجمالي</th>
+                        <th>حالة الاعتماد</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in heir_stats %}
+                        {% if stat.obj.is_judge_confirmed %}
+                            <tr>
+                                <td>{{ stat.name }}</td>
+                                <td>
+                                    {% for item in stat.allocated_items_list %}
+                                        <span class="review-badge mb-1">{{ item.name }} - {{ item.val }}</span>
+                                    {% empty %}
+                                        <span class="text-muted">لا توجد عناصر مخصصة ظاهرية بعد</span>
+                                    {% endfor %}
+                                </td>
+                                <td>{{ stat.selected_value|floatformat:2 }}</td>
+                                <td><span class="review-badge">معتمد</span></td>
+                            </tr>
+                        {% endif %}
+                    {% empty %}
+                        <tr><td colspan="4">لا توجد تخصيصات معتمدة حاليًا.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

@@ -77,6 +77,76 @@
         color: #fff;
         width: 300px;
     }
+
+    [data-theme="light"] .user-card {
+        background: linear-gradient(180deg, #fffdf8 0%, #f8f1e4 100%);
+        border: 1px solid rgba(143, 109, 39, 0.14);
+        box-shadow: 0 16px 32px rgba(96, 67, 24, 0.1);
+    }
+
+    [data-theme="light"] .user-card:hover {
+        background: linear-gradient(180deg, #fffdf9 0%, #f5ead7 100%);
+        border-color: rgba(181, 138, 45, 0.24);
+        box-shadow: 0 20px 38px rgba(96, 67, 24, 0.14);
+    }
+
+    [data-theme="light"] .user-avatar {
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(143, 109, 39, 0.22);
+    }
+
+    [data-theme="light"] .role-badge {
+        box-shadow: 0 8px 18px rgba(96, 67, 24, 0.06);
+    }
+
+    [data-theme="light"] .badge-admin {
+        background: rgba(181, 138, 45, 0.14);
+        color: #8f6d27;
+        border-color: rgba(143, 109, 39, 0.24);
+    }
+
+    [data-theme="light"] .badge-judge {
+        background: rgba(60, 123, 187, 0.14);
+        color: #2f6699;
+        border-color: rgba(47, 102, 153, 0.22);
+    }
+
+    [data-theme="light"] .badge-clerk {
+        background: rgba(46, 160, 103, 0.15);
+        color: #1f7a4d;
+        border-color: rgba(31, 122, 77, 0.22);
+    }
+
+    [data-theme="light"] .badge-pending {
+        background: rgba(198, 74, 62, 0.14);
+        color: #a23b31;
+        border-color: rgba(162, 59, 49, 0.22);
+    }
+
+    [data-theme="light"] .btn-action {
+        border-color: rgba(143, 109, 39, 0.16);
+        background: #fffaf1;
+        color: #6a5e4b;
+        box-shadow: 0 8px 18px rgba(96, 67, 24, 0.08);
+    }
+
+    [data-theme="light"] .btn-promote:hover,
+    [data-theme="light"] .btn-demote:hover,
+    [data-theme="light"] .btn-delete:hover,
+    [data-theme="light"] .btn-approve:hover {
+        box-shadow: 0 12px 24px rgba(96, 67, 24, 0.14);
+    }
+
+    [data-theme="light"] .search-bar {
+        background: #fffdf8;
+        border-color: rgba(143, 109, 39, 0.16);
+        color: #2f2a22;
+        box-shadow: 0 12px 22px rgba(96, 67, 24, 0.08);
+    }
+
+    [data-theme="light"] .search-bar::placeholder {
+        color: #766b58;
+    }
 </style>
 {% endblock %}
 

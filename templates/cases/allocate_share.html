@@ -1,0 +1,783 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .allocation-page {
+        --alloc-bg: linear-gradient(180deg, #f8f2e2 0%, #f4ebd7 50%, #f8f4ea 100%);
+        --alloc-surface: rgba(255, 252, 246, 0.92);
+        --alloc-surface-strong: rgba(255, 250, 241, 0.98);
+        --alloc-border: rgba(163, 120, 33, 0.18);
+        --alloc-border-strong: rgba(163, 120, 33, 0.35);
+        --alloc-gold: #a97b1d;
+        --alloc-gold-deep: #7f5b13;
+        --alloc-ink: #2d2213;
+        --alloc-muted: #77674f;
+        --alloc-success: #1f8a58;
+        --alloc-info: #2968a3;
+        --alloc-shadow: 0 28px 60px rgba(84, 54, 10, 0.12);
+        --alloc-radius-xl: 32px;
+        --alloc-radius-lg: 24px;
+        --alloc-radius-md: 18px;
+        background:
+            radial-gradient(circle at top right, rgba(197, 154, 60, 0.18), transparent 28%),
+            radial-gradient(circle at bottom left, rgba(166, 126, 47, 0.12), transparent 32%),
+            var(--alloc-bg);
+        padding: 3rem 0 10rem;
+        min-height: calc(100vh - 120px);
+    }
+
+    .allocation-shell { max-width: 1480px; }
+    .allocation-hero,
+    .allocation-panel,
+    .allocation-summary-card,
+    .allocation-state-banner,
+    .allocation-empty {
+        background: var(--alloc-surface);
+        border: 1px solid var(--alloc-border);
+        box-shadow: var(--alloc-shadow);
+        backdrop-filter: blur(12px);
+    }
+    .allocation-hero {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        border-radius: var(--alloc-radius-xl);
+        padding: 2.25rem 2.5rem;
+        margin-bottom: 2rem;
+        min-height: 140vh;
+        max-height: 150vh;
+        overflow-y: auto;
+        scrollbar-gutter: stable;
+    }
+    .allocation-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(135deg, rgba(169, 123, 29, 0.08), transparent 35%),
+            radial-gradient(circle at top left, rgba(169, 123, 29, 0.15), transparent 22%);
+        pointer-events: none;
+    }
+    .allocation-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.85rem 1.2rem;
+        background: rgba(169, 123, 29, 0.08);
+        border: 1px solid rgba(169, 123, 29, 0.18);
+        border-radius: 999px;
+        color: var(--alloc-gold-deep);
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+    }
+    .allocation-title {
+        color: var(--alloc-gold-deep);
+        font-size: clamp(2rem, 3vw, 3.1rem);
+        font-weight: 800;
+        line-height: 1.25;
+        margin-bottom: 0.65rem;
+    }
+    .allocation-subtitle {
+        color: var(--alloc-muted);
+        font-size: 1.08rem;
+        line-height: 1.9;
+        margin-bottom: 0;
+        max-width: 780px;
+    }
+    .allocation-breadcrumb { margin-bottom: 0; background: transparent; }
+    .allocation-breadcrumb .breadcrumb-item,
+    .allocation-breadcrumb .breadcrumb-item a {
+        color: var(--alloc-muted);
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .allocation-breadcrumb .breadcrumb-item.active { color: var(--alloc-gold-deep); }
+    .allocation-return {
+        min-width: 200px;
+        border-radius: 18px;
+        padding: 0.95rem 1.25rem;
+        font-weight: 700;
+        border: 1px solid var(--alloc-border-strong);
+        color: var(--alloc-gold-deep);
+        background: rgba(255, 252, 246, 0.9);
+    }
+    .allocation-return:hover {
+        background: rgba(169, 123, 29, 0.08);
+        color: var(--alloc-gold-deep);
+    }
+    .allocation-summary-card {
+        border-radius: var(--alloc-radius-xl);
+        padding: 2rem;
+        height: 100%;
+    }
+    .allocation-summary-card > .allocation-panel + .allocation-panel {
+        display: none;
+    }
+    .allocation-summary-label {
+        color: var(--alloc-muted);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.55rem;
+    }
+    .allocation-summary-value {
+        color: var(--alloc-gold-deep);
+        font-size: clamp(1.9rem, 2vw, 2.7rem);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 0;
+    }
+    .allocation-summary-meta {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin-top: 1.75rem;
+    }
+    .allocation-summary-chip {
+        padding: 1rem 1.15rem;
+        border-radius: 20px;
+        background: var(--alloc-surface-strong);
+        border: 1px solid rgba(169, 123, 29, 0.12);
+    }
+    .allocation-summary-chip strong {
+        display: block;
+        color: var(--alloc-ink);
+        font-size: 1.02rem;
+        font-weight: 800;
+        margin-top: 0.35rem;
+    }
+    .allocation-state-banner {
+        border-radius: 24px;
+        padding: 1.5rem 1.75rem;
+        margin-bottom: 2rem;
+    }
+    .allocation-state-banner.alert-info {
+        border-color: rgba(41, 104, 163, 0.18);
+        background: rgba(235, 244, 252, 0.92);
+    }
+    .allocation-state-banner.alert-success {
+        border-color: rgba(31, 138, 88, 0.22);
+        background: rgba(239, 252, 246, 0.94);
+    }
+    .allocation-state-banner.alert-warning {
+        border-color: rgba(184, 129, 17, 0.22);
+        background: rgba(255, 248, 229, 0.95);
+    }
+    .allocation-section-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.9fr) minmax(320px, 0.95fr);
+        gap: 2rem;
+        align-items: start;
+    }
+    .allocation-panel {
+        border-radius: var(--alloc-radius-xl);
+        overflow: hidden;
+    }
+    .allocation-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.65rem 1.85rem;
+        border-bottom: 1px solid rgba(169, 123, 29, 0.14);
+        background: linear-gradient(180deg, rgba(255, 250, 243, 0.97), rgba(252, 247, 238, 0.92));
+    }
+    .allocation-panel-title {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        color: var(--alloc-gold-deep);
+        font-size: 1.55rem;
+        font-weight: 800;
+        margin: 0;
+    }
+    .allocation-panel-title i {
+        width: 2.8rem;
+        height: 2.8rem;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(169, 123, 29, 0.1);
+    }
+    .allocation-panel-note {
+        color: var(--alloc-muted);
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+    .allocation-panel-body { padding: 1.9rem; }
+    .allocation-scroll-body {
+        max-height: 520px;
+        overflow-y: auto;
+    }
+    .allocation-items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
+        gap: 1.35rem;
+    }
+    .allocation-item-card {
+        background: var(--alloc-surface-strong);
+        border: 1px solid rgba(169, 123, 29, 0.16);
+        border-radius: 22px;
+        padding: 1.15rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-height: 220px;
+    }
+    .allocation-item-media {
+        min-height: 132px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(169, 123, 29, 0.12), rgba(169, 123, 29, 0.03));
+        border: 1px dashed rgba(169, 123, 29, 0.22);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .allocation-item-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .allocation-item-media i {
+        font-size: 2.6rem;
+        color: rgba(127, 91, 19, 0.75);
+    }
+    .allocation-item-title {
+        color: var(--alloc-ink);
+        font-size: 1.08rem;
+        font-weight: 800;
+        line-height: 1.8;
+        margin-bottom: 0.25rem;
+    }
+    .allocation-item-subtitle {
+        color: var(--alloc-muted);
+        font-size: 0.93rem;
+        font-weight: 700;
+    }
+    .allocation-item-value {
+        color: var(--alloc-gold-deep);
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+    .allocation-action-btn,
+    .allocation-action-btn-success {
+        width: 100%;
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        font-weight: 800;
+        border-width: 1px;
+    }
+    .allocation-action-btn {
+        color: var(--alloc-gold-deep);
+        border-color: rgba(169, 123, 29, 0.28);
+        background: rgba(169, 123, 29, 0.06);
+    }
+    .allocation-action-btn:hover {
+        color: var(--alloc-gold-deep);
+        background: rgba(169, 123, 29, 0.12);
+        border-color: rgba(169, 123, 29, 0.38);
+    }
+    .allocation-empty {
+        text-align: center;
+        padding: 2rem 1.25rem;
+        border-radius: 22px;
+    }
+    .allocation-empty i {
+        font-size: 2.8rem;
+        color: rgba(127, 91, 19, 0.62);
+        margin-bottom: 1rem;
+    }
+    .btn-check:checked + .allocation-action-btn,
+    .btn-check:checked + .allocation-action-btn-success {
+        color: #fff;
+        background: linear-gradient(135deg, #a97b1d, #c79b3a);
+        border-color: #a97b1d;
+        box-shadow: 0 16px 30px rgba(169, 123, 29, 0.22);
+    }
+</style>
+
+<form method="post" id="bulk-allocation-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" id="form-action" value="bulk_allocate">
+<div class="allocation-page">
+    <div class="container allocation-shell">
+        <div class="allocation-hero">
+            <div class="row g-4 align-items-start">
+                <div class="col-xl-8">
+                    <div class="allocation-kicker">
+                        <i class="fas fa-balance-scale"></i>
+                        {% if is_debt_process %}
+                        تصفية دين ضمن المراجعة النهائية للقسمة
+                        {% elif is_will_process %}
+                        تنفيذ وصية ضمن المراجعة النهائية للقسمة
+                        {% else %}
+                        تخصيص سهم وارث ضمن المراجعة النهائية للقسمة
+                        {% endif %}
+                    </div>
+                    <h1 class="allocation-title">
+                        {% if is_debt_process %}
+                        تصفية الدين: {{ allocation_subject_name }}
+                        {% elif is_will_process %}
+                        تنفيذ الوصية: {{ allocation_subject_name }}
+                        {% else %}
+                        تحديد نصيب الوارث: {{ allocation_subject_name }}
+                        {% endif %}
+                    </h1>
+                    <p class="allocation-subtitle">
+                        {% if is_debt_process %}
+                        استخدم هذه الصفحة لتحديد الأصول أو الأجزاء التي ستُخصص لتصفية هذا الدين بالكامل، دون خلطه بمنطق الورثة أو الوصايا.
+                        {% elif is_will_process %}
+                        استخدم هذه الصفحة لتحديد الأصول أو الأجزاء التي ستُخصص لتنفيذ هذه الوصية بالكامل، مع فصلها عن توزيع التركة على الورثة.
+                        {% else %}
+                        استخدم هذه الصفحة لتحديد الأصول أو المبالغ التي ستُسند لهذا الوارث بدقة، مع المحافظة على وضوح الفروق المالية واعتماد التخصيص النهائي بطريقة منظمة وواضحة.
+                        {% endif %}
+                    </p>
+                    {% if is_heir_process and rejected_selection_intents %}
+                    <div class="allocation-state-banner alert-warning mt-4">
+                        <div class="d-flex flex-column gap-3">
+                            <div><strong>اختيارات الورثة المرفوضين متاحة هنا للقاضي لإعادة التوزيع.</strong></div>
+                            {% if rejected_selection_redirect %}
+                            <div class="small text-muted">تم تحويل اختيارات الوريث المرفوض مباشرة إلى صفحة التخصيص حتى لا تضيع.</div>
+                            {% endif %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for intent in rejected_selection_intents %}
+                                <span class="review-badge">
+                                    {{ intent.heir.name }}:
+                                    {% if intent.asset %}
+                                    أصل كامل - {{ intent.asset.description }}
+                                    {% else %}
+                                    جزء - {{ intent.component.description }}
+                                    {% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if active_proposal %}
+                        {% if active_proposal.status == 'ACCEPTED' %}
+                        <div class="allocation-state-banner alert-success mt-4">
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+                                    <strong style="font-size: 1.15rem;">الوريث موافق وجاهز للاعتماد!</strong>
+                                </div>
+                                <div>لقد وافق الوريث رسمياً على دفع مبلغ الفرق ({{ active_proposal.difference_amount }} ريال) مقابل حصوله على هذه العناصر. يرجى الضغط على زر <strong class="text-success">"تأكيد التخصيص والاعتماد"</strong> الموجود بالأسفل لإنهاء الإجراء.</div>
+                            </div>
+                        </div>
+                        {% elif active_proposal.status == 'PENDING' %}
+                        <div class="allocation-state-banner alert-warning mt-4 text-dark" style="background: rgba(255, 248, 229, 0.95); border-color: rgba(184, 129, 17, 0.22);">
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-hourglass-half" style="font-size: 1.5rem; color: #b88111;"></i>
+                                    <strong style="font-size: 1.15rem; color: #b88111;">بانتظار قرار الوريث...</strong>
+                                </div>
+                                <div>لقد أرسلت هذا المقترح سابقاً للوريث، وهو الآن في انتظار إقراره بدفع الفرق. (الأصول المحددة بالأسفل هي تماماً ما قمت بإرساله). يمكنك الانتظار أو تعديل التخصيص إذا أردت سحب المقترح.</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                {% if is_heir_process or is_debt_process or is_will_process %}
+                <div class="allocation-panel">
+                    <div class="allocation-panel-header">
+                        <div>
+                            <h2 class="allocation-panel-title">
+                                <i class="fas fa-money-bill-wave"></i>
+                                التعهدات المالية
+                            </h2>
+                            <div class="allocation-panel-note">فروق القيمة التي يمكن إدراجها ضمن التخصيص الحالي.</div>
+                        </div>
+                        <div class="allocation-panel-note">مبالغ اختيارية</div>
+                    </div>
+                    <div class="allocation-panel-body allocation-scroll-body">
+                        {% if available_settlements %}
+                        <div class="settlement-list">
+                            {% for settlement in available_settlements %}
+                            <div class="settlement-item">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                    <div>
+                                        <div class="settlement-payer">{{ settlement.payer.name }}</div>
+                                        <div class="settlement-caption">
+                                            يتعهد بدفع فرق
+                                            {% if settlement.original_owner %}
+                                                لصالح {{ settlement.original_owner.name }}
+                                            {% else %}
+                                                لصالح التركة العامة
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="allocation-item-value">{{ settlement.available_amount }} <small>ريال</small></div>
+                                </div>
+                                <div class="settlement-reason mb-3">{{ settlement.reason }}</div>
+                                <input type="checkbox" name="selected_settlements" value="{{ settlement.id }}_{{ settlement.type }}" data-value="{{ settlement.available_amount }}" id="settlement_{{ settlement.id }}_{{ settlement.type }}" class="btn-check select-item-check" autocomplete="off"
+                                    {% with key=settlement.id|slugify|add:"_"|add:settlement.type %}
+                                        {% if key in proposal_settlement_ids %}checked{% endif %}
+                                    {% endwith %}>
+                                <label class="btn allocation-action-btn-success" for="settlement_{{ settlement.id }}_{{ settlement.type }}">
+                                    <i class="fas fa-check-circle ms-2"></i>
+                                    تحديد التعهد المالي
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="allocation-empty">
+                            <i class="fas fa-wallet"></i>
+                            <h5 class="fw-bold mb-3" style="color: var(--alloc-ink);">لا توجد مبالغ نقدية متاحة</h5>
+                            <p class="mb-0">لا توجد تسويات مالية إضافية يمكن ربطها بهذه الحصة في الوقت الحالي.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="allocation-section-grid mt-4">
+                    <div class="allocation-panel">
+                        <div class="allocation-panel-header">
+                            <div>
+                                <h2 class="allocation-panel-title">
+                                    <i class="fas fa-box-open"></i>
+                                    الأصول والعينات المتاحة
+                                </h2>
+                                <div class="allocation-panel-note">
+                                    {% if is_debt_process %}
+                                    اختر الأصول الكاملة أو الأجزاء المتاحة لتصفية هذا الدين.
+                                    {% elif is_will_process %}
+                                    اختر الأصول الكاملة أو الأجزاء المتاحة لتنفيذ هذه الوصية.
+                                    {% else %}
+                                    اختر الأصول الكاملة أو الأجزاء المتاحة لإسنادها إلى هذا الوارث.
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="allocation-panel-note">عناصر عينية</div>
+                        </div>
+                        <div class="allocation-panel-body allocation-scroll-body">
+                            {% if available_assets or available_components %}
+                            <div class="allocation-items-grid">
+                                {% for asset in available_assets %}
+                                <div class="allocation-item-card">
+                                    <div class="allocation-item-media">
+                                        {% if asset.image %}
+                                        <img src="{{ asset.image.url }}" alt="{{ asset.description }}">
+                                        {% else %}
+                                        <i class="fas fa-image"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div>
+                                            <div class="allocation-item-title">{{ asset.description }}</div>
+                                            <div class="allocation-item-subtitle">أصل كامل</div>
+                                        </div>
+                                        <div class="allocation-item-value">{{ asset.value }} <small>ريال</small></div>
+                                    </div>
+                                    <input type="checkbox" name="selected_assets" value="{{ asset.id }}" data-value="{{ asset.value }}" id="asset_{{ asset.id }}" class="btn-check select-item-check" autocomplete="off" {% if asset.id|stringformat:"s" in proposal_asset_ids %}checked{% endif %}>
+                                    <label class="btn allocation-action-btn" for="asset_{{ asset.id }}">
+                                        <i class="fas fa-check-circle ms-2"></i>
+                                        تحديد الأصل
+                                    </label>
+                                </div>
+                                {% endfor %}
+
+                                {% for component in available_components %}
+                                <div class="allocation-item-card">
+                                    <div class="allocation-item-media">
+                                        {% if component.asset.image %}
+                                        <img src="{{ component.asset.image.url }}" alt="{{ component.description }}">
+                                        {% else %}
+                                        <i class="fas fa-puzzle-piece"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div>
+                                            <div class="allocation-item-title">{{ component.description }}</div>
+                                            <div class="allocation-item-subtitle">جزء من أصل: {{ component.asset.description }}</div>
+                                        </div>
+                                        <div class="allocation-item-value">{{ component.value }} <small>ريال</small></div>
+                                    </div>
+                                    <input type="checkbox" name="selected_components" value="{{ component.id }}" data-value="{{ component.value }}" id="component_{{ component.id }}" class="btn-check select-item-check" autocomplete="off" {% if component.id|stringformat:"s" in proposal_comp_ids %}checked{% endif %}>
+                                    <label class="btn allocation-action-btn" for="component_{{ component.id }}">
+                                        <i class="fas fa-check-circle ms-2"></i>
+                                        تحديد الجزء
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="allocation-empty">
+                                <i class="fas fa-box-open"></i>
+                                <h5 class="fw-bold mb-3" style="color: var(--alloc-ink);">لا توجد أصول أو أجزاء متاحة</h5>
+                                <p class="mb-0">كل الأصول والعينات المتاحة إما خُصصت سابقًا أو ليست متاحة لهذا التخصيص حاليًا.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="allocation-panel">
+                        <div class="allocation-panel-header">
+                            <div>
+                                <h2 class="allocation-panel-title">
+                                    <i class="fas fa-layer-group"></i>
+                                    ملخص العناصر المتاحة
+                                </h2>
+                                <div class="allocation-panel-note">هذه اللوحة تساعد القاضي على معرفة ما هو متاح حاليًا قبل اعتماد التخصيص.</div>
+                            </div>
+                        </div>
+                        <div class="allocation-panel-body">
+                            <div class="allocation-summary-meta mt-0">
+                                <div class="allocation-summary-chip">
+                                    <span class="allocation-summary-label">الأصول الكاملة المتاحة</span>
+                                    <strong>{{ available_assets|length }}</strong>
+                                </div>
+                                <div class="allocation-summary-chip">
+                                    <span class="allocation-summary-label">الأجزاء المتاحة</span>
+                                    <strong>{{ available_components|length }}</strong>
+                                </div>
+                                {% if is_heir_process %}
+                                <div class="allocation-summary-chip">
+                                    <span class="allocation-summary-label">التسويات المالية المتاحة</span>
+                                    <strong>{{ available_settlements|length }}</strong>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                .allocation-sticky-bar {
+                    position: sticky;
+                    left: auto;
+                    right: auto;
+                    bottom: 0;
+                    z-index: 10;
+                    margin-top: auto;
+                    padding: 1rem 0 0;
+                    background: linear-gradient(180deg, rgba(248, 242, 226, 0.88), rgba(247, 238, 220, 0.96));
+                    backdrop-filter: blur(14px);
+                    border-top: 1px solid rgba(169, 123, 29, 0.12);
+                    box-shadow: 0 -10px 24px rgba(92, 68, 22, 0.05);
+                    pointer-events: auto;
+                }
+                .allocation-sticky-shell { max-width: 100%; padding: 0; }
+                .allocation-sticky-card {
+                    background: rgba(255, 251, 243, 0.96);
+                    border: 1px solid rgba(169, 123, 29, 0.16);
+                    border-radius: 24px;
+                    padding: 1rem 1.25rem;
+                    box-shadow: 0 16px 36px rgba(92, 68, 22, 0.08);
+                    pointer-events: auto;
+                }
+                .allocation-summary-metric {
+                    color: var(--alloc-ink);
+                    font-weight: 800;
+                    font-size: 1.2rem;
+                }
+                .allocation-summary-metric span { color: var(--alloc-gold-deep); }
+                .allocation-summary-detail {
+                    color: var(--alloc-muted);
+                    font-size: 0.97rem;
+                    line-height: 1.9;
+                }
+                .allocation-footer-buttons .btn {
+                    min-height: 58px;
+                    border-radius: 18px;
+                    font-size: 1rem;
+                    font-weight: 800;
+                    padding-inline: 1.5rem;
+                    position: relative;
+                    z-index: 2;
+                }
+                .allocation-footer-buttons .btn-gold {
+                    background: linear-gradient(135deg, #bd8d25, #e5bf56);
+                    border-color: #bd8d25;
+                    color: #241a0c;
+                }
+                .allocation-footer-buttons .btn-gold:hover {
+                    background: linear-gradient(135deg, #ad7f1d, #d8b04a);
+                    border-color: #ad7f1d;
+                    color: #241a0c;
+                }
+                .allocation-footer-buttons .btn-outline-success {
+                    border-width: 1.5px;
+                    color: var(--alloc-success);
+                    border-color: rgba(31, 138, 88, 0.45);
+                    background: rgba(31, 138, 88, 0.04);
+                }
+                .allocation-footer-buttons .btn-outline-success:hover,
+                .allocation-footer-buttons .btn-outline-success:focus {
+                    color: #fff;
+                    background: var(--alloc-success);
+                    border-color: var(--alloc-success);
+                }
+                .allocation-footer-buttons .btn:disabled {
+                    opacity: 0.45;
+                    box-shadow: none;
+                }
+                .pulse { animation: allocPulse 2.2s ease-in-out infinite; }
+                @keyframes allocPulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.03); }
+                    100% { transform: scale(1); }
+                }
+                @media (max-width: 1199.98px) {
+                    .allocation-section-grid { grid-template-columns: 1fr; }
+                }
+                @media (max-width: 991.98px) {
+                    .allocation-page { padding-top: 2rem; }
+                    .allocation-hero,
+                    .allocation-summary-card,
+                    .allocation-panel-body { padding: 1.5rem; }
+                    .allocation-panel-header { padding: 1.35rem 1.5rem; }
+                    .allocation-sticky-bar { padding-bottom: 0.9rem; }
+                }
+                @media (max-width: 767.98px) {
+                    .allocation-title { font-size: 1.75rem; }
+                    .allocation-hero { padding: 1.4rem; }
+                    .allocation-items-grid { grid-template-columns: 1fr; }
+                    .allocation-item-media { height: 210px; }
+                    .allocation-sticky-card { padding: 1rem; border-radius: 20px; }
+                }
+            </style>
+
+            <div class="allocation-sticky-bar">
+                <div class="container allocation-sticky-shell">
+                    <div class="allocation-sticky-card d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-4">
+                        <div id="selection-summary">
+                            <div class="allocation-summary-metric">
+                                تم تحديد <span id="count-display">0</span> عنصر
+                            </div>
+                            <div class="allocation-summary-detail mt-2">
+                                قيمة المحدد الآن: <strong id="total-val-display">0</strong> ريال
+                                <span class="mx-2">|</span>
+                                الإجمالي بعد الإضافة: <strong id="grand-total-display">0</strong> ريال
+                                <span class="mx-2">|</span>
+                                {% if is_heir_process %}
+                                الفرق عن نصيب الوارث: <strong id="diff-display">0</strong> ريال
+                                {% else %}
+                                الفرق عن قيمة {{ allocation_subject_label }}: <strong id="diff-display">0</strong> ريال
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="btn-group allocation-footer-buttons" role="group">
+                            {% if is_heir_process %}
+                            <button type="submit" form="bulk-allocation-form" id="proposal-btn" class="btn btn-gold shadow d-none" onclick="document.getElementById('form-action').value='send_proposal'">
+                                <i class="fas fa-paper-plane ms-2"></i>
+                                إرسال للوارث لإقرار دفع الفرق
+                            </button>
+                            {% endif %}
+
+                                <button type="submit" form="bulk-allocation-form" id="approve-btn" class="btn btn-outline-success shadow ms-1" onclick="document.getElementById('form-action').value='bulk_allocate'" disabled>
+                                    <i class="fas fa-check-double ms-2"></i>
+                                    {{ save_button_label }}
+                                </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div style="height: 160px;"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checks = document.querySelectorAll('.select-item-check');
+        const approveBtn = document.getElementById('approve-btn');
+        const proposalBtn = document.getElementById('proposal-btn');
+        const countDisplay = document.getElementById('count-display');
+        const totalValDisplay = document.getElementById('total-val-display');
+        const grandTotalDisplay = document.getElementById('grand-total-display');
+        const diffDisplay = document.getElementById('diff-display');
+
+        const processType = "{{ process_type }}";
+        const targetTotalValue = parseFloat("{{ target_total_value|default:0 }}");
+        const alreadyHeldVal = parseFloat("{{ current_allocated_value|default:0 }}");
+        const hasAcceptedProposal = {% if active_proposal and active_proposal.status == 'ACCEPTED' %}true{% else %}false{% endif %};
+
+        function updateState() {
+            let selectedItemsValue = 0;
+            let checkedCount = 0;
+
+            checks.forEach(check => {
+                if (check.checked) {
+                    checkedCount++;
+                    selectedItemsValue += parseFloat(check.dataset.value || 0);
+                }
+            });
+
+            const totalCurrentValue = alreadyHeldVal + selectedItemsValue;
+            const diff = totalCurrentValue - targetTotalValue;
+
+            countDisplay.innerText = checkedCount;
+            totalValDisplay.innerText = selectedItemsValue.toFixed(2);
+            grandTotalDisplay.innerText = totalCurrentValue.toFixed(2);
+            diffDisplay.innerText = diff.toFixed(2);
+
+            if (processType === 'heir') {
+                if (diff > 0.01) {
+                    totalValDisplay.classList.add('text-danger');
+                    diffDisplay.classList.add('text-danger');
+                    if (proposalBtn) {
+                        proposalBtn.classList.remove('d-none');
+                    }
+
+                    if (hasAcceptedProposal) {
+                        approveBtn.disabled = false;
+                        approveBtn.classList.add('pulse', 'btn-success');
+                        approveBtn.classList.remove('btn-outline-success');
+                    } else {
+                        approveBtn.disabled = true;
+                        approveBtn.classList.remove('pulse');
+                    }
+                } else {
+                    totalValDisplay.classList.remove('text-danger');
+                    diffDisplay.classList.remove('text-danger');
+                    if (proposalBtn) {
+                        proposalBtn.classList.add('d-none');
+                    }
+
+                    approveBtn.disabled = (checkedCount === 0 && alreadyHeldVal === 0);
+                    if (checkedCount > 0 || alreadyHeldVal > 0) {
+                        approveBtn.classList.add('pulse');
+                    } else {
+                        approveBtn.classList.remove('pulse');
+                    }
+                }
+            } else {
+                if (proposalBtn) {
+                    proposalBtn.classList.add('d-none');
+                }
+                if (Math.abs(diff) > 0.01) {
+                    totalValDisplay.classList.add('text-danger');
+                    diffDisplay.classList.add('text-danger');
+                    approveBtn.disabled = true;
+                    approveBtn.classList.remove('pulse');
+                } else {
+                    totalValDisplay.classList.remove('text-danger');
+                    diffDisplay.classList.remove('text-danger');
+                    approveBtn.disabled = (checkedCount === 0);
+                    if (checkedCount > 0) {
+                        approveBtn.classList.add('pulse');
+                    } else {
+                        approveBtn.classList.remove('pulse');
+                    }
+                }
+            }
+        }
+
+        checks.forEach(check => {
+            check.addEventListener('change', updateState);
+        });
+
+        updateState();
+    });
+</script>
+{% endblock %}

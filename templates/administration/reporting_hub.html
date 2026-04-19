@@ -1,0 +1,125 @@
+{% extends 'administration/admin_base.html' %}
+
+{% block admin_header_title %}
+    <h1 style="font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 8px;">وحدة التقارير</h1>
+    <p style="color: rgba(255,255,255,0.58); font-weight: 600;">الإحصاءات والرسوم هنا تسحب القيم الفعلية من القضايا والأصول والورثة والمستخدمين.</p>
+{% endblock %}
+
+{% block admin_content %}
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px;">
+    <div class="card" style="padding: 28px;">
+        <div style="color: rgba(255,255,255,0.55); margin-bottom: 10px;">إجمالي قيمة الأصول</div>
+        <div style="font-size: 2.6rem; font-weight: 900; color: #fff;">{{ total_estate_value|floatformat:0 }} ر.س</div>
+    </div>
+    <div class="card" style="padding: 28px;">
+        <div style="color: rgba(255,255,255,0.55); margin-bottom: 10px;">القضايا المكتملة</div>
+        <div style="font-size: 2.6rem; font-weight: 900; color: #fff;">{{ completed_cases_count }}</div>
+    </div>
+    <div class="card" style="padding: 28px;">
+        <div style="color: rgba(255,255,255,0.55); margin-bottom: 10px;">القضايا المعلقة</div>
+        <div style="font-size: 2.6rem; font-weight: 900; color: #fff;">{{ pending_cases_count }}</div>
+    </div>
+    <div class="card" style="padding: 28px;">
+        <div style="color: rgba(255,255,255,0.55); margin-bottom: 10px;">نسبة الموافقة</div>
+        <div style="font-size: 2.6rem; font-weight: 900; color: #fff;">{{ approval_rate }}%</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 22px;">
+    <div class="card" style="padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="margin: 0; color: #fff;">حالات القضايا</h3>
+            <span style="color: var(--primary-color); font-weight: 800;">{{ total_cases }} قضية</span>
+        </div>
+        {% if case_status_chart.has_data %}
+        <div style="height: 310px;"><canvas id="reportCaseStatusChart"></canvas></div>
+        {% else %}
+        <div style="height: 310px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.58);">لا توجد بيانات قضايا لعرضها.</div>
+        {% endif %}
+    </div>
+
+    <div class="card" style="padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="margin: 0; color: #fff;">قرارات الورثة</h3>
+            <span style="color: var(--primary-color); font-weight: 800;">اعتراض {{ objection_rate }}%</span>
+        </div>
+        {% if heir_decision_chart.has_data %}
+        <div style="height: 310px;"><canvas id="reportHeirDecisionChart"></canvas></div>
+        {% else %}
+        <div style="height: 310px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.58);">لا توجد قرارات ورثة حتى الآن.</div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 22px;">
+    <a href="{% url 'administration:report_print' %}" class="card" style="padding: 28px; text-decoration: none;">
+        <h3 style="margin: 0 0 10px; color: #fff;">تصدير PDF</h3>
+        <p style="margin: 0; color: rgba(255,255,255,0.58);">تقرير تشغيلي للطباعة والمراجعة مبني على البيانات الحقيقية الحالية.</p>
+    </a>
+    <a href="{% url 'administration:export_csv' %}" class="card" style="padding: 28px; text-decoration: none;">
+        <h3 style="margin: 0 0 10px; color: #fff;">تصدير CSV</h3>
+        <p style="margin: 0; color: rgba(255,255,255,0.58);">ملف مناسب للتحليل والمتابعة خارج النظام باستخدام القيم الحالية نفسها.</p>
+    </a>
+</div>
+
+{{ case_status_chart|json_script:"report-case-status-chart-data" }}
+{{ heir_decision_chart|json_script:"report-heir-decision-chart-data" }}
+{% endblock %}
+
+{% block admin_extra_js %}
+<script>
+    function mountReportChart(canvasId, payloadId, type, extraOptions = {}) {
+        const canvas = document.getElementById(canvasId);
+        const payloadNode = document.getElementById(payloadId);
+        if (!canvas || !payloadNode) {
+            return;
+        }
+
+        const payload = JSON.parse(payloadNode.textContent);
+        if (!payload.values || !payload.values.some(value => Number(value) > 0)) {
+            return;
+        }
+
+        new Chart(canvas, {
+            type,
+            data: {
+                labels: payload.labels,
+                datasets: [{
+                    data: payload.values,
+                    backgroundColor: payload.colors,
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                scales: type === 'bar' ? {
+                    x: {
+                        ticks: { color: '#9ca3af' },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#9ca3af', precision: 0 },
+                        grid: { color: 'rgba(255,255,255,0.08)' }
+                    }
+                } : {},
+                ...extraOptions
+            }
+        });
+    }
+
+    mountReportChart('reportCaseStatusChart', 'report-case-status-chart-data', 'bar');
+    mountReportChart('reportHeirDecisionChart', 'report-heir-decision-chart-data', 'doughnut', {
+        cutout: '64%'
+    });
+</script>
+{% endblock %}

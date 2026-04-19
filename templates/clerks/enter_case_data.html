@@ -1,133 +1,126 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container" style="margin-top: 50px; padding-bottom: 100px;">
-
-    <!-- Page Header -->
-    <div class="card"
-        style="margin-bottom: 40px; padding: 40px; border-radius: 30px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255,255,255,0.01) 100%);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div
-                    style="background: var(--primary-color); width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #000;">
-                    <i class="fas fa-edit" style="font-size: 1.8rem;"></i>
-                </div>
-                <div>
-                    <h1 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0;">إدخال بيانات التركة -
-                        {{ case.case_number }}</h1>
-                    <p style="color: var(--text-muted); margin: 5px 0 0;">استكمال بيانات المتوفى، الورثة، والأصول
-                        القضائية.</p>
-                </div>
-            </div>
-            <span class="badge"
-                style="background: var(--primary-color); color: #000; font-size: 1rem; padding: 10px 20px; border-radius: 10px; font-weight: 800;">
-                {{ case.get_status_display }}</span>
+<div class="estate-entry-page">
+    <div class="estate-header card">
+        <div class="estate-header__icon">
+            <i class="fas fa-edit"></i>
         </div>
+        <div class="estate-header__content">
+            <h1>إدخال بيانات التركة - القضية {{ case.display_case_number|default:case.case_number }}</h1>
+            <p>استكمال بيانات المتوفى والورثة ومكونات التركة بشكل منظم وواضح قبل إرسالها للقاضي للمراجعة.</p>
+        </div>
+        <span class="estate-status">{{ case.get_status_display }}</span>
     </div>
 
-    <!-- Main Content -->
-    <div style="display: grid; grid-template-columns: 1fr; gap: 40px;">
+    <div class="estate-sections">
+        <section class="card estate-financial-dashboard" style="margin-bottom: 30px; padding: 30px; border-radius: 25px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px; color: var(--primary-color);">
+                <i class="fas fa-calculator" style="font-size: 1.4rem;"></i>
+                <h2 style="margin: 0; font-weight: 900; font-size: 1.3rem;">خلاصة الحالة المالية (تحديث تلقائي)</h2>
+            </div>
+            
+            <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+                <div class="dashboard-card" style="padding: 20px; border-radius: 20px; background: rgba(46, 204, 113, 0.08); border: 1px solid rgba(46, 204, 113, 0.25); text-align: center; transition: transform 0.3s ease;">
+                    <span style="display: block; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; font-weight: 700;">إجمالي الأصول</span>
+                    <strong style="color: #2ecc71; font-size: 1.5rem; font-weight: 900;">{{ total_assets }} ريال</strong>
+                </div>
+                
+                <div class="dashboard-card" style="padding: 20px; border-radius: 20px; background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.25); text-align: center;">
+                    <span style="display: block; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; font-weight: 700;">إجمالي الديون</span>
+                    <strong style="color: #e74c3c; font-size: 1.5rem; font-weight: 900;">{{ total_debts }} ريال</strong>
+                </div>
+                
+                <div class="dashboard-card" style="padding: 20px; border-radius: 20px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.25); text-align: center;">
+                    <span style="display: block; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; font-weight: 700;">سقف الوصية (الثلث)</span>
+                    <strong style="color: var(--primary-color); font-size: 1.5rem; font-weight: 900;">{{ wasiyya_limit }} ريال</strong>
+                </div>
+                
+                <div class="dashboard-card" style="padding: 20px; border-radius: 20px; background: rgba(142, 68, 173, 0.08); border: 1px solid rgba(142, 68, 173, 0.25); text-align: center;">
+                    <span style="display: block; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; font-weight: 700;">المتبقي المتاح للوصايا</span>
+                    <strong style="color: #c78cf0; font-size: 1.5rem; font-weight: 900;">{{ wasiyya_remaining }} ريال</strong>
+                </div>
+            </div>
 
-        <!-- Deceased Info Section -->
-        <div class="card" style="padding: 40px; border-radius: 25px;">
-            <h3
-                style="color: var(--primary-color); border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 25px; font-weight: 800;">
-                <i class="fas fa-user-times" style="margin-left: 10px;"></i> بيانات المتوفى
-            </h3>
+            {% if total_debts > total_assets %}
+            <div style="margin-top: 25px; padding: 15px; border-radius: 15px; background: rgba(231, 76, 60, 0.15); color: #e74c3c; display: flex; align-items: center; gap: 10px; font-weight: 800; border: 1px solid #e74c3c;">
+                <i class="fas fa-exclamation-circle"></i>
+                تنبيه: الديون تستغرق التركة! سيتم حجب الوصايا ورفض القضية تلقائياً.
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="card estate-panel">
+            <div class="estate-panel__title">
+                <i class="fas fa-user-times"></i>
+                <h2>بيانات المتوفى</h2>
+            </div>
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="save_basic">
                 <div class="premium-form-grid">
                     <div class="input-v3-group">
-                        <label>اسم المتوفى:</label>
-                        <div class="input-v3-container">
-                            {{ deceased_form.name }}
-                        </div>
-                        {% if deceased_form.name.errors %}<div class="error-msg"
-                            style="color:#e74c3c; font-size:0.8rem; margin-top:5px;">{{ deceased_form.name.errors.0 }}
-                        </div>{% endif %}
+                        <label for="{{ deceased_form.name.id_for_label }}">اسم المتوفى</label>
+                        <div class="input-v3-container">{{ deceased_form.name }}</div>
                     </div>
                     <div class="input-v3-group">
-                        <label>تاريخ الوفاة:</label>
-                        <div class="input-v3-container">
-                            {{ deceased_form.date_of_death }}
-                        </div>
-                        {% if deceased_form.date_of_death.errors %}<div class="error-msg"
-                            style="color:#e74c3c; font-size:0.8rem; margin-top:5px;">{{
-                            deceased_form.date_of_death.errors.0 }}</div>{% endif %}
+                        <label for="{{ deceased_form.date_of_death.id_for_label }}">تاريخ الوفاة</label>
+                        <div class="input-v3-container">{{ deceased_form.date_of_death }}</div>
                     </div>
                     <div class="input-v3-group">
-                        <label>رقم الهوية:</label>
-                        <div class="input-v3-container">
-                            {{ deceased_form.national_id }}
-                        </div>
-                        {% if deceased_form.national_id.errors %}<div class="error-msg"
-                            style="color:#e74c3c; font-size:0.8rem; margin-top:5px;">{{
-                            deceased_form.national_id.errors.0 }}</div>{% endif %}
+                        <label for="{{ deceased_form.national_id.id_for_label }}">رقم الهوية</label>
+                        <div class="input-v3-container">{{ deceased_form.national_id }}</div>
                     </div>
                 </div>
-                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                    <button type="submit" class="btn-primary" style="padding: 10px 30px; border-radius: 12px;">حفظ
-                        بيانات المتوفى</button>
+                <div class="panel-actions panel-actions--end">
+                    <button type="submit" class="btn-primary">حفظ بيانات المتوفى</button>
                 </div>
             </form>
-        </div>
+        </section>
 
-        <!-- Heirs Section -->
-        <div class="card" style="padding: 40px; border-radius: 25px;">
-            <h3
-                style="color: #fff; padding-bottom: 15px; margin-bottom: 25px; font-weight: 800; display: flex; justify-content: space-between; align-items: center;">
-                <span><i class="fas fa-users" style="color: var(--primary-color); margin-left:10px;"></i> الورثة
-                    المسجلون</span>
-            </h3>
+        <section class="card estate-panel">
+            <div class="estate-panel__title">
+                <i class="fas fa-users"></i>
+                <h2>الورثة المسجلون</h2>
+            </div>
 
             <form method="post">
                 {% csrf_token %}
                 {{ heir_formset.management_form }}
                 <input type="hidden" name="action" value="save_heirs">
 
-                <div class="table-container"
-                    style="border-radius: 15px; background: transparent; border: 1px solid var(--glass-border); overflow: hidden;">
-                    <table style="width: 100%;">
+                <div class="table-container heirs-table">
+                    <table>
                         <thead>
-                            <tr style="background: rgba(212, 175, 55, 0.03);">
-                                <th style="padding: 15px; color: var(--primary-color); text-align: right;">الاسم الكامل
-                                </th>
-                                <th style="padding: 15px; color: var(--primary-color); text-align: right;">الجنس</th>
-                                <th style="padding: 15px; color: var(--primary-color); text-align: right;">صلة القرابة
-                                </th>
-                                <th style="padding: 15px; color: var(--primary-color); text-align: right;">الحساب
-                                    المرتبط</th>
-                                <th style="padding: 15px; color: var(--primary-color); text-align: center;">حذف</th>
+                            <tr>
+                                <th>الاسم الكامل</th>
+                                <th>الجنس</th>
+                                <th>صلة القرابة</th>
+                                <th>الحساب المرتبط</th>
+                                <th>حذف</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for form in heir_formset %}
-                            <tr style="border-bottom: 1px solid var(--glass-border);">
-                                <td style="padding: 15px;">{{ form.id }}{{ form.name }}</td>
-                                <td style="padding: 15px;">
-                                    {{ form.gender }}
+                            <tr>
+                                <td>{{ form.id }}{{ form.name }}</td>
+                                <td>{{ form.gender }}</td>
+                                <td>
+                                    <span class="static-field">{{ form.instance.get_relationship_display|default:form.instance.relationship }}</span>
+                                    <input type="hidden" name="{{ form.relationship.html_name }}" value="{{ form.relationship.value|default:'' }}">
                                 </td>
-                                <td style="padding: 15px;">
-                                    <span style="color: #fff; font-weight: 600;">
-                                        {{form.instance.get_relationship_display|default:form.instance.relationship }}</span>
-                                    <input type="hidden" name="{{ form.relationship.html_name }}"
-                                        value="{{ form.relationship.value|default:'' }}">
-                                </td>
-                                <td style="padding: 15px;">
+                                <td>
                                     {% if form.instance.user %}
-                                    <span style="color: #2ecc71; font-weight: 700;"><i class="fas fa-check-circle"></i>
-                                        {{ form.instance.user.username }}</span>
+                                    <span class="linked-account"><i class="fas fa-check-circle"></i> {{ form.instance.user.username }}</span>
                                     {% else %}
-                                    <span style="color: var(--text-muted); font-size: 0.9rem;">يدوي</span>
+                                    <span class="muted-text">يدوي</span>
                                     {% endif %}
                                 </td>
-                                <td style="padding: 15px; text-align: center;">{{ form.DELETE }}</td>
+                                <td class="delete-cell">{{ form.DELETE }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" style="padding: 30px; text-align: center; color: var(--text-muted);">لا
-                                    يوجد ورثة مضافون حالياً. يرجى ربط الورثة المسجلين أدناه.</td>
+                                <td colspan="5" class="empty-row">لا يوجد ورثة مضافون حاليًا. يمكنك ربط الورثة المسجلين أدناه.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -135,133 +128,297 @@
                 </div>
 
                 {% if heir_formset.forms %}
-                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                    <button type="submit" class="btn-outline" style="padding: 10px 30px; border-radius: 12px;">تحديث
-                        بيانات الورثة</button>
+                <div class="panel-actions panel-actions--end">
+                    <button type="submit" class="btn-outline">تحديث بيانات الورثة</button>
                 </div>
                 {% endif %}
             </form>
 
-            <!-- Pending Registered Heirs -->
+            {% comment %}
             {% if pending_heirs %}
-            <div
-                style="margin-top: 40px; padding: 30px; border-radius: 20px; background: rgba(52, 152, 219, 0.05); border: 1px solid rgba(52, 152, 219, 0.2);">
-                <h4 style="color: #3498db; margin-bottom: 25px; font-weight: 800;">
-                    <i class="fas fa-link" style="margin-left: 10px;"></i> ورثة مسجلون يطلبون الانضمام للقضية
-                </h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <div class="pending-heirs-box">
+                <h3><i class="fas fa-link"></i> ورثة مسجلون بانتظار الربط بالقضية</h3>
+                <div class="pending-heirs-grid">
                     {% for p_heir in pending_heirs %}
-                    <div
-                        style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 15px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="pending-heir-card">
                         <div>
-                            <p style="margin: 0; color: #fff; font-weight: 700; font-size: 1.1rem;">
-                                {{ p_heir.full_name|default:p_heir.username }}</p>
-                            <span style="color: #3498db; font-size: 0.9rem; font-weight: 600;">صلة القرابة:
-                                {{ p_heir.relationship_to_deceased }}</span>
+                            <p>{{ p_heir.full_name|default:p_heir.username }}</p>
+                            <span>صلة القرابة: {{ p_heir.relationship_to_deceased }}</span>
                         </div>
-                        <form method="post" style="margin: 0;">
+                        <form method="post">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="link_heir">
                             <input type="hidden" name="heir_user_id" value="{{ p_heir.id }}">
-                            <button type="submit" class="btn-primary"
-                                style="background: #3498db; padding: 8px 20px; border-radius: 10px; font-size: 0.9rem;">ربط
-                                بالقضية</button>
+                            <button type="submit" class="btn-primary btn-primary--info">ربط بالقضية</button>
                         </form>
                     </div>
                     {% endfor %}
                 </div>
             </div>
             {% endif %}
-        </div>
+            {% endcomment %}
+        </section>
 
-        <!-- Financial Sections (Assets, Debts, Wills) - Re-styled -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-            <div class="card" style="padding: 30px; border-radius: 25px; border-top: 4px solid #2ecc71;">
-                <h4 style="color: #2ecc71; margin-bottom: 20px; font-weight: 800;"><i class="fas fa-coins"></i> الأصول
-                </h4>
-                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;">
-                    {% for asset in case.assets.all %}
-                    <div
-                        style="padding: 10px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between;">
-                        <span style="color:#fff;">{{ asset.description }}</span>
-                        <span style="color:var(--primary-color);">{{ asset.value }} ريال</span>
+        <section class="estate-financial-grid">
+            <div class="card estate-financial-card estate-financial-card--assets">
+                <div class="estate-financial-card__header">
+                    <div>
+                        <span class="estate-financial-card__eyebrow">بيانات التركة</span>
+                        <h3><i class="fas fa-coins"></i> الأصول</h3>
                     </div>
+                </div>
+
+                <div class="estate-items-list">
+                    {% for asset in case.assets.all %}
+                    <div class="estate-item-row">
+                        <div>
+                            <strong>{{ asset.description }}</strong>
+                            <span>{{ asset.get_asset_type_display|default:asset.asset_type }}</span>
+                        </div>
+                        <span class="estate-item-row__value">{{ asset.value }} ريال</span>
+                    </div>
+                    {% empty %}
+                    <div class="empty-estate-state">لا توجد أصول مضافة بعد.</div>
                     {% endfor %}
                 </div>
-                <button class="btn-outline" style="width: 100%; border-color: #2ecc71; color: #2ecc71;"
-                    onclick="toggleForm('add-asset')">+ إضافة أصل</button>
-                <div id="add-asset" style="display:none; margin-top:20px;">
+
+                <button class="section-toggle section-toggle--assets" type="button" onclick="toggleForm('add-asset')">+ إضافة أصل</button>
+                <div id="add-asset" class="estate-form-shell">
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="add_asset">
-                        <div class="premium-form-grid">{{ asset_form.as_p }}</div>
-                        <button type="submit" class="btn-primary"
-                            style="width: 100%; background: #2ecc71; margin-top: 10px;">حفظ الأصل</button>
+                        <div class="premium-form-grid">
+                            <div class="input-v3-group">
+                                <label for="{{ asset_form.description.id_for_label }}">الوصف</label>
+                                <div class="input-v3-container">{{ asset_form.description }}</div>
+                            </div>
+                            <div class="input-v3-group">
+                                <label for="{{ asset_form.value.id_for_label }}">القيمة</label>
+                                <div class="input-v3-container">{{ asset_form.value }}</div>
+                            </div>
+                            <div class="input-v3-group">
+                                <label for="{{ asset_form.asset_type.id_for_label }}">نوع الأصل</label>
+                                <div class="input-v3-container">{{ asset_form.asset_type }}</div>
+                            </div>
+                            <div class="input-v3-group">
+                                <label for="{{ asset_form.image.id_for_label }}">صورة الأصل</label>
+                                <div class="custom-file-upload" data-file-upload>
+                                    {{ asset_form.image }}
+                                    <label for="{{ asset_form.image.id_for_label }}" class="custom-file-upload__button">اختر صورة</label>
+                                    <span class="custom-file-upload__name">لم يتم اختيار ملف</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary btn-primary--assets">حفظ الأصل</button>
                     </form>
                 </div>
             </div>
 
-            <div class="card" style="padding: 30px; border-radius: 25px; border-top: 4px solid #e74c3c;">
-                <h4 style="color: #e74c3c; margin-bottom: 20px; font-weight: 800;"><i
-                        class="fas fa-hand-holding-usd"></i> الديون</h4>
-                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;">
-                    {% for debt in case.debts.all %}
-                    <div
-                        style="padding: 10px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between;">
-                        <span style="color:#fff;">{{ debt.description }}</span>
-                        <span style="color:#e74c3c;">{{ debt.amount }} ريال</span>
+            <div class="card estate-financial-card estate-financial-card--debts">
+                <div class="estate-financial-card__header">
+                    <div>
+                        <span class="estate-financial-card__eyebrow">الالتزامات المالية</span>
+                        <h3><i class="fas fa-hand-holding-usd"></i> الديون</h3>
                     </div>
+                </div>
+
+                <div class="estate-items-list">
+                    {% for debt in case.debts.all %}
+                    <div class="estate-item-row">
+                        <div>
+                            <strong>{{ debt.description }}</strong>
+                            <span>دين مسجل على التركة</span>
+                        </div>
+                        <span class="estate-item-row__value estate-item-row__value--danger">{{ debt.amount }} ريال</span>
+                    </div>
+                    {% empty %}
+                    <div class="empty-estate-state">لا توجد ديون مضافة بعد.</div>
                     {% endfor %}
                 </div>
-                <button class="btn-outline" style="width: 100%; border-color: #e74c3c; color: #e74c3c;"
-                    onclick="toggleForm('add-debt')">+ إضافة دين</button>
-                <div id="add-debt" style="display:none; margin-top:20px;">
+
+                <button class="section-toggle section-toggle--debts" type="button" onclick="toggleForm('add-debt')">+ إضافة دين</button>
+                <div id="add-debt" class="estate-form-shell">
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="add_debt">
-                        <div class="premium-form-grid">{{ debt_form.as_p }}</div>
-                        <button type="submit" class="btn-primary"
-                            style="width: 100%; background: #e74c3c; margin-top: 10px;">حفظ الدين</button>
+                        <div class="premium-form-grid">
+                            <div class="input-v3-group">
+                                <label for="{{ debt_form.description.id_for_label }}">وصف الدين</label>
+                                <div class="input-v3-container">{{ debt_form.description }}</div>
+                            </div>
+                            <div class="input-v3-group">
+                                <label for="{{ debt_form.amount.id_for_label }}">المبلغ</label>
+                                <div class="input-v3-container">{{ debt_form.amount }}</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary btn-primary--danger">حفظ الدين</button>
                     </form>
                 </div>
             </div>
-        </div>
 
-        <!-- Submit to Judge -->
-        <div class="card"
-            style="padding: 40px; text-align: center; border-radius: 30px; background: linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(46, 204, 113, 0.05));">
-            <h2 style="color: #2ecc71; font-weight: 800; margin-bottom: 20px;">اكتمال إدخال البيانات</h2>
-            <p style="color: var(--text-muted); margin-bottom: 30px;">بمجرد الانتهاء من إدخال كافة البيانات، يرجى إرسال
-                القضية للقاضي للمراجعة والاعتماد.</p>
+            <div class="card estate-financial-card estate-financial-card--wills">
+                <div class="estate-financial-card__header">
+                    <div>
+                        <span class="estate-financial-card__eyebrow">الوصايا الشرعية</span>
+                        <h3><i class="fas fa-scroll"></i> الوصايا</h3>
+                    </div>
+                </div>
+
+                <div class="estate-items-list">
+                    {% for will in case.wills.all %}
+                    <div class="estate-item-row">
+                        <div>
+                            <strong>{{ will.description }}</strong>
+                            <span>وصية مسجلة ضمن بيانات التركة</span>
+                        </div>
+                        <span class="estate-item-row__value estate-item-row__value--accent">{{ will.amount }} ريال</span>
+                    </div>
+                    {% empty %}
+                    <div class="empty-estate-state">لا توجد وصايا مضافة بعد.</div>
+                    {% endfor %}
+                </div>
+
+                <button class="section-toggle section-toggle--wills" type="button" onclick="toggleForm('add-will')">+ إضافة وصية</button>
+                <div id="add-will" class="estate-form-shell">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_will">
+                        <div class="premium-form-grid">
+                            <div class="input-v3-group">
+                                <label for="{{ will_form.description.id_for_label }}">وصف الوصية</label>
+                                <div class="input-v3-container">{{ will_form.description }}</div>
+                            </div>
+                            <div class="input-v3-group">
+                                <label for="{{ will_form.amount.id_for_label }}">قيمة الوصية</label>
+                                <div class="input-v3-container">{{ will_form.amount }}</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary btn-primary--accent">حفظ الوصية</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="card estate-submit-card">
+            <h2>اكتمال إدخال البيانات</h2>
+            <p>بعد التأكد من بيانات المتوفى والورثة والأصول والديون والوصايا، يمكنك إرسال القضية إلى القاضي للمراجعة والاعتماد.</p>
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="submit_to_judge">
-                <button type="submit" class="btn-primary"
-                    style="background: #2ecc71; padding: 1.2rem 4rem; font-size: 1.3rem; border-radius: 15px;">
-                    إرسال القضية للقاضي <i class="fas fa-paper-plane" style="margin-right:10px;"></i>
+                <button type="submit" class="btn-primary btn-primary--submit">
+                    إرسال القضية إلى القاضي <i class="fas fa-paper-plane"></i>
                 </button>
             </form>
-        </div>
-
+        </section>
     </div>
 </div>
 
 <script>
     function toggleForm(id) {
-        var f = document.getElementById(id);
-        f.style.display = (f.style.display === 'none' || f.style.display === '') ? 'block' : 'none';
+        const formBox = document.getElementById(id);
+        formBox.classList.toggle('is-open');
     }
+
+    document.querySelectorAll('[data-file-upload]').forEach((wrapper) => {
+        const input = wrapper.querySelector('input[type="file"]');
+        const fileName = wrapper.querySelector('.custom-file-upload__name');
+
+        if (!input || !fileName) return;
+
+        input.addEventListener('change', function () {
+            const selectedName = this.files && this.files.length ? this.files[0].name : 'لم يتم اختيار ملف';
+            fileName.textContent = selectedName;
+        });
+    });
 </script>
 
 <style>
+    .estate-entry-page {
+        margin-top: 50px;
+        padding-bottom: 100px;
+    }
+
+    .estate-header {
+        margin-bottom: 40px;
+        padding: 40px;
+        border-radius: 30px;
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255,255,255,0.01) 100%);
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 22px;
+        align-items: center;
+    }
+
+    .estate-header__icon {
+        width: 68px;
+        height: 68px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: var(--primary-color);
+        color: #17120b;
+        font-size: 1.7rem;
+    }
+
+    .estate-header__content h1 {
+        margin: 0;
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 900;
+    }
+
+    .estate-header__content p {
+        margin: 8px 0 0;
+        color: var(--text-muted);
+        line-height: 1.9;
+    }
+
+    .estate-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-color);
+        color: #17120b;
+        font-size: 1rem;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 800;
+    }
+
+    .estate-sections {
+        display: grid;
+        gap: 40px;
+    }
+
+    .estate-panel {
+        padding: 40px;
+        border-radius: 25px;
+    }
+
+    .estate-panel__title,
+    .estate-financial-card__header h3 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .estate-panel__title {
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .estate-panel__title h2,
+    .estate-financial-card__header h3 {
+        margin: 0;
+        font-weight: 800;
+    }
+
     .premium-form-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 25px;
-    }
-
-    .input-v3-group {
-        margin-bottom: 10px;
     }
 
     .input-v3-group label {
@@ -276,29 +433,353 @@
     .input-v3-group select,
     .input-v3-group textarea {
         width: 100%;
+        min-height: 58px;
         padding: 14px 20px;
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid var(--glass-border);
-        border-radius: 12px;
+        border-radius: 14px;
         color: #fff;
         outline: none;
-        transition: all 0.3s;
+        transition: all 0.25s ease;
     }
 
-    .input-v3-group input:focus {
+    .input-v3-group input:focus,
+    .input-v3-group select:focus,
+    .input-v3-group textarea:focus {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
         background: rgba(255, 255, 255, 0.05);
     }
 
-    .table-container td input,
-    .table-container td select {
+    .panel-actions {
+        display: flex;
+        margin-top: 20px;
+    }
+
+    .panel-actions--end {
+        justify-content: flex-end;
+    }
+
+    .heirs-table {
+        border-radius: 18px;
+        border: 1px solid var(--glass-border);
+        overflow: hidden;
+    }
+
+    .heirs-table table {
+        width: 100%;
+    }
+
+    .heirs-table thead tr {
+        background: rgba(212, 175, 55, 0.03);
+    }
+
+    .heirs-table th,
+    .heirs-table td {
+        padding: 15px;
+        text-align: right;
+    }
+
+    .heirs-table th {
+        color: var(--primary-color);
+    }
+
+    .heirs-table td {
+        color: #fff;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .heirs-table td input,
+    .heirs-table td select {
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.1);
         color: #fff;
         border-radius: 8px;
         padding: 8px;
         margin: 0;
+    }
+
+    .static-field {
+        font-weight: 600;
+    }
+
+    .linked-account {
+        color: #2ecc71;
+        font-weight: 700;
+    }
+
+    .muted-text,
+    .empty-row {
+        color: var(--text-muted);
+    }
+
+    .delete-cell {
+        text-align: center;
+    }
+
+    .pending-heirs-box {
+        margin-top: 40px;
+        padding: 30px;
+        border-radius: 20px;
+        background: rgba(52, 152, 219, 0.05);
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+
+    .pending-heirs-box h3 {
+        margin: 0 0 25px;
+        color: #3498db;
+        font-weight: 800;
+    }
+
+    .pending-heirs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .pending-heir-card {
+        background: rgba(255,255,255,0.02);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .pending-heir-card p {
+        margin: 0 0 8px;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.08rem;
+    }
+
+    .pending-heir-card span {
+        color: #3498db;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .estate-financial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+    }
+
+    .estate-financial-card {
+        padding: 30px;
+        border-radius: 25px;
+        border-top: 4px solid transparent;
+    }
+
+    .estate-financial-card--assets { border-top-color: #2ecc71; }
+    .estate-financial-card--debts { border-top-color: #e74c3c; }
+    .estate-financial-card--wills { border-top-color: #8e44ad; }
+
+    .estate-financial-card__eyebrow {
+        display: inline-block;
+        margin-bottom: 8px;
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+
+    .estate-financial-card--assets h3 { color: #2ecc71; }
+    .estate-financial-card--debts h3 { color: #e74c3c; }
+    .estate-financial-card--wills h3 { color: #c78cf0; }
+
+    .estate-items-list {
+        max-height: 240px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        display: grid;
+        gap: 10px;
+    }
+
+    .estate-item-row {
+        padding: 14px 16px;
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.02);
+    }
+
+    .estate-item-row strong {
+        display: block;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+
+    .estate-item-row span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .estate-item-row__value {
+        color: var(--primary-color) !important;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .estate-item-row__value--danger { color: #e74c3c !important; }
+    .estate-item-row__value--accent { color: #c78cf0 !important; }
+
+    .empty-estate-state {
+        padding: 20px;
+        border: 1px dashed var(--glass-border);
+        border-radius: 16px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .section-toggle {
+        width: 100%;
+        min-height: 56px;
+        border-radius: 16px;
+        background: transparent;
+        font-weight: 800;
+        border: 1px solid currentColor;
+    }
+
+    .section-toggle--assets { color: #2ecc71; border-color: rgba(46,204,113,0.4); }
+    .section-toggle--debts { color: #e74c3c; border-color: rgba(231,76,60,0.4); }
+    .section-toggle--wills { color: #c78cf0; border-color: rgba(199,140,240,0.4); }
+
+    .estate-form-shell {
+        display: none;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    .estate-form-shell.is-open {
+        display: block;
+    }
+
+    .custom-file-upload {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 58px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .custom-file-upload input[type="file"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+
+    .custom-file-upload__button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 18px;
+        border-radius: 12px;
+        background: rgba(212, 175, 55, 0.16);
+        color: var(--primary-color);
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .custom-file-upload__name {
+        color: var(--text-muted);
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .btn-primary--assets { width: 100%; background: #2ecc71; margin-top: 10px; }
+    .btn-primary--danger { width: 100%; background: #e74c3c; margin-top: 10px; }
+    .btn-primary--accent { width: 100%; background: #8e44ad; margin-top: 10px; }
+    .btn-primary--info { background: #3498db; }
+
+    .estate-submit-card {
+        padding: 40px;
+        text-align: center;
+        border-radius: 30px;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(46, 204, 113, 0.05));
+    }
+
+    .estate-submit-card h2 {
+        color: #2ecc71;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+
+    .estate-submit-card p {
+        color: var(--text-muted);
+        margin-bottom: 30px;
+        line-height: 1.9;
+    }
+
+    .btn-primary--submit {
+        background: #2ecc71;
+        padding: 1.2rem 4rem;
+        font-size: 1.3rem;
+        border-radius: 15px;
+    }
+
+    [data-theme="light"] .estate-header,
+    [data-theme="light"] .estate-panel,
+    [data-theme="light"] .estate-financial-card,
+    [data-theme="light"] .estate-submit-card {
+        background-color: #fffdf8;
+    }
+
+    [data-theme="light"] .estate-header__content h1,
+    [data-theme="light"] .estate-panel h2,
+    [data-theme="light"] .estate-item-row strong,
+    [data-theme="light"] .pending-heir-card p {
+        color: #3c3123;
+    }
+
+    [data-theme="light"] .estate-header__content p,
+    [data-theme="light"] .estate-item-row span,
+    [data-theme="light"] .estate-submit-card p,
+    [data-theme="light"] .muted-text,
+    [data-theme="light"] .empty-row,
+    [data-theme="light"] .custom-file-upload__name {
+        color: #6f6452;
+    }
+
+    [data-theme="light"] .input-v3-group input,
+    [data-theme="light"] .input-v3-group select,
+    [data-theme="light"] .input-v3-group textarea,
+    [data-theme="light"] .custom-file-upload,
+    [data-theme="light"] .estate-item-row,
+    [data-theme="light"] .pending-heir-card,
+    [data-theme="light"] .heirs-table td input,
+    [data-theme="light"] .heirs-table td select {
+        background: #fffaf1;
+        border-color: rgba(143, 109, 39, 0.16);
+        color: #2f2a22;
+    }
+
+    [data-theme="light"] .heirs-table td,
+    [data-theme="light"] .static-field {
+        color: #3c3123;
+    }
+
+    @media (max-width: 860px) {
+        .estate-header {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}

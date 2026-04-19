@@ -11,7 +11,9 @@ urlpatterns = [
     path('session/<uuid:link>/<int:heir_id>/reselect/', views.reselect_assets, name='reselect_assets'),
     path('case/<int:case_id>/<int:heir_id>/report/', views.final_report, name='final_report'),
     path('my-assets-sale/', views.my_assets_for_sale, name='my_assets_for_sale'),
+    path('my-assets-sale/mark-sold/', views.mark_asset_sold, name='mark_asset_sold'),
     path('manage-listing/<int:component_id>/', views.manage_asset_listing, name='manage_asset_listing'),
+    path('settlement/<int:settlement_id>/action/', views.confirm_settlement_action, name='confirm_settlement_action'),
     path('settlement/<int:settlement_id>/confirm_sent/', views.confirm_payment_sent, name='confirm_payment_sent'),
     path('settlement/<int:settlement_id>/confirm_receipt/', views.confirm_receipt, name='confirm_receipt'),
 ]

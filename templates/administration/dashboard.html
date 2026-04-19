@@ -3,640 +3,570 @@
 
 {% block admin_extra_css %}
 <style>
-    /* Bento Grid */
-    .bento-grid {
+    .command-shell {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-auto-rows: minmax(160px, auto);
-        gap: 25px;
-        margin-bottom: 40px;
+        gap: 28px;
     }
 
-    .bento-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 24px;
-        padding: 25px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        transition: all 0.4s ease;
+    .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 24px;
+    }
+
+    .hero-card,
+    .chart-card,
+    .action-card {
         position: relative;
         overflow: hidden;
+        border-radius: 30px;
+        border: 1px solid rgba(212, 175, 55, 0.18);
+        background:
+            radial-gradient(circle at top left, rgba(212, 175, 55, 0.18), transparent 34%),
+            linear-gradient(180deg, rgba(19, 22, 29, 0.96) 0%, rgba(8, 10, 14, 0.98) 100%);
+        box-shadow: 0 26px 60px rgba(0, 0, 0, 0.28);
     }
 
-    .bento-card:hover {
-        border-color: rgba(212, 175, 55, 0.4);
-        background: rgba(255, 255, 255, 0.05);
-        transform: translateY(-5px);
+    .hero-card::after,
+    .chart-card::after,
+    .action-card::after {
+        content: "";
+        position: absolute;
+        inset: auto -20% -45% auto;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.14), transparent 68%);
+        pointer-events: none;
     }
 
-    .bento-card.large {
-        grid-column: span 2;
-        grid-row: span 2;
+    .hero-card {
+        min-height: 260px;
+        padding: 32px;
     }
 
-    .stats-title {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.5);
-        font-weight: 600;
-        margin-bottom: 10px;
-        display: flex;
+    .hero-primary {
+        grid-column: span 7;
+        min-height: 390px;
+    }
+
+    .hero-secondary {
+        grid-column: span 5;
+        display: grid;
+        gap: 24px;
+    }
+
+    .mini-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .mini-stat {
+        border-radius: 24px;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .eyebrow {
+        display: inline-flex;
         align-items: center;
         gap: 10px;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 18px;
     }
 
-    .stats-value {
-        font-size: 2.2rem;
-        font-weight: 800;
+    .hero-value {
         color: #fff;
-        margin-bottom: 5px;
+        font-size: clamp(2.6rem, 2.1rem + 1.4vw, 4.6rem);
+        font-weight: 900;
+        line-height: 1.05;
+        margin: 0 0 12px;
     }
 
-    .stats-trend {
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 5px;
+    .metric-note,
+    .hero-copy,
+    .action-card p {
+        color: rgba(255, 255, 255, 0.62);
+        line-height: 1.85;
     }
 
-    .trend-up { color: #2ecc71; }
-    .trend-down { color: #e74c3c; }
-
-    /* Chart Overlays */
-    .mini-chart {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        opacity: 0.4;
+    .hero-copy {
+        font-size: 1.02rem;
+        max-width: 38rem;
+        margin-bottom: 26px;
     }
 
-    /* Slide-over Panel */
-    .slide-over {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        width: 450px;
-        height: 100vh;
-        background: #0d0f14;
-        z-index: 2000;
-        box-shadow: 20px 0 50px rgba(0,0,0,0.8);
-        transition: left 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-        padding: 40px;
-        display: flex;
-        flex-direction: column;
-        border-right: 2px solid var(--primary-color);
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 26px;
     }
 
-    .slide-over.active {
-        left: 0;
+    .stat-chip {
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.045);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 18px 20px;
     }
 
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(5px);
-        z-index: 1999;
-        display: none;
-    }
-
-    .overlay.active {
+    .stat-chip .label,
+    .mini-stat .label {
         display: block;
+        color: rgba(255, 255, 255, 0.48);
+        font-size: 0.86rem;
+        margin-bottom: 8px;
     }
 
-    /* Verification UI */
-    .verification-list {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+    .stat-chip .value,
+    .mini-stat .value {
+        color: #fff;
+        font-size: 1.35rem;
+        font-weight: 800;
     }
 
-    .verify-item {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.1);
-        padding: 20px;
-        border-radius: 15px;
+    .mini-stat .value {
+        font-size: 2.2rem;
+    }
+
+    .mini-stat .hint {
+        display: block;
+        margin-top: 10px;
+        color: rgba(255, 255, 255, 0.56);
+        line-height: 1.7;
+        font-size: 0.92rem;
+    }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+    }
+
+    .chart-card {
+        padding: 28px;
+        min-height: 420px;
+    }
+
+    .chart-meta {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        transition: 0.3s;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
     }
 
-    .verify-item:hover {
-        background: rgba(212, 175, 55, 0.05);
-        border-color: var(--primary-color);
+    .chart-meta h3,
+    .action-card h3 {
+        color: #fff;
+        margin: 0 0 10px;
+        font-size: 1.45rem;
     }
 
-    /* Marketplace Moderation */
-    .market-moderation {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+    .chart-kicker {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+        font-weight: 800;
     }
 
-    .listing-card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        padding: 20px;
+    .chart-canvas {
         position: relative;
+        height: 290px;
     }
 
-    .listing-badge {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        padding: 4px 12px;
-        border-radius: 50px;
-        font-size: 0.75rem;
-        font-weight: 700;
-    }
-
-    /* Reporting Buttons */
-    .reporting-btn {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        padding: 10px 20px;
-        border-radius: 12px;
-        color: #fff;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
+    .chart-empty {
+        height: 290px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        border-radius: 24px;
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.58);
     }
 
-    .reporting-btn:hover {
-        background: var(--primary-color);
-        color: #000;
-        border-color: var(--primary-color);
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
     }
 
-    /* Admin Messages Styles */
-    .admin-msg {
-        padding: 15px 25px;
-        border-radius: 12px;
-        margin-bottom: 15px;
-        display: flex;
+    .action-card {
+        display: block;
+        text-decoration: none;
+        min-height: 235px;
+        padding: 28px;
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .action-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(212, 175, 55, 0.35);
+        box-shadow: 0 28px 52px rgba(0, 0, 0, 0.3);
+    }
+
+    .action-card i {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: inline-flex;
         align-items: center;
-        gap: 15px;
-        color: #fff;
-        border: 1px solid transparent;
-        animation: slideIn 0.3s ease-out;
+        justify-content: center;
+        background: rgba(212, 175, 55, 0.12);
+        color: var(--primary-color);
+        font-size: 1.6rem;
+        margin-bottom: 22px;
     }
-    .admin-msg-success { background: rgba(46, 204, 113, 0.1); border-color: #2ecc71; }
-    .admin-msg-warning { background: rgba(231, 76, 60, 0.1); border-color: #e74c3c; }
-    .admin-msg-info { background: rgba(52, 152, 219, 0.1); border-color: #3498db; }
-    
-    .admin-msg i { font-size: 1.2rem; }
-    .admin-msg-success i { color: #2ecc71; }
-    .admin-msg-warning i { color: #e74c3c; }
-    .admin-msg-info i { color: #3498db; }
 
-    @keyframes slideIn {
-        from { transform: translateY(-20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+    .action-meta {
+        color: var(--primary-color);
+        font-size: 0.92rem;
+        font-weight: 800;
+    }
+
+    .empty-state {
+        border-radius: 28px;
+        padding: 28px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px dashed rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.72);
+    }
+
+    [data-theme="light"] .hero-card,
+    [data-theme="light"] .chart-card,
+    [data-theme="light"] .action-card {
+        background:
+            radial-gradient(circle at top left, rgba(205, 166, 70, 0.18), transparent 34%),
+            linear-gradient(180deg, #fffdf8 0%, #f7efe2 100%);
+        border-color: rgba(143, 109, 39, 0.14);
+        box-shadow: 0 24px 48px rgba(96, 67, 24, 0.12);
+    }
+
+    [data-theme="light"] .eyebrow,
+    [data-theme="light"] .metric-note,
+    [data-theme="light"] .hero-copy,
+    [data-theme="light"] .action-card p,
+    [data-theme="light"] .empty-state,
+    [data-theme="light"] .chart-empty,
+    [data-theme="light"] .mini-stat .hint {
+        color: #6d634f;
+    }
+
+    [data-theme="light"] .hero-value,
+    [data-theme="light"] .stat-chip .value,
+    [data-theme="light"] .mini-stat .value,
+    [data-theme="light"] .chart-meta h3,
+    [data-theme="light"] .action-card h3 {
+        color: #2f2a22;
+    }
+
+    [data-theme="light"] .stat-chip,
+    [data-theme="light"] .mini-stat {
+        background: rgba(255, 255, 255, 0.72);
+        border-color: rgba(143, 109, 39, 0.1);
+    }
+
+    [data-theme="light"] .stat-chip .label,
+    [data-theme="light"] .mini-stat .label {
+        color: #7b6e59;
+    }
+
+    [data-theme="light"] .action-card i {
+        background: rgba(205, 166, 70, 0.14);
+        color: #8f6d27;
+    }
+
+    @media (max-width: 1200px) {
+        .hero-primary,
+        .hero-secondary,
+        .chart-grid,
+        .actions-grid {
+            grid-column: span 12;
+        }
+
+        .chart-grid,
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 860px) {
+        .hero-grid {
+            gap: 18px;
+        }
+
+        .hero-card,
+        .chart-card,
+        .action-card {
+            padding: 22px;
+            border-radius: 24px;
+        }
+
+        .stat-row,
+        .mini-stats {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
 
 {% block admin_header_title %}
-    <h1 style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 5px;">مرحباً، المراقب الأعلى</h1>
-    <p style="color: rgba(255,255,255,0.5); font-weight: 600;">نظرة شاملة على سير العمليات في المنظومة</p>
+    <h1 style="font-size: 2.9rem; font-weight: 900; color: #fff; margin-bottom: 8px;">لوحة قيادة الإدارة</h1>
+    <p style="color: rgba(255,255,255,0.58); font-weight: 600;">كل البطاقات والرسوم هنا مرتبطة مباشرة ببيانات النظام الفعلية، وتنعكس تلقائيًا عند تغير القضايا والأصول والطلبات.</p>
 {% endblock %}
 
 {% block admin_content %}
-        <!-- Messages/Notifications Block -->
-        {% if messages %}
-        <div style="margin-bottom: 30px;">
-            {% for message in messages %}
-            <div class="admin-msg {% if message.tags == 'success' %}admin-msg-success{% elif message.tags == 'warning' %}admin-msg-warning{% else %}admin-msg-info{% endif %}">
-                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
-                <span style="font-weight: 600;">{{ message }}</span>
-            </div>
-            {% endfor %}
+<section class="command-shell">
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+        <div class="admin-msg {% if message.tags == 'success' %}admin-msg-success{% elif message.tags == 'warning' %}admin-msg-warning{% else %}admin-msg-info{% endif %}">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+            <span style="font-weight: 700;">{{ message }}</span>
         </div>
-        {% endif %}
-
-        <!-- 1. Command Center (Bento Grid) -->
-        <div class="bento-grid">
-            <!-- Total Cases -->
-            <div class="bento-card">
-                <div class="stats-title"><i class="fas fa-folder"></i> إجمالي القضايا</div>
-                <div class="stats-value">{{ total_cases }}</div>
-                <div class="stats-trend trend-up"><i class="fas fa-arrow-up"></i> 12% هذا الشهر</div>
-                <div class="mini-chart">
-                    <canvas id="chartCases"></canvas>
-                </div>
-            </div>
-
-            <!-- Pending Approvals -->
-            <div class="bento-card" style="border-color: rgba(230, 126, 34, 0.4);">
-                <div class="stats-title" style="color: #e67e22;"><i class="fas fa-clock"></i> طلبات معلقة</div>
-                <div class="stats-value">{{ pending_registrations_count }}</div>
-                <div class="stats-trend">بانتظار التحقق من الهوية</div>
-            </div>
-
-            <!-- Estate Value -->
-            <div class="bento-card large">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div>
-                        <div class="stats-title"><i class="fas fa-coins"></i> حجم التركات الموزعة</div>
-                        <div class="stats-value">{{ total_estate_value|floatformat:0 }} ر.س</div>
-                        <p style="color: rgba(255,255,255,0.4); font-size: 0.9rem;">إجمالي قيمة الأصول تحت إدارة المنظومة</p>
-                    </div>
-                    <div style="width: 200px; height: 120px;">
-                        <canvas id="estateChart"></canvas>
-                    </div>
-                </div>
-                <div style="margin-top: 30px; display: flex; gap: 20px;">
-                    <div style="flex: 1; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 15px;">
-                        <span style="display: block; font-size: 0.75rem; color: #888;">عقارات</span>
-                        <span style="font-weight: 700; color: var(--primary-color);">65%</span>
-                    </div>
-                    <div style="flex: 1; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 15px;">
-                        <span style="display: block; font-size: 0.75rem; color: #888;">سيولة</span>
-                        <span style="font-weight: 700; color: #2ecc71;">25%</span>
-                    </div>
-                    <div style="flex: 1; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 15px;">
-                        <span style="display: block; font-size: 0.75rem; color: #888;">أسهم</span>
-                        <span style="font-weight: 700; color: #3498db;">10%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Market Activity -->
-            <div class="bento-card">
-                <div class="stats-title"><i class="fas fa-store"></i> نشاط السوق</div>
-                <div class="stats-value">{{ active_listings_count }}</div>
-                <div class="stats-trend trend-up">أصول متاحة للبيع</div>
-            </div>
-        </div>
-
-              <div id="verification-hub" style="margin-top: 60px;">
-            <div class="card-header">
-                <i class="fas fa-user-shield"></i> محطة التحقق من الهوية (قضاة وكتاب)
-            </div>
-            
-            <div class="verification-list">
-                {% for p_user in pending_users %}
-                <div class="verify-item">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div class="nav-avatar" style="width: 50px; height: 50px; font-size: 1.5rem;">
-                            {{ p_user.username|slice:":1"|upper }}
-                        </div>
-                        <div>
-                            <h4 style="color: #fff; margin: 0;">{{ p_user.full_name|default:p_user.username }}</h4>
-                            <span style="color: var(--primary-color); font-size: 0.85rem; font-weight: 700;">
-                                <i class="fas {% if p_user.role == 'JUDGE' %}fa-gavel{% else %}fa-pen-fancy{% endif %}"></i> 
-                                {{ p_user.get_role_display }}
-                            </span>
-                            {% if p_user.verification_status == 'REJECTED' %}
-                            <span style="color: #e74c3c; font-size: 0.8rem; margin-right: 10px; border: 1px solid #e74c3c; padding: 2px 5px; border-radius: 5px;">
-                                <i class="fas fa-times-circle"></i> مرفوض سابقاً
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <button class="btn-outline verify-btn" style="padding: 8px 15px; font-size: 0.85rem;" 
-                            data-id="{{ p_user.id }}"
-                            data-name="{{ p_user.full_name|default:p_user.username }}"
-                            data-role="{{ p_user.get_role_display }}"
-                            data-license="{{ p_user.judge_license|default:'غير متوفر' }}"
-                            data-doc="{% if p_user.document_file %}{{ p_user.document_file.url }}{% endif %}">
-                        <i class="fas fa-eye"></i> مراجعة الملف
-                    </button>
-                </div>
-                {% empty %}
-                <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.3);">
-                    <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-                    لا توجد طلبات معلقة حالياً.
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        <!-- 3. Case Tracking Grid -->
-        <div id="case-tracking" style="margin-top: 60px;">
-            <div class="card-header">
-                <i class="fas fa-map-marked-alt"></i> خريطة القضايا (Case Tracking Grid)
-            </div>
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr style="background: rgba(255,255,255,0.02);">
-                            <th style="padding: 20px;">رقم القضية</th>
-                            <th style="padding: 20px;">القاضي</th>
-                            <th style="padding: 20px;">الحالة</th>
-                            <th style="padding: 20px;">التقدم</th>
-                            <th style="padding: 20px;">الإجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for case in cases %}
-                        <tr>
-                            <td style="padding: 20px; font-weight: 800; color: var(--primary-color);">#{{ case.case_number }}</td>
-                            <td style="padding: 20px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <i class="fas fa-user-tie" style="opacity: 0.5;"></i>
-                                    {{ case.judge.full_name|default:case.judge.username }}
-                                </div>
-                            </td>
-                            <td style="padding: 20px;">
-                                <span class="badge {% if case.status == 'COMPLETED' %}badge-active{% else %}badge-pending{% endif %}">
-                                    {{ case.get_status_display }}
-                                </span>
-                            </td>
-                            <td style="padding: 20px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
-                                        {% if case.status == 'COMPLETED' %}
-                                            <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--primary-color), #2ecc71);"></div>
-                                        {% elif case.status == 'DATA_REVIEW' %}
-                                            <div style="width: 75%; height: 100%; background: linear-gradient(90deg, var(--primary-color), #2ecc71);"></div>
-                                        {% elif case.status == 'READY_FOR_CALCULATION' %}
-                                            <div style="width: 90%; height: 100%; background: linear-gradient(90deg, var(--primary-color), #2ecc71);"></div>
-                                        {% else %}
-                                            <div style="width: 30%; height: 100%; background: linear-gradient(90deg, var(--primary-color), #2ecc71);"></div>
-                                        {% endif %}
-                                    </div>
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: #2ecc71;">
-                                        {% if case.status == 'COMPLETED' %}100%{% elif case.status == 'DATA_REVIEW' %}75%{% elif case.status == 'READY_FOR_CALCULATION' %}90%{% else %}30%{% endif %}
-                                    </span>
-                                </div>
-                            </td>
-                            <td style="padding: 20px;">
-                                <a href="#" class="btn-outline" style="padding: 5px 12px; font-size: 0.75rem;">التفاصيل</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 4. Marketplace Oversight -->
-        <div id="market-oversight" style="margin-top: 60px;">
-            <div class="card-header" style="display: flex; justify-content: space-between;">
-                <span><i class="fas fa-store"></i> وحدة التحكم في السوق</span>
-                <span style="font-size: 0.9rem; color: rgba(255,255,255,0.4);">إجمالي العروض: {{ listings|length }}</span>
-            </div>
-            
-            <div class="market-moderation">
-                {% for list in listings %}
-                <div class="listing-card">
-                    <span class="listing-badge {% if list.is_active %}badge-active{% else %}badge-danger{% endif %}">
-                        {% if list.is_active %}نشط{% else %}مخفي{% endif %}
-                    </span>
-                    <div style="margin-top: 15px;">
-                        <h4 style="color: #fff; margin-bottom: 5px;">{{ list.component.description }}</h4>
-                        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); line-height: 1.4;">{{ list.description|truncatechars:100 }}</p>
-                    </div>
-                    <div style="margin: 15px 0; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 800; color: #2ecc71;">{{ list.price|floatformat:0 }} ر.س</span>
-                        <div style="display: flex; gap: 10px;">
-                            <form action="{% url 'administration:toggle_listing' list.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-outline" style="padding: 5px 10px; font-size: 0.7rem; border-color: rgba(255,255,255,0.2);">
-                                    {% if list.is_active %}<i class="fas fa-eye-slash"></i> إخفاء{% else %}<i class="fas fa-eye"></i> إظهار{% endif %}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; font-size: 0.75rem; color: #888;">
-                        بواسطة: {{ list.seller_name }}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- 5. Heirs Management (Legacy but updated) -->
-        <div id="heirs-management" style="margin-top: 60px;">
-            <div class="card-header">
-                <i class="fas fa-users"></i> الورثة المسجلون (بانتظار الإسناد)
-            </div>
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr style="background: rgba(255,255,255,0.02);">
-                            <th style="padding: 20px;">الاسم</th>
-                            <th style="padding: 20px;">المتوفى</th>
-                            <th style="padding: 20px;">العمليات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for heir in new_heirs|slice:":5" %}
-                        <tr>
-                            <td style="padding: 20px; font-weight: 600; color: #fff;">{{ heir.full_name|default:heir.username }}</td>
-                            <td style="padding: 20px; color: #aaa;">{{ heir.deceased_name|default:"لم يحدد" }}</td>
-                            <td style="padding: 20px;">
-                                {% if heir.is_assigned %}
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    <span style="color: #2ecc71;"><i class="fas fa-check"></i> تم الإسناد</span>
-                                    <form action="{% url 'administration:reassign_heir' heir.id %}" method="post" onsubmit="return confirm('هل أنت متأكد من إلغاء الإسناد وحذف القضية السابقة؟');" style="margin: 0;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn-outline" style="padding: 5px 10px; font-size: 0.8rem; border-color: #e74c3c; color: #e74c3c;" title="إعادة إسناد الوريث للقضية">
-                                            <i class="fas fa-undo"></i> إعادة إسناد
-                                        </button>
-                                    </form>
-                                </div>
-                                {% else %}
-                                <div style="display: flex; gap: 5px;">
-                                    <a href="{% url 'administration:create_case_for_heir' heir.id %}" class="btn-outline" style="padding: 5px 10px; font-size: 0.8rem; border-color: var(--primary-color);" title="إسناد إلى قضية جديدة"><i class="fas fa-plus"></i> قضية جديدة</a>
-                                    <a href="{% url 'administration:assign_to_existing_case' heir.id %}" class="btn-outline" style="padding: 5px 10px; font-size: 0.8rem; border-color: #f39c12; color: #f39c12;" title="إسناد إلى قضية سابقة"><i class="fas fa-link"></i> قضية سابقة</a>
-                                </div>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 6. Reporting Unit -->
-        <div id="reporting-unit" style="margin-top: 60px; padding-bottom: 100px;">
-            <div class="card-header">
-                <i class="fas fa-file-invoice"></i> وحدة التقارير (Reporting Unit)
-            </div>
-            <div class="dashboard-grid">
-                <div class="card" style="margin: 0; text-align: center; border-style: dashed;">
-                    <i class="fas fa-file-pdf" style="font-size: 3rem; color: #e74c3c; margin-bottom: 20px; display: block;"></i>
-                    <h4>إجمالي العمليات الشهرية</h4>
-                    <p style="font-size: 0.85rem; color: #777; margin-bottom: 20px;">تصدير ملف PDF بكامل تفاصيل التركات والقضايا</p>
-                    <a href="{% url 'administration:report_print' %}" class="btn-primary" style="width: 100%; display: block; text-decoration: none;"><i class="fas fa-download"></i> تصدير PDF</a>
-                </div>
-                <div class="card" style="margin: 0; text-align: center; border-style: dashed;">
-                    <i class="fas fa-file-excel" style="font-size: 3rem; color: #2ecc71; margin-bottom: 20px; display: block;"></i>
-                    <h4>البيانات المالية والتحليلات</h4>
-                    <p style="font-size: 0.85rem; color: #777; margin-bottom: 20px;">تصدير ملف Excel لمراجعة الحسابات والتدقيق</p>
-                    <a href="{% url 'administration:export_csv' %}" class="btn-primary" style="width: 100%; display: block; background: #27ae60; text-decoration: none;"><i class="fas fa-download"></i> تصدير CSV (Excel)</a>
-                </div>
-            </div>
-        </div>
-
-    </main>
-</div>
-
-<!-- Slide-over Panel -->
-<div class="overlay" id="dashboardOverlay" onclick="closeSlideOver()"></div>
-<div class="slide-over" id="verificationSlideOver">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-        <h2 id="slideName" style="color: #fff; margin: 0;">اسم المستخدم</h2>
-        <button onclick="closeSlideOver()" style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        {% endfor %}
     </div>
-    
-    <div style="flex: 1;">
-        <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px solid rgba(212,175,55,0.2);">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 5px;">نوع الحساب</label>
-                <span id="slideRole" style="font-weight: 700; color: var(--primary-color);">قاضي</span>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 5px;">رقم الرخصة</label>
-                <span id="slideLicense" style="font-weight: 700; color: #fff;">12345678</span>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-            <label style="display: block; font-size: 0.9rem; color: #bbb; margin-bottom: 15px;">الوثائق المرفقة</label>
-            <div id="slideDoc" style="background: rgba(255,255,255,0.02); height: 120px; border: 2px dashed rgba(255,255,255,0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #555;">
-                <!-- Link will be injected here -->
-            </div>
-        </div>
-    </div>
-    
-    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: auto;">
-        <form id="approveForm" action="" method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn-primary" style="width: 100%; height: 60px; font-size: 1.1rem; box-shadow: 0 10px 30px rgba(212,175,55,0.4);">
-                تفعيل الحساب <i class="fas fa-check-circle"></i>
-            </button>
-        </form>
-        <form id="rejectForm" action="" method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn-outline" style="width: 100%; height: 50px; background: rgba(231,76,60,0.1); border-color: rgba(231,76,60,0.3); color: #e74c3c;">
-                رفض الطلب <i class="fas fa-times-circle"></i>
-            </button>
-        </form>
-    </div>
-</div>
+    {% endif %}
 
+    <div class="hero-grid">
+        <article class="hero-card hero-primary">
+            <div class="eyebrow"><i class="fas fa-layer-group"></i> نبض النظام المباشر</div>
+            <h2 class="hero-value">{{ total_cases }}</h2>
+            <p class="hero-copy">إجمالي القضايا الموجودة حاليًا في النظام. المؤشرات أسفل هذا الرقم تعتمد على عدد القضايا المكتملة والمعلقة والجلسات النشطة وطلبات التحقق الحقيقية.</p>
+
+            <div class="stat-row">
+                <div class="stat-chip">
+                    <span class="label">قضايا مكتملة</span>
+                    <span class="value">{{ completed_cases_count }}</span>
+                </div>
+                <div class="stat-chip">
+                    <span class="label">قضايا معلقة</span>
+                    <span class="value">{{ pending_cases_count }}</span>
+                </div>
+                <div class="stat-chip">
+                    <span class="label">جلسات نشطة</span>
+                    <span class="value">{{ active_sessions_count }}</span>
+                </div>
+                <div class="stat-chip">
+                    <span class="label">طلبات تحقق</span>
+                    <span class="value">{{ pending_registrations_count }}</span>
+                </div>
+            </div>
+        </article>
+
+        <section class="hero-secondary">
+            <div class="mini-stats">
+                <article class="mini-stat">
+                    <span class="label">إجمالي الأصول</span>
+                    <span class="value">{{ total_assets }}</span>
+                    <span class="hint">الأصول المرتبطة فعليًا بالقضايا، بما فيها العقارات والسيولة والأسهم.</span>
+                </article>
+                <article class="mini-stat">
+                    <span class="label">إجمالي قيمة التركات</span>
+                    <span class="value">{{ total_estate_value|floatformat:0 }}</span>
+                    <span class="hint">قيمة جميع الأصول كما هي مخزنة في قاعدة البيانات.</span>
+                </article>
+                <article class="mini-stat">
+                    <span class="label">عدد الورثة</span>
+                    <span class="value">{{ total_heirs }}</span>
+                    <span class="hint">{{ unassigned_heirs_count }} وريث غير مسند حتى الآن.</span>
+                </article>
+                <article class="mini-stat">
+                    <span class="label">عروض السوق</span>
+                    <span class="value">{{ active_listings_count }}</span>
+                    <span class="hint">{{ total_listings }} إجمالي العروض، الفعّال منها فقط يظهر هنا.</span>
+                </article>
+            </div>
+        </section>
+    </div>
+
+    <div class="chart-grid">
+        <article class="chart-card">
+            <div class="chart-meta">
+                <div>
+                    <span class="chart-kicker">الرسم الأول</span>
+                    <h3>توزيع حالات القضايا</h3>
+                    <p class="metric-note">المخطط يتغير حسب عدد القضايا في كل مرحلة من مراحل سير العمل.</p>
+                </div>
+                <div class="action-meta">{{ completed_cases_count }} مكتملة</div>
+            </div>
+            {% if case_status_chart.has_data %}
+            <div class="chart-canvas"><canvas id="caseStatusChart"></canvas></div>
+            {% else %}
+            <div class="chart-empty">لا توجد بيانات قضايا لعرض الرسم حاليًا.</div>
+            {% endif %}
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-meta">
+                <div>
+                    <span class="chart-kicker">الرسم الثاني</span>
+                    <h3>توزيع الأصول حسب النوع</h3>
+                    <p class="metric-note">القيم والألوان تتغير مباشرة حسب أنواع الأصول المسجلة فعليًا في النظام.</p>
+                </div>
+                <div class="action-meta">{{ total_assets }} أصل</div>
+            </div>
+            {% if asset_distribution_chart.has_data %}
+            <div class="chart-canvas"><canvas id="assetDistributionChart"></canvas></div>
+            {% else %}
+            <div class="chart-empty">لا توجد أصول بعد، لذلك لا يظهر أي توزيع.</div>
+            {% endif %}
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-meta">
+                <div>
+                    <span class="chart-kicker">الرسم الثالث</span>
+                    <h3>قرارات الورثة</h3>
+                    <p class="metric-note">يعرض نسب الموافقات والرفض والاعتراض والحالات المعلقة بناءً على السجلات الحالية.</p>
+                </div>
+                <div class="action-meta">معدل الموافقة {{ approval_rate }}%</div>
+            </div>
+            {% if heir_decision_chart.has_data %}
+            <div class="chart-canvas"><canvas id="heirDecisionChart"></canvas></div>
+            {% else %}
+            <div class="chart-empty">لا توجد قرارات مسجلة للورثة بعد.</div>
+            {% endif %}
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-meta">
+                <div>
+                    <span class="chart-kicker">الرسم الرابع</span>
+                    <h3>توزيع الأدوار في النظام</h3>
+                    <p class="metric-note">عدد المدراء والقضاة والكتبة والورثة والمستخدمين العامّين المسجلين فعليًا.</p>
+                </div>
+                <div class="action-meta">{{ assigned_cases_count }} قضية مسندة لقاضٍ</div>
+            </div>
+            {% if role_distribution_chart.has_data %}
+            <div class="chart-canvas"><canvas id="roleDistributionChart"></canvas></div>
+            {% else %}
+            <div class="chart-empty">لا توجد حسابات مستخدمين كافية لإظهار الرسم.</div>
+            {% endif %}
+        </article>
+    </div>
+
+    <div class="actions-grid">
+        <a href="{% url 'administration:verification_hub' %}" class="action-card">
+            <i class="fas fa-user-shield"></i>
+            <h3>محطة التحقق</h3>
+            <p>الصفحة تعرض طلبات القضاة والكتبة الحقيقية. العداد هنا مرتبط مباشرة بعدد الطلبات المعلقة أو المرفوضة التي تحتاج متابعة.</p>
+            <span class="action-meta">{{ pending_registrations_count }} طلب بانتظار القرار</span>
+        </a>
+
+        <a href="{% url 'administration:case_tracking' %}" class="action-card">
+            <i class="fas fa-map-marked-alt"></i>
+            <h3>خريطة القضايا</h3>
+            <p>تعرض كل القضايا مع تقدمها الفعلي حسب الحالة الحالية لكل قضية، وليس حسب نسب ثابتة أو تجريبية.</p>
+            <span class="action-meta">{{ pending_cases_count }} قضية غير مكتملة</span>
+        </a>
+
+        <a href="{% url 'administration:market_oversight' %}" class="action-card">
+            <i class="fas fa-shopping-bag"></i>
+            <h3>وحدة السوق</h3>
+            <p>تسحب عدد العروض الفعالة من قاعدة البيانات، وتفصل بين الإجمالي والعروض الظاهرة فعليًا.</p>
+            <span class="action-meta">{{ active_listings_count }} من أصل {{ total_listings }} عروض</span>
+        </a>
+
+        <a href="{% url 'administration:heirs_management' %}" class="action-card">
+            <i class="fas fa-users"></i>
+            <h3>إدارة الورثة</h3>
+            <p>المؤشر يعتمد على عدد الورثة غير المسندين فعلًا، وعلى عدد طلبات الاختيار المسجلة داخل النظام.</p>
+            <span class="action-meta">{{ unassigned_heirs_count }} غير مسند و {{ selection_requests_count }} طلب اختيار</span>
+        </a>
+
+        <a href="{% url 'administration:reporting_hub' %}" class="action-card">
+            <i class="fas fa-file-invoice"></i>
+            <h3>وحدة التقارير</h3>
+            <p>الصفحة تسحب القيم الحقيقية للقضايا المكتملة والجاهزة للحساب ونسب الاعتراض والموافقة.</p>
+            <span class="action-meta">{{ ready_for_calculation_count }} جاهزة للحساب و اعتراض {{ objection_rate }}%</span>
+        </a>
+
+        <a href="{% url 'administration:user_management' %}" class="action-card">
+            <i class="fas fa-users-cog"></i>
+            <h3>إدارة الحسابات</h3>
+            <p>تعكس الحسابات الحالية الفعلية داخل النظام بما فيها الورثة والقضاة والكتبة والمستخدمون الآخرون.</p>
+            <span class="action-meta">{{ total_users }} حسابًا داخل النظام</span>
+        </a>
+    </div>
+
+    {% if not total_cases and not total_assets and not total_heirs %}
+    <div class="empty-state">
+        لا توجد بيانات تشغيلية كبيرة حاليًا. ستظهر الرسوم والبطاقات تلقائيًا عند إضافة القضايا والأصول والورثة والمستخدمين.
+    </div>
+    {% endif %}
+</section>
+
+{{ case_status_chart|json_script:"case-status-chart-data" }}
+{{ asset_distribution_chart|json_script:"asset-distribution-chart-data" }}
+{{ heir_decision_chart|json_script:"heir-decision-chart-data" }}
+{{ role_distribution_chart|json_script:"role-distribution-chart-data" }}
 {% endblock %}
 
-{% block extra_js %}
+{% block admin_extra_js %}
 <script>
-    function scrollToSection(id) {
-        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // New refactored listener for verification buttons
-    document.querySelectorAll('.verify-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const data = this.dataset;
-            openSlideOver(data.id, data.name, data.role, data.license, data.doc);
-        });
-    });
-
-    function openSlideOver(id, name, role, license, docUrl) {
-        document.getElementById('slideName').innerText = name;
-        document.getElementById('slideRole').innerText = role;
-        document.getElementById('slideLicense').innerText = license;
-        
-        const docBox = document.getElementById('slideDoc');
-        if (docUrl && docUrl !== 'None' && docUrl !== '') {
-            docBox.innerHTML = `<a href="${docUrl}" target="_blank" style="color: var(--primary-color); font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                                <i class="fas fa-file-pdf" style="font-size: 2.5rem;"></i> مراجعة الوثيقة الأصلية
-                              </a>`;
-    } else {
-        docBox.innerHTML = '<span style="color: #444;">لا توجد ملفات مرفقة</span>';
-    }
-
-    document.getElementById('approveForm').action = `/administration/users/${id}/approve/`;
-    document.getElementById('rejectForm').action = `/administration/users/${id}/reject/`;
-
-    document.getElementById('verificationSlideOver').classList.add('active');
-    document.getElementById('dashboardOverlay').classList.add('active');
-    }
-
-    function closeSlideOver() {
-        document.getElementById('verificationSlideOver').classList.remove('active');
-        document.getElementById('dashboardOverlay').classList.remove('active');
-    }
-
-    // Notifications Toggle
-    const bell = document.getElementById('notifBell');
-    const dropdown = document.getElementById('notifDropdown');
-    
-    if (bell) {
-        bell.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        });
-    }
-
-    document.addEventListener('click', () => {
-        if (dropdown) dropdown.style.display = 'none';
-    });
-
-    function markRead(id, el) {
-        fetch(`/administration/notifications/${id}/read/`)
-            .then(res => {
-                if (res.ok) {
-                    el.style.opacity = '0.5';
-                    el.style.background = 'transparent';
-                    // Hide dot if list is empty or all read (simplified)
-                }
-            });
-    }
-
-    // Charts Implementation
-    const ctxCases = document.getElementById('chartCases').getContext('2d');
-    new Chart(ctxCases, {
-        type: 'line',
-        data: {
-            labels: ['1', '2', '3', '4', '5', '6', '7'],
-            datasets: [{
-                data: [12, 19, 15, 25, 22, 30, 45],
-                borderColor: '#d4af37',
-                borderWidth: 2,
-                pointRadius: 0,
-                fill: true,
-                backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                tension: 0.4
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false }, y: { display: false } },
-            maintainAspectRatio: false
+    function renderChart(canvasId, payloadId, chartType, extraOptions = {}) {
+        const canvas = document.getElementById(canvasId);
+        const payloadNode = document.getElementById(payloadId);
+        if (!canvas || !payloadNode) {
+            return;
         }
-    });
 
-    const ctxEstate = document.getElementById('estateChart').getContext('2d');
-    new Chart(ctxEstate, {
-        type: 'doughnut',
-        data: {
-            labels: ['عقارات', 'نقد', 'أسهم'],
-            datasets: [{
-                data: [65, 25, 10],
-                backgroundColor: ['#d4af37', '#2ecc71', '#3498db'],
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            cutout: '80%',
-            maintainAspectRatio: false
+        const payload = JSON.parse(payloadNode.textContent);
+        if (!payload.values || !payload.values.some(value => Number(value) > 0)) {
+            return;
         }
+
+        new Chart(canvas, {
+            type: chartType,
+            data: {
+                labels: payload.labels,
+                datasets: [{
+                    data: payload.values,
+                    backgroundColor: payload.colors,
+                    borderColor: payload.colors,
+                    borderWidth: chartType === 'bar' ? 0 : 1,
+                    fill: chartType === 'line',
+                    tension: 0.35,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: chartType !== 'bar',
+                        position: 'bottom',
+                        labels: {
+                            color: '#9ca3af',
+                            font: { family: 'inherit' }
+                        }
+                    }
+                },
+                scales: chartType === 'bar' ? {
+                    x: {
+                        ticks: { color: '#9ca3af' },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#9ca3af', precision: 0 },
+                        grid: { color: 'rgba(255,255,255,0.08)' }
+                    }
+                } : {},
+                ...extraOptions
+            }
+        });
+    }
+
+    renderChart('caseStatusChart', 'case-status-chart-data', 'bar');
+    renderChart('assetDistributionChart', 'asset-distribution-chart-data', 'doughnut', {
+        cutout: '68%'
     });
+    renderChart('heirDecisionChart', 'heir-decision-chart-data', 'pie');
+    renderChart('roleDistributionChart', 'role-distribution-chart-data', 'bar');
 </script>
 {% endblock %}

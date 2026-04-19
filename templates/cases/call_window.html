@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غرفة الاتصال الجماعي - إرث</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #0a0f14; color: #fff; font-family: sans-serif; overflow: hidden; }
+        #jitsi-container { width: 100%; height: 100%; background: #000; }
+    </style>
+</head>
+<body>
+    <div id="jitsi-container"></div>
+
+    <script src="https://meet.jit.si/external_api.js"></script>
+    <script>
+        const sessionLink = "{{ case.session_link }}";
+        const roomName = "mawareth_session_" + sessionLink.replace(/-/g, "");
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const callSocket = new WebSocket(
+            wsScheme + '://' + window.location.host + '/ws/session/' + sessionLink + '/'
+        );
+
+        let jitsiApi = null;
+        const container = document.getElementById('jitsi-container');
+
+        callSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'end_call') {
+                window.close();
+            }
+        };
+
+        function startJitsi() {
+            jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
+                roomName: roomName,
+                width: '100%',
+                height: '100%',
+                parentNode: container,
+                userInfo: {
+                    displayName: 'فضيلة القاضي'
+                },
+                configOverwrite: {
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: false,
+                    disableDeepLinking: true
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'desktop', 'fullscreen',
+                        'fodeviceselection', 'hangup', 'profile', 'chat',
+                        'settings', 'raisehand', 'videoquality', 'tileview', 'mute-everyone'
+                    ]
+                }
+            });
+
+            // 3. LISTEN FOR MODERATOR STATUS TO SIGNAL HEIRS
+            jitsiApi.addListener('participantRoleChanged', function(event) {
+                if (event.role === 'moderator') {
+                    // ACTUAL SIGNALING
+                    if (callSocket.readyState === WebSocket.OPEN) {
+                        callSocket.send(JSON.stringify({
+                            type: 'incoming_call',
+                            caller: 'فضيلة القاضي',
+                            room_name: roomName
+                        }));
+                    }
+                }
+            });
+
+            jitsiApi.addEventListener('videoConferenceLeft', function() {
+                if (callSocket.readyState === WebSocket.OPEN) {
+                    callSocket.send(JSON.stringify({ type: 'end_call' }));
+                }
+                window.close();
+            });
+        }
+
+        window.onload = startJitsi;
+    </script>
+</body>
+</html>

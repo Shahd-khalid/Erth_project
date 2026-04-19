@@ -1,1102 +1,649 @@
-{% extends 'base.html' %}
+{% extends 'judges/allocate_layout_base.html' %}
 {% load l10n %}
 {% load custom_filters %}
 
-{% block content %}
-<div class="container" style="margin-top: 50px; padding-bottom: 100px;">
-
-    <!-- Header -->
-    <div class="card header-card">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div class="header-icon-box">
-                    <i class="fas fa-layer-group" style="font-size: 1.8rem;"></i>
-                </div>
-                <div>
-                    <h1 style="font-size: 1.7rem; font-weight: 800; color: #fff; margin: 0;">تجزئة وتوزيع التركة</h1>
-                    <p style="color: var(--text-muted); margin: 5px 0 0;">قضية رقم: <span
-                            style="color: var(--primary-color); font-weight: 800;">{{ case.case_number }}</span></p>
-                </div>
-            </div>
-            <div style="text-align: left;">
-                <span class="badge-premium">لوحة القاضي</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Layout Grid -->
-    <div class="allocation-layout">
-
-        <!-- Right Column: Asset Decomposition (Phase 1) -->
-        <div class="assets-column">
-            <div class="section-title">
-                <i class="fas fa-cut" style="color: var(--primary-color);"></i>
-                <span>المرحلة الأولى: تجزئة الأصول (عينات)</span>
-            </div>
-
-            {% for asset in assets %}
-            <div class="asset-card card">
-                <div class="asset-header">
-                    <div class="asset-info">
-                        <h3>{{ asset.description }}</h3>
-                        <span class="type-tag">{{ asset.get_asset_type_display }}</span>
-                    </div>
-                    <div class="asset-value">
-                        <span class="label">القيمة الكلية:</span>
-                        <span class="amount">{{ asset.value|floatformat:2 }} ر.ي</span>
-                    </div>
-                </div>
-
-                <div class="components-list">
-                    {% for comp in asset.components.all %}
-                    <div class="component-item" id="comp_row_{{ comp.id }}">
-                        <div class="comp-details">
-                            <span class="comp-desc">{{ comp.description }}</span>
-                            <span class="comp-val">{{ comp.value|floatformat:2 }} ر.ي</span>
-                        </div>
-                        <div class="comp-actions" style="display: flex; gap: 8px;">
-                            <button type="button" class="btn-edit-comp" onclick="toggleEdit('{{ comp.id }}')"
-                                title="تعديل">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <form method="post" style="margin: 0; display: inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete_component">
-                                <input type="hidden" name="component_id" value="{{ comp.id }}">
-                                <button type="submit" class="btn-delete-comp" title="حذف العينة"
-                                    onclick="return confirm('حذف هذا الجزء؟');">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- Inline Edit Form -->
-                    <div class="edit-comp-form" id="edit_form_{{ comp.id }}"
-                        style="display:none; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                        <form method="post" class="inline-edit" style="display: flex; gap: 10px;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="update_component">
-                            <input type="hidden" name="component_id" value="{{ comp.id }}">
-                            <input type="text" name="description" value="{{ comp.description }}"
-                                style="flex: 2; background: #000; border: 1px solid var(--glass-border); color: #fff; padding: 5px; border-radius: 4px;"
-                                required>
-                            <input type="number" name="value" step="0.01" value="{{ comp.value|unlocalize }}"
-                                style="flex: 1; background: #000; border: 1px solid var(--glass-border); color: #fff; padding: 5px; border-radius: 4px;"
-                                required>
-                            <button type="submit"
-                                style="background: var(--primary-color); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;"><i
-                                    class="fas fa-check"></i></button>
-                            <button type="button" onclick="toggleEdit('{{ comp.id }}')"
-                                style="background: #555; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; color: #fff;"><i
-                                    class="fas fa-undo"></i></button>
-                        </form>
-                    </div>
-                    {% empty %}
-                    <p class="empty-text">لا توجد عينات مدخلة لهذا الأصل بعد.</p>
-                    {% endfor %}
-                </div>
-
-                <!-- Step 1: Set Number of Parts (Trigger) -->
-                {% if not splitting_asset_id or splitting_asset_id != asset.id %}
-                <div class="split-management">
-                    {% if asset.components.exists %}
-                    <button type="button" class="btn-resplit-trigger" onclick="toggleResplit('{{ asset.id }}')"
-                        id="resplit_btn_{{ asset.id }}"
-                        style="width: 100%; background: transparent; border: 1px dashed var(--primary-color); color: var(--primary-color); padding: 10px; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: 600;">
-                        <i class="fas fa-redo-alt"></i> إعادة تقسيم التركة
-                    </button>
-                    {% endif %}
-
-                    <div class="split-trigger" id="split_trigger_{{ asset.id }}" {% if asset.components.exists %}
-                        style="display:none;" {% endif %}>
-                        <p class="trigger-hint" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
-                            {% if asset.components.exists %}سيتم مسح الأجزاء الحالية عند بدء تقسيم جديد:{% else %}الأصل
-                            حالياً غير مقسم. يمكنك تخصيصه بالكامل أو تقسيمه إلى أجزاء:
-
-                            {% endif %}</p>
-                        <form method="post" class="quick-split-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="prepare_split">
-                            <input type="hidden" name="asset_id" value="{{ asset.id }}">
-                            <div class="split-actions-container" style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <button type="submit" class="btn-quick-split"
-                                    style="flex: 1; padding: 12px; font-size: 1rem;">
-                                    <i class="fas fa-layer-group"></i> تقسيم إلى عينات جديدة
-                                </button>
-                                <button type="button" class="btn-keep-whole"
-                                    style="flex: 1; padding: 12px; font-size: 1rem;"
-                                    onclick="document.querySelector('.heirs-column').scrollIntoView({behavior: 'smooth'})">
-                                    <i class="fas fa-arrow-down"></i> عدم التقسيم (تعيين كأصل كامل)
-                                </button>
-                            </div>
-                            <div class="input-row" style="margin-bottom: 5px;">
-                                <input type="number" name="count" min="2" max="50"
-                                    placeholder="👈 إذا أردت التقسيم، أدخل عدد الأجزاء هنا أولاً ثم اضغط الزر أعلاه..."
-                                    required
-                                    style="width: 100%; padding: 15px; font-size: 1.1rem; text-align: center; background: rgba(0,0,0,0.3); border: 2px dashed var(--primary-color);">
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                {% endif %}
-
-                <script>
-                    if (typeof toggleResplit !== 'function') {
-                        function toggleResplit(assetId) {
-                            const trigger = document.getElementById(`split_trigger_${assetId}`);
-                            const btn = document.getElementById(`resplit_btn_${assetId}`);
-                            if (trigger.style.display === 'none') {
-                                trigger.style.display = 'block';
-                                btn.innerHTML = '<i class="fas fa-times"></i> إلغاء إعادة التقسيم';
-                                btn.style.borderColor = '#e74c3c';
-                                btn.style.color = '#e74c3c';
-                            } else {
-                                trigger.style.display = 'none';
-                                btn.innerHTML = '<i class="fas fa-redo-alt"></i> إعادة تقسيم التركة';
-                                btn.style.borderColor = 'var(--primary-color)';
-                                btn.style.color = 'var(--primary-color)';
-                            }
-                        }
-                    }
-
-                    if (typeof toggleEdit !== 'function') {
-                        function toggleEdit(compId) {
-                            const row = document.getElementById(`comp_row_${compId}`);
-                            const form = document.getElementById(`edit_form_${compId}`);
-                            if (form.style.display === 'none') {
-                                form.style.display = 'block';
-                                row.style.opacity = '0.4';
-                            } else {
-                                form.style.display = 'none';
-                                row.style.opacity = '1';
-                            }
-                        }
-                    }
-                </script>
-
-                <!-- Step 2: Fill Details for each Part (Wizard Style) -->
-                {% if splitting_asset_id == asset.id %}
-                <div class="split-wizard-overlay" id="wizardOverlay" style="display: block;">
-                    <div class="wizard-container card">
-                        <div class="wizard-header">
-                            <h3>تقسيم الأصل: {{ asset.description }}</h3>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-                            </div>
-                            <span class="step-indicator" id="stepIndicator">الجزء 1 من {{ split_count|length }}</span>
-                        </div>
-
-                        <form method="post" id="wizardForm">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="bulk_create_components">
-                            <input type="hidden" name="asset_id" value="{{ asset.id }}">
-
-                            <div class="wizard-steps-container">
-                                {% for i in split_count %}
-                                <div class="wizard-step" data-step="{{ forloop.counter }}" {% if not forloop.first %}
-                                    style="display:none;" {% endif %}>
-                                    <div class="focused-box">
-                                        <label>بيانات الجزء رقم {{ forloop.counter }}:</label>
-                                        <input type="text" name="descriptions[]" class="wizard-input"
-                                            placeholder="وصف الجزء (مثلاً: الدور الأول، قصبة 1...)" required>
-
-                                        <label>القيمة التقديرية (ر.ي):</label>
-                                        <input type="number" name="values[]" step="0.01" class="wizard-input"
-                                            placeholder="0.00" required>
-                                    </div>
-
-                                    <div class="wizard-actions">
-                                        {% if not forloop.first %}
-                                        <button type="button" class="btn-wizard-back"
-                                            onclick="changeStep(parseInt('{{ forloop.counter }}'), -1)">
-                                            <i class="fas fa-arrow-right"></i> السابق
-                                        </button>
-                                        {% else %}
-                                        <a href="." class="btn-wizard-cancel">إلغاء التقسيم</a>
-                                        {% endif %}
-
-                                        {% if not forloop.last %}
-                                        <button type="button" class="btn-wizard-next"
-                                            onclick="changeStep(parseInt('{{ forloop.counter }}'), 1)">
-                                            التالي <i class="fas fa-arrow-left"></i>
-                                        </button>
-                                        {% else %}
-                                        <button type="submit" class="btn-wizard-save">
-                                            <i class="fas fa-check-double"></i> حفظ وتأكيد التقسيم
-                                        </button>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <script>
-                    function changeStep(currentStep, direction) {
-                        const totalSteps = parseInt('{{ split_count|length }}' || '0');
-                        const nextStep = currentStep + direction;
-
-                        if (nextStep < 1 || nextStep > totalSteps) return;
-
-                        // Validate current step inputs before moving forward
-                        if (direction === 1) {
-                            const currentBox = document.querySelector(`.wizard-step[data-step="${currentStep}"]`);
-                            const inputs = currentBox.querySelectorAll('input');
-                            let valid = true;
-                            inputs.forEach(input => {
-                                if (!input.value) {
-                                    input.classList.add('input-error');
-                                    valid = false;
-                                } else {
-                                    input.classList.remove('input-error');
-                                }
-                            });
-                            if (!valid) return;
-                        }
-
-                        // Hide current, show next
-                        document.querySelector(`.wizard-step[data-step="${currentStep}"]`).style.display = 'none';
-                        const nextBox = document.querySelector(`.wizard-step[data-step="${nextStep}"]`);
-                        nextBox.style.display = 'block';
-
-                        // Update progress
-                        const progress = (nextStep / totalSteps) * 100;
-                        const progressFill = document.getElementById('progressFill');
-                        const stepIndicator = document.getElementById('stepIndicator');
-                        if (progressFill) progressFill.style.width = progress + '%';
-                        if (stepIndicator) stepIndicator.innerText = `الجزء ${nextStep} من ${totalSteps}`;
-                    }
-
-                    // Initial progress
-                    window.addEventListener('load', () => {
-                        const total = parseInt('{{ split_count|length }}' || '0');
-                        if (total > 0) {
-                            const progressFill = document.getElementById('progressFill');
-                            if (progressFill) progressFill.style.width = (1 / total * 100) + '%';
-                        }
-                    });
-                </script>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- Left Column: Heir Allocation (Phase 2) -->
-        <div class="heirs-column">
-            <div class="section-title">
-                <i class="fas fa-hand-holding-usd" style="color: var(--primary-color);"></i>
-                <span>المرحلة الثانية: تخصيص الأجزاء للورثة</span>
-            </div>
-
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="save_allocation">
-
-                {% for heir in heirs %}
-                <div class="heir-allocation-card card">
-                    <div class="heir-header">
-                        <div class="heir-meta">
-                            <h4>{{ heir.name }}</h4>
-                            <span class="rel">{{ heir.get_relationship_display }}</span>
-                        </div>
-                        <div class="share-stats">
-                            <div class="stat-item">
-                                <span class="lbl">نصيب الوريث:</span>
-                                <input type="number" step="0.01" name="value_{{ heir.id }}" class="share-input"
-                                    value="{{ heir.share_value|floatformat:2|unlocalize }}">
-                            </div>
-                            <div class="stat-item progress-stat">
-                                <span class="lbl">المخصص:</span>
-                                <span
-                                    class="val {% if heir.allocated_share > heir.share_value %}over-limit{% endif %}">{{
-                                    heir.allocated_share|floatformat:2 }} / {{ heir.share_value|floatformat:2 }}</span>
-                            </div>
-                            <div class="stat-item remaining-stat">
-                                <span class="lbl">المتبقي:</span>
-                                <span class="val" id="rem_{{ heir.id }}">
-                                    {{ heir.share_value|subtract:heir.allocated_share|floatformat:2 }} ر.ي
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="allocation-controls">
-                        <div class="control-group">
-                            <label><i class="fas fa-sticky-note"></i> وصف القسمة / ملاحظات:</label>
-                            <textarea name="desc_{{ heir.id }}" rows="2"
-                                class="premium-textarea">{{ heir.allocation_description }}</textarea>
-                        </div>
-
-                        <div class="selection-area">
-                            <label><i class="fas fa-check-circle"></i> اختر الأصول المخصصة للوريث:</label>
-                            <div class="selection-grid">
-                                {% for asset in assets %}
-                                {% if not asset.components.all %}
-                                <div class="selection-option">
-                                    <input type="radio" name="asset_{{ asset.id }}" value="{{ heir.id }}"
-                                        id="asset_{{ asset.id }}_h_{{ heir.id }}" {% if asset.assigned_to_id == heir.id %}
-                                        checked{% endif %}>
-                                    <label for="asset_{{ asset.id }}_h_{{ heir.id }}">أصل كامل: {{ asset.description
-                                        }}</label>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-
-                                {% for asset in assets %}
-                                {% for comp in asset.components.all %}
-                                <div class="selection-option comp-opt">
-                                    <input type="radio" name="comp_{{ comp.id }}" value="{{ heir.id }}"
-                                        id="comp_{{ comp.id }}_h_{{ heir.id }}" {% if comp.assigned_to_id == heir.id %}
-                                        checked{% endif %}>
-                                    <label for="comp_{{ comp.id }}_h_{{ heir.id }}">عينة: {{ comp.description }} ({{
-                                        asset.description }})</label>
-                                </div>
-                                {% endfor %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-
-                <div class="action-footer">
-                    <button type="submit" class="btn-save-main">
-                        <i class="fas fa-save"></i> حفظ جميع تخصيصات القاضي
-                    </button>
-                    <button type="submit" name="action" value="publish_session" class="btn-publish"
-                        {% if has_pending_payments %}
-                        disabled style="background: #555; cursor: not-allowed; box-shadow: none; opacity: 0.6;" 
-                        title="لا يمكن الاعتماد لوجود تسويات مالية قيد السداد"
-                        {% else %}
-                        onclick="return confirm('هل أنت متأكد من اعتماد الجلسة نهائياً؟');"
-                        {% endif %}>
-                        <i class="fas fa-check-double"></i> 
-                        {% if has_pending_payments %}
-                        بانتظار اكتمال السداد
-                        {% else %}
-                        اعتماد القسمة النهائية
-                        {% endif %}
-                    </button>
-                    <button type="submit" name="action" value="reset_allocation" class="btn-reset-main"
-                        onclick="return confirm('هل أنت متأكد من إلغاء إعادة التوزيع وسحب كل ما تم تخصيصه للورثة للرجوع للحالة الأصلية؟');">
-                        <i class="fas fa-undo"></i> إلغاء التخصيص وإعادة التوزيع
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
+{% block allocation_body %}
 <style>
-    :root {
-        --primary-color: #d4af37;
-        --glass-bg: rgba(255, 255, 255, 0.03);
-        --glass-border: rgba(255, 255, 255, 0.08);
-        --text-muted: #888;
-    }
-
-    .header-card {
-        padding: 35px;
-        border-radius: 25px;
-        border: 1px solid var(--glass-border);
-        margin-bottom: 40px;
-        background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
-    }
-
-    .header-icon-box {
-        background: var(--primary-color);
-        width: 60px;
-        height: 60px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #000;
-    }
-
-    .badge-premium {
-        padding: 8px 16px;
-        background: rgba(212, 175, 55, 0.1);
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: 700;
-    }
-
-    .allocation-layout {
+    .asset-stage-grid {
         display: grid;
-        grid-template-columns: 380px 1fr;
-        gap: 30px;
-        align-items: start;
+        gap: 1.5rem;
     }
 
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        color: #fff;
-        font-size: 1.2rem;
-        font-weight: 800;
-        margin-bottom: 30px;
-        padding-right: 20px;
-        border-right: 5px solid var(--primary-color);
+    .asset-showcase-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        gap: 1.5rem;
     }
 
-    .asset-card {
-        padding: 24px;
-        border-radius: 20px;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        margin-bottom: 24px;
-        transition: transform 0.3s ease;
-        position: relative;
-    }
-
-    .asset-card:hover {
-        border-color: rgba(212, 175, 55, 0.3);
-    }
-
-    .asset-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .type-tag {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        background: rgba(255, 255, 255, 0.05);
-        padding: 2px 8px;
-        border-radius: 4px;
-    }
-
-    .asset-value .amount {
-        color: #2ecc71;
-        font-weight: 800;
-        font-size: 1.1rem;
-    }
-
-    .components-list {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 12px;
-        padding: 10px;
-        margin-bottom: 15px;
-    }
-
-    .component-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--glass-border);
-        border-radius: 10px;
-        margin-bottom: 8px;
-        transition: 0.3s;
-    }
-
-    .comp-details {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .comp-desc {
-        font-weight: 600;
-        color: var(--primary-color);
-    }
-
-    .comp-val {
-        font-size: 0.9rem;
-        color: #aaa;
-    }
-
-    .comp-actions {
-        display: flex;
-        gap: 8px;
-    }
-
-    .btn-delete-comp,
-    .btn-edit-comp {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid var(--glass-border);
-        color: #fff;
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .btn-delete-comp:hover {
-        background: #e74c3c;
-        color: #fff;
-        border-color: #e74c3c;
-    }
-
-    .btn-edit-comp:hover {
-        background: var(--primary-color);
-        color: #000;
-        border-color: var(--primary-color);
-    }
-
-    /* Inline Edit Form */
-    .edit-comp-form {
-        margin-bottom: 15px;
-        background: rgba(212, 175, 55, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        padding: 15px;
-        border-radius: 12px;
-    }
-
-    /* Re-split Button */
-    .btn-resplit-trigger {
-        width: 100%;
-        background: transparent;
-        border: 1px dashed var(--primary-color);
-        color: var(--primary-color);
-        padding: 12px;
-        border-radius: 10px;
-        margin-top: 10px;
-        cursor: pointer;
-        transition: 0.3s;
-        font-weight: 600;
-    }
-
-    .btn-resplit-trigger:hover {
-        background: rgba(184, 146, 64, 0.1);
-    }
-
-    .quick-split-form .input-row {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .quick-split-form input {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--glass-border);
-        border-radius: 8px;
-        padding: 10px 15px;
-        color: #fff;
-    }
-
-    .btn-quick-split {
-        background: var(--primary-color);
-        color: #000;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    .btn-keep-whole {
-        background: transparent;
-        color: var(--text-muted);
-        border: 1px solid var(--glass-border);
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    .btn-keep-whole:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #fff;
-    }
-
-    /* Step 2 Details Form */
-    .split-details-overlay {
-        background: rgba(0, 0, 0, 0.4);
-        padding: 20px;
-        border-radius: 15px;
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        margin-top: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-
-    .bulk-rows {
-        max-height: 250px;
-        overflow-y: auto;
-        margin-bottom: 20px;
-        padding-left: 5px;
-    }
-
-    .bulk-input-row {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .bulk-input-row .row-num {
-        color: var(--primary-color);
-        font-weight: 800;
-        min-width: 25px;
-        text-align: center;
-        background: rgba(212, 175, 55, 0.1);
-        border-radius: 4px;
-        padding: 2px 5px;
-    }
-
-    .bulk-input-row input {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--glass-border);
-        border-radius: 8px;
-        padding: 8px 12px;
-        color: #fff;
-        flex: 1;
-        font-size: 0.9rem;
-    }
-
-    .bulk-actions {
-        display: flex;
-        gap: 12px;
-    }
-
-    .trigger-hint {
-        color: var(--text-muted);
-        font-size: 0.8rem;
-        margin-bottom: 10px;
-    }
-
-    .split-trigger {
-        border-top: 1px solid var(--glass-border);
-        padding-top: 15px;
-        margin-top: 10px;
-    }
-
-    /* Wizard Styles - Converted to Flow/Accordion */
-    .split-wizard-overlay {
-        display: none;
-        /* Hidden by default */
-        width: 100%;
-        margin-top: 25px;
-        border-top: 1px dashed rgba(212, 175, 55, 0.4);
-        padding-top: 30px;
-        animation: slideDown 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .wizard-container {
-        width: 100%;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-        padding: 30px;
-        border-radius: 20px;
-    }
-
-    .wizard-header h3 {
-        color: var(--primary-color);
-        margin-bottom: 20px;
-        font-size: 1.4rem;
-    }
-
-    .progress-bar {
-        height: 6px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-        margin-bottom: 10px;
+    .asset-showcase-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 28px;
         overflow: hidden;
+        box-shadow: 0 24px 44px rgba(0,0,0,0.16);
     }
 
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--gold-primary), var(--gold-light));
-        transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    .asset-showcase-media {
+        position: relative;
+        height: 250px;
+        background: linear-gradient(145deg, rgba(212,175,55,0.14), rgba(255,255,255,0.02));
     }
 
-    .step-indicator {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        display: block;
-        margin-bottom: 30px;
-    }
-
-    .focused-box {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 15px;
-        margin-bottom: 20px;
-    }
-
-    .focused-box label {
-        display: block;
-        text-align: right;
-        margin-bottom: 10px;
-        font-weight: 600;
-        color: #ddd;
-    }
-
-    .wizard-input {
+    .asset-showcase-media img {
         width: 100%;
-        background: rgba(0, 0, 0, 0.3) !important;
-        border: 1px solid var(--glass-border);
-        border-radius: 10px;
-        padding: 10px 15px;
-        color: #fff;
-        font-size: 1rem;
-        margin-bottom: 15px;
-        text-align: center;
+        height: 100%;
+        object-fit: cover;
     }
 
-    .wizard-input:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 10px rgba(184, 146, 64, 0.2);
-    }
-
-    .wizard-actions {
+    .asset-placeholder {
+        width: 100%;
+        height: 100%;
         display: flex;
-        gap: 15px;
-    }
-
-    .btn-wizard-next,
-    .btn-wizard-save {
-        flex: 2;
-        background: var(--primary-color);
-        color: #000;
-        border: none;
-        padding: 15px 10px;
-        border-radius: 10px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: 0.3s;
-        font-size: 0.95rem;
-    }
-
-    .btn-wizard-back,
-    .btn-wizard-cancel {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        border: 1px solid var(--glass-border);
-        padding: 15px 10px;
-        border-radius: 10px;
-        cursor: pointer;
-        text-decoration: none;
-        display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 0.85rem;
+        color: rgba(255,255,255,0.55);
+        font-weight: 700;
+    }
+
+    .asset-type-pill {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        padding: 0.55rem 0.85rem;
+        border-radius: 999px;
+        background: rgba(8, 10, 14, 0.72);
+        border: 1px solid rgba(212,175,55,0.18);
+        color: var(--alloc-gold);
+        font-size: 0.84rem;
+        font-weight: 800;
+        backdrop-filter: blur(10px);
+    }
+
+    .asset-showcase-body {
+        padding: 1.5rem;
+    }
+
+    .asset-showcase-title {
+        color: var(--alloc-ink);
+        font-size: 1.4rem;
+        font-weight: 900;
+        margin-bottom: 0.65rem;
+    }
+
+    .asset-showcase-value {
+        color: var(--alloc-success);
+        font-size: 1.15rem;
+        font-weight: 900;
+        margin-bottom: 1rem;
+    }
+
+    .asset-components-wrap {
+        background: rgba(0,0,0,0.18);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .asset-component-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.8rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        padding: 0.85rem 1rem;
+        margin-bottom: 0.7rem;
+    }
+
+    .asset-component-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .asset-component-copy strong {
+        display: block;
+        color: var(--alloc-ink);
+        font-size: 0.98rem;
+        margin-bottom: 0.22rem;
+    }
+
+    .asset-component-copy span {
+        color: var(--alloc-muted);
+        font-size: 0.86rem;
+    }
+
+    .asset-component-actions {
+        display: flex;
+        gap: 0.45rem;
+        flex-shrink: 0;
+    }
+
+    .asset-mini-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.04);
+        color: var(--alloc-ink);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .asset-mini-btn:hover {
+        transform: translateY(-2px);
+        border-color: rgba(212,175,55,0.22);
+    }
+
+    .asset-mini-btn.is-danger:hover {
+        background: rgba(231,76,60,0.18);
+        border-color: rgba(231,76,60,0.3);
+        color: #fff;
+    }
+
+    .asset-mini-btn.is-edit:hover {
+        background: rgba(212,175,55,0.2);
+        color: #111;
+    }
+
+    .asset-inline-form {
+        display: none;
+        margin-top: 0.8rem;
+        background: rgba(212,175,55,0.06);
+        border: 1px solid rgba(212,175,55,0.14);
+        border-radius: 18px;
+        padding: 1rem;
+    }
+
+    .asset-inline-form form {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr auto auto;
+        gap: 0.7rem;
+        align-items: center;
+    }
+
+    .asset-inline-form input {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(0,0,0,0.22);
+        color: var(--alloc-ink);
+        padding: 0.8rem 1rem;
+    }
+
+    .asset-wizard-box {
+        margin-top: 1.2rem;
+        background: rgba(0,0,0,0.2);
+        border: 1px dashed rgba(212,175,55,0.28);
+        border-radius: 22px;
+        padding: 1.15rem;
+    }
+
+    .asset-wizard-box p {
+        color: var(--alloc-muted);
+        line-height: 1.8;
+    }
+
+    .asset-actions-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .asset-action-btn,
+    .asset-action-btn-secondary {
+        min-height: 52px;
+        border-radius: 16px;
+        padding: 0.9rem 1.1rem;
+        font-weight: 800;
+        border: 1px solid rgba(212,175,55,0.18);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .asset-action-btn {
+        background: linear-gradient(135deg, #d4af37, #f1d06e);
+        color: #141414;
+        box-shadow: 0 16px 30px rgba(212,175,55,0.18);
+    }
+
+    .asset-action-btn-secondary {
+        background: rgba(255,255,255,0.03);
+        color: var(--alloc-ink);
+    }
+
+    .asset-wizard-input {
+        width: 100%;
+        min-height: 56px;
+        border-radius: 18px;
+        border: 1px dashed rgba(212,175,55,0.25);
+        background: rgba(0,0,0,0.16);
+        color: var(--alloc-ink);
+        text-align: center;
+        padding: 1rem;
+        font-weight: 700;
+    }
+
+    .asset-split-wizard {
+        margin-top: 1.2rem;
+        border-top: 1px dashed rgba(212,175,55,0.2);
+        padding-top: 1.3rem;
+    }
+
+    .asset-wizard-card {
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(212,175,55,0.16);
+        border-radius: 22px;
+        padding: 1.35rem;
+    }
+
+    .asset-wizard-card h3 {
+        color: var(--alloc-gold);
+        font-size: 1.15rem;
+        font-weight: 900;
+        margin-bottom: 0.9rem;
+    }
+
+    .asset-progress {
+        height: 8px;
+        border-radius: 99px;
+        background: rgba(255,255,255,0.08);
+        overflow: hidden;
+        margin-bottom: 0.75rem;
+    }
+
+    .asset-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #d4af37, #f1d06e);
+        transition: width 0.35s ease;
+    }
+
+    .asset-step-copy {
+        color: var(--alloc-muted);
         font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .asset-step-box {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .asset-step-box label {
+        display: block;
+        color: var(--alloc-ink);
+        font-weight: 700;
+        margin-bottom: 0.55rem;
+    }
+
+    .asset-step-box input {
+        width: 100%;
+        min-height: 48px;
+        margin-bottom: 0.8rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(0,0,0,0.16);
+        color: var(--alloc-ink);
+        padding: 0.8rem 1rem;
+    }
+
+    .asset-step-actions {
+        display: flex;
+        gap: 0.8rem;
+    }
+
+    .asset-step-actions button,
+    .asset-step-actions a {
+        flex: 1;
+        min-height: 50px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        text-decoration: none;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .asset-next-box {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 1.2rem 1.4rem;
+    }
+
+    .asset-next-box p {
+        color: var(--alloc-muted);
+        margin: 0;
+        line-height: 1.8;
     }
 
     .input-error {
         border-color: #e74c3c !important;
-        animation: shake 0.4s;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
+        animation: shake 0.35s;
     }
 
     @keyframes shake {
+        0%,100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+    }
 
-        0%,
-        100% {
-            transform: translateX(0);
+    [data-theme="light"] .asset-showcase-card,
+    [data-theme="light"] .asset-components-wrap,
+    [data-theme="light"] .asset-component-item,
+    [data-theme="light"] .asset-inline-form,
+    [data-theme="light"] .asset-wizard-box,
+    [data-theme="light"] .asset-wizard-card,
+    [data-theme="light"] .asset-step-box {
+        background: #fffdf8;
+        border-color: rgba(143,109,39,0.16);
+        box-shadow: 0 18px 36px rgba(96,67,24,0.08);
+    }
+
+    [data-theme="light"] .asset-showcase-title,
+    [data-theme="light"] .asset-component-copy strong,
+    [data-theme="light"] .asset-step-box label,
+    [data-theme="light"] .asset-inline-form input,
+    [data-theme="light"] .asset-wizard-input,
+    [data-theme="light"] .asset-step-box input,
+    [data-theme="light"] .asset-action-btn-secondary {
+        color: #2f2a22;
+    }
+
+    [data-theme="light"] .asset-component-copy span,
+    [data-theme="light"] .asset-wizard-box p,
+    [data-theme="light"] .asset-next-box p,
+    [data-theme="light"] .asset-step-copy {
+        color: #6f6452;
+    }
+
+    [data-theme="light"] .asset-inline-form input,
+    [data-theme="light"] .asset-wizard-input,
+    [data-theme="light"] .asset-step-box input {
+        background: #fffaf1;
+        border-color: rgba(143,109,39,0.18);
+    }
+
+    [data-theme="light"] .asset-placeholder {
+        color: rgba(143,109,39,0.45);
+    }
+
+    @media (max-width: 767.98px) {
+        .asset-inline-form form {
+            grid-template-columns: 1fr;
         }
 
-        25% {
-            transform: translateX(-5px);
+        .asset-step-actions,
+        .asset-actions-row {
+            flex-direction: column;
         }
-
-        75% {
-            transform: translateX(5px);
-        }
-    }
-
-    .btn-save-bulk {
-        flex: 2;
-        background: #2ecc71;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        padding: 12px;
-        font-weight: 800;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: 0.3s;
-    }
-
-    .btn-cancel-bulk {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        padding: 10px;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        border: 1px solid var(--glass-border);
-    }
-
-    .heir-allocation-card {
-        padding: 30px;
-        border-radius: 25px;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        margin-bottom: 30px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .heir-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--glass-border);
-        padding-bottom: 20px;
-        margin-bottom: 25px;
-    }
-
-    .heir-meta h4 {
-        margin: 0 0 5px;
-        font-size: 1.3rem;
-        color: var(--primary-color);
-    }
-
-    .heir-meta .rel {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-    }
-
-    .share-stats {
-        display: flex;
-        gap: 35px;
-        align-items: center;
-    }
-
-    .stat-item {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .stat-item .lbl {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 600;
-    }
-
-    .share-input {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid var(--glass-border);
-        color: var(--primary-color);
-        padding: 8px 12px;
-        width: 140px;
-        border-radius: 10px;
-        font-weight: 800;
-        text-align: center;
-        transition: 0.3s;
-    }
-
-    .share-input:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-        outline: none;
-    }
-
-    .stat-item .val {
-        font-weight: 800;
-        font-size: 1.1rem;
-        color: #fff;
-    }
-
-    .over-limit {
-        color: #ff4757 !important;
-        text-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
-    }
-
-    .premium-textarea {
-        width: 100%;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid var(--glass-border);
-        border-radius: 15px;
-        padding: 18px;
-        color: #fff;
-        font-family: inherit;
-        resize: vertical;
-        transition: 0.3s;
-        font-size: 0.95rem;
-        line-height: 1.6;
-    }
-
-    .premium-textarea:focus {
-        border-color: var(--primary-color);
-        background: rgba(0, 0, 0, 0.3);
-        outline: none;
-    }
-
-    .selection-area {
-        margin-top: 30px;
-        padding-top: 25px;
-        border-top: 1px dashed var(--glass-border);
-    }
-
-    .selection-area label:first-child {
-        display: block;
-        margin-bottom: 20px;
-        color: var(--primary-color);
-        font-weight: 800;
-        font-size: 1.05rem;
-    }
-
-    .selection-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 15px;
-    }
-
-    .selection-option {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid var(--glass-border);
-        padding: 15px 20px;
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .selection-option:hover {
-        background: rgba(212, 175, 55, 0.05);
-        border-color: rgba(212, 175, 55, 0.3);
-        transform: translateY(-2px);
-    }
-
-    .selection-option input[type="radio"] {
-        accent-color: var(--primary-color);
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-    }
-
-    .selection-option label {
-        margin: 0;
-        cursor: pointer;
-        font-size: 0.95rem;
-        color: #eee;
-        font-weight: 500;
-    }
-
-    .comp-opt {
-        border-right: 4px solid var(--primary-color);
-    }
-
-    .action-footer {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-top: 60px;
-        padding: 40px;
-        background: rgba(0, 0, 0, 0.25);
-        border-radius: 30px;
-        border: 1px solid var(--glass-border);
-        backdrop-filter: blur(10px);
-    }
-
-    .btn-save-main,
-    .btn-publish {
-        padding: 16px 36px;
-        border-radius: 15px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 1.05rem;
-    }
-
-    .btn-save-main {
-        background: transparent;
-        border: 2px solid var(--primary-color);
-        color: var(--primary-color);
-    }
-
-    .btn-save-main:hover {
-        background: rgba(212, 175, 55, 0.1);
-        box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
-    }
-
-    .btn-reset-main {
-        background: transparent;
-        border: 2px solid #e74c3c;
-        color: #e74c3c;
-        padding: 16px 36px;
-        border-radius: 15px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 1.05rem;
-    }
-
-    .btn-reset-main:hover {
-        background: rgba(231, 76, 60, 0.1);
-        box-shadow: 0 0 20px rgba(231, 76, 60, 0.1);
-    }
-
-    .btn-publish {
-        background: linear-gradient(135deg, #2ecc71, #27ae60);
-        border: none;
-        color: #fff;
-        box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
-    }
-
-    .btn-publish:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(46, 204, 113, 0.4);
-    }
-
-    .empty-text {
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        padding: 24px;
-        background: rgba(255, 255, 255, 0.01);
-        border-radius: 15px;
-        border: 1px dashed var(--glass-border);
-        margin: 15px 0;
     }
 </style>
+
+{% with allocation_page_title='صفحة تقسيم الأصول' allocation_page_description='هذه المرحلة مخصصة فقط لتجزئة الأصول إلى عينات وأجزاء، مع عرض صور الأصول وبياناتها بشكل أوضح قبل الانتقال إلى مرحلة توزيع التركة على الورثة.' %}
+<div class="judge-alloc-grid">
+    <div class="judge-alloc-panel">
+        <div class="judge-alloc-panel-head">
+            <div>
+                <h2>عرض الأصول وتقسيمها</h2>
+                <p>اختر الأصل المناسب ثم أعد تقسيمه إلى أجزاء عند الحاجة، مع الإبقاء على نفس خطوات العمل الحالية كما هي.</p>
+            </div>
+        </div>
+        <div class="judge-alloc-panel-body">
+            {% if assets %}
+            <div class="asset-showcase-grid">
+                {% for asset in assets %}
+                <div class="asset-showcase-card">
+                    <div class="asset-showcase-media">
+                        {% if asset.image %}
+                        <img src="{{ asset.image.url }}" alt="{{ asset.description }}">
+                        {% else %}
+                        <div class="asset-placeholder">
+                            <i class="fas fa-image fa-3x"></i>
+                            <span>لا توجد صورة مرفقة لهذا الأصل</span>
+                        </div>
+                        {% endif %}
+                        <span class="asset-type-pill">{{ asset.get_asset_type_display }}</span>
+                    </div>
+                    <div class="asset-showcase-body">
+                        <h3 class="asset-showcase-title">{{ asset.description }}</h3>
+                        <div class="asset-showcase-value">{{ asset.value|floatformat:2 }} ر.ي</div>
+
+                        <div class="asset-components-wrap">
+                            {% for comp in asset.components.all %}
+                            <div class="asset-component-item" id="comp_row_{{ comp.id }}">
+                                <div class="asset-component-copy">
+                                    <strong>{{ comp.description }}</strong>
+                                    <span>{{ comp.value|floatformat:2 }} ر.ي</span>
+                                </div>
+                                <div class="asset-component-actions">
+                                    <button type="button" class="asset-mini-btn is-edit" onclick="toggleEdit('{{ comp.id }}')" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="post" style="margin:0;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_component">
+                                        <input type="hidden" name="component_id" value="{{ comp.id }}">
+                                        <button type="submit" class="asset-mini-btn is-danger" title="حذف" onclick="return confirm('حذف هذا الجزء؟');">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="asset-inline-form" id="edit_form_{{ comp.id }}">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="update_component">
+                                    <input type="hidden" name="component_id" value="{{ comp.id }}">
+                                    <input type="text" name="description" value="{{ comp.description }}" required>
+                                    <input type="number" name="value" step="0.01" value="{{ comp.value|unlocalize }}" required>
+                                    <button type="submit" class="asset-action-btn"><i class="fas fa-check"></i></button>
+                                    <button type="button" class="asset-action-btn-secondary" onclick="toggleEdit('{{ comp.id }}')"><i class="fas fa-rotate-left"></i></button>
+                                </form>
+                            </div>
+                            {% empty %}
+                            <div class="judge-alloc-empty">
+                                <i class="fas fa-cubes"></i>
+                                <div>لا توجد عينات مدخلة لهذا الأصل بعد.</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if not splitting_asset_id or splitting_asset_id != asset.id %}
+                        <div class="asset-wizard-box">
+                            {% if asset.components.exists %}
+                            <button type="button" class="asset-action-btn-secondary w-100 mb-3" onclick="toggleResplit('{{ asset.id }}')" id="resplit_btn_{{ asset.id }}">
+                                <i class="fas fa-redo-alt"></i>
+                                إعادة تقسيم الأصل
+                            </button>
+                            {% endif %}
+
+                            <div class="split-trigger" id="split_trigger_{{ asset.id }}" {% if asset.components.exists %}style="display:none;"{% endif %}>
+                                <p>
+                                    {% if asset.components.exists %}
+                                    سيؤدي هذا إلى استبدال الأجزاء الحالية لهذا الأصل بتقسيم جديد.
+                                    {% else %}
+                                    يمكنك إبقاء الأصل كاملًا أو بدء تقسيمه إلى أجزاء جديدة بحسب الحاجة.
+                                    {% endif %}
+                                </p>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="prepare_split">
+                                    <input type="hidden" name="asset_id" value="{{ asset.id }}">
+                                    <div class="asset-actions-row">
+                                        <button type="submit" class="asset-action-btn">
+                                            <i class="fas fa-layer-group"></i>
+                                            تقسيم إلى أجزاء جديدة
+                                        </button>
+                                        <a href="{{ obligations_stage_url }}" class="asset-action-btn-secondary">
+                                            <i class="fas fa-arrow-left"></i>
+                                            إبقاء الأصل كاملًا والانتقال للورثة
+                                        </a>
+                                    </div>
+                                    <input type="number" name="count" min="2" max="50" class="asset-wizard-input" placeholder="أدخل عدد الأجزاء المطلوبة ثم اضغط زر التقسيم" required>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if splitting_asset_id == asset.id %}
+                        <div class="asset-split-wizard">
+                            <div class="asset-wizard-card">
+                                <h3>تقسيم الأصل: {{ asset.description }}</h3>
+                                <div class="asset-progress">
+                                    <div class="asset-progress-fill" id="progressFill" style="width: 0%;"></div>
+                                </div>
+                                <span class="asset-step-copy" id="stepIndicator">الجزء 1 من {{ split_count|length }}</span>
+                                <form method="post" id="wizardForm">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="bulk_create_components">
+                                    <input type="hidden" name="asset_id" value="{{ asset.id }}">
+                                    {% for i in split_count %}
+                                    <div class="wizard-step" data-step="{{ forloop.counter }}" {% if not forloop.first %}style="display:none;"{% endif %}>
+                                        <div class="asset-step-box">
+                                            <label>وصف الجزء رقم {{ forloop.counter }}</label>
+                                            <input type="text" name="descriptions[]" placeholder="مثال: الدور الأول أو الحصة الجنوبية" required>
+                                            <label>القيمة التقديرية (ر.ي)</label>
+                                            <input type="number" name="values[]" step="0.01" placeholder="0.00" required>
+                                        </div>
+                                        <div class="asset-step-actions">
+                                            {% if not forloop.first %}
+                                            <button type="button" class="asset-action-btn-secondary" onclick="changeStep(parseInt('{{ forloop.counter }}'), -1)">
+                                                <i class="fas fa-arrow-right"></i>
+                                                السابق
+                                            </button>
+                                            {% else %}
+                                            <a href="{{ asset_stage_url }}" class="asset-action-btn-secondary">إلغاء التقسيم</a>
+                                            {% endif %}
+
+                                            {% if not forloop.last %}
+                                            <button type="button" class="asset-action-btn" onclick="changeStep(parseInt('{{ forloop.counter }}'), 1)">
+                                                التالي
+                                                <i class="fas fa-arrow-left"></i>
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" class="asset-action-btn">
+                                                <i class="fas fa-check-double"></i>
+                                                حفظ التقسيم
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="judge-alloc-empty">
+                <i class="fas fa-box-open"></i>
+                <div>لا توجد أصول لعرضها في هذه المرحلة.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="judge-alloc-panel">
+        <div class="asset-next-box">
+            <p>بعد مراجعة الأصول وتقسيم ما يلزم منها إلى عينات، انتقل إلى صفحة توزيع التركة على الورثة لاستكمال التخصيص النهائي.</p>
+            <a href="{{ obligations_stage_url }}" class="judge-alloc-btn-primary">
+                التالي
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endwith %}
+
+<script>
+    function toggleResplit(assetId) {
+        const trigger = document.getElementById(`split_trigger_${assetId}`);
+        const btn = document.getElementById(`resplit_btn_${assetId}`);
+        if (!trigger || !btn) return;
+
+        if (trigger.style.display === 'none') {
+            trigger.style.display = 'block';
+            btn.innerHTML = '<i class="fas fa-times"></i> إلغاء إعادة التقسيم';
+        } else {
+            trigger.style.display = 'none';
+            btn.innerHTML = '<i class="fas fa-redo-alt"></i> إعادة تقسيم الأصل';
+        }
+    }
+
+    function toggleEdit(compId) {
+        const row = document.getElementById(`comp_row_${compId}`);
+        const form = document.getElementById(`edit_form_${compId}`);
+        if (!row || !form) return;
+
+        if (form.style.display === 'block') {
+            form.style.display = 'none';
+            row.style.opacity = '1';
+        } else {
+            form.style.display = 'block';
+            row.style.opacity = '0.35';
+        }
+    }
+
+    function changeStep(currentStep, direction) {
+        const totalSteps = parseInt('{{ split_count|length|default:"0" }}' || '0');
+        const nextStep = currentStep + direction;
+
+        if (nextStep < 1 || nextStep > totalSteps) return;
+
+        if (direction === 1) {
+            const currentBox = document.querySelector(`.wizard-step[data-step="${currentStep}"]`);
+            const inputs = currentBox ? currentBox.querySelectorAll('input') : [];
+            let valid = true;
+            inputs.forEach(input => {
+                if (!input.value) {
+                    input.classList.add('input-error');
+                    valid = false;
+                } else {
+                    input.classList.remove('input-error');
+                }
+            });
+            if (!valid) return;
+        }
+
+        document.querySelector(`.wizard-step[data-step="${currentStep}"]`).style.display = 'none';
+        document.querySelector(`.wizard-step[data-step="${nextStep}"]`).style.display = 'block';
+
+        const progress = (nextStep / totalSteps) * 100;
+        const progressFill = document.getElementById('progressFill');
+        const stepIndicator = document.getElementById('stepIndicator');
+        if (progressFill) progressFill.style.width = progress + '%';
+        if (stepIndicator) stepIndicator.innerText = `الجزء ${nextStep} من ${totalSteps}`;
+    }
+
+    window.addEventListener('load', () => {
+        const total = parseInt('{{ split_count|length|default:"0" }}' || '0');
+        const progressFill = document.getElementById('progressFill');
+        if (total > 0 && progressFill) {
+            progressFill.style.width = (1 / total * 100) + '%';
+        }
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,284 @@
+{% extends 'administration/admin_base.html' %}
+
+{% block admin_extra_css %}
+<style>
+    .feedback-admin-shell {
+        display: grid;
+        gap: 24px;
+    }
+
+    .feedback-summary-card,
+    .feedback-table-card {
+        border-radius: 28px;
+        border: 1px solid rgba(212, 175, 55, 0.16);
+        background:
+            radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 28%),
+            linear-gradient(180deg, rgba(19, 22, 29, 0.96) 0%, rgba(8, 10, 14, 0.98) 100%);
+        box-shadow: 0 24px 50px rgba(0, 0, 0, 0.26);
+    }
+
+    .feedback-summary-card {
+        padding: 28px;
+        display: grid;
+        gap: 20px;
+    }
+
+    .feedback-summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        flex-wrap: wrap;
+    }
+
+    .feedback-summary-header h2 {
+        margin: 0 0 8px;
+        color: #fff;
+        font-size: 1.55rem;
+    }
+
+    .feedback-summary-header p,
+    .feedback-summary-meta,
+    .feedback-empty {
+        color: rgba(255, 255, 255, 0.64);
+        line-height: 1.8;
+    }
+
+    .feedback-summary-value {
+        color: #fff;
+        font-size: clamp(2rem, 1.8rem + 1vw, 2.8rem);
+        font-weight: 900;
+        line-height: 1;
+        text-align: left;
+    }
+
+    .feedback-progress {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+    }
+
+    .feedback-progress-bar {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #d4af37 0%, #f0c84b 100%);
+        box-shadow: 0 0 18px rgba(212, 175, 55, 0.3);
+    }
+
+    .feedback-table-card {
+        overflow: hidden;
+    }
+
+    .feedback-table-head {
+        padding: 24px 28px 12px;
+    }
+
+    .feedback-table-head h3 {
+        color: #fff;
+        margin: 0 0 8px;
+        font-size: 1.35rem;
+    }
+
+    .feedback-table-wrap {
+        overflow-x: auto;
+    }
+
+    .feedback-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 780px;
+    }
+
+    .feedback-table th,
+    .feedback-table td {
+        padding: 18px 22px;
+        text-align: right;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .feedback-table th {
+        color: var(--primary-color);
+        font-size: 0.92rem;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .feedback-table td {
+        color: #f3f3f3;
+        vertical-align: top;
+    }
+
+    .feedback-table tr:hover td {
+        background: rgba(255, 255, 255, 0.025);
+    }
+
+    .feedback-user {
+        display: grid;
+        gap: 4px;
+    }
+
+    .feedback-user strong {
+        color: #fff;
+    }
+
+    .feedback-user span,
+    .feedback-date {
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 0.9rem;
+    }
+
+    .feedback-rating-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 8px 14px;
+        background: rgba(212, 175, 55, 0.12);
+        border: 1px solid rgba(212, 175, 55, 0.18);
+        color: #f4d36b;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .feedback-message {
+        color: rgba(255, 255, 255, 0.78);
+        line-height: 1.9;
+        max-width: 34rem;
+    }
+
+    .feedback-empty {
+        padding: 30px 28px;
+    }
+
+    [data-theme="light"] .feedback-summary-card,
+    [data-theme="light"] .feedback-table-card {
+        background:
+            radial-gradient(circle at top right, rgba(205, 166, 70, 0.14), transparent 28%),
+            linear-gradient(180deg, #fffdf8 0%, #f7efe2 100%);
+        border-color: rgba(143, 109, 39, 0.14);
+        box-shadow: 0 24px 48px rgba(96, 67, 24, 0.12);
+    }
+
+    [data-theme="light"] .feedback-summary-header h2,
+    [data-theme="light"] .feedback-summary-value,
+    [data-theme="light"] .feedback-table-head h3,
+    [data-theme="light"] .feedback-user strong,
+    [data-theme="light"] .feedback-table td {
+        color: #2f2a22;
+    }
+
+    [data-theme="light"] .feedback-summary-header p,
+    [data-theme="light"] .feedback-summary-meta,
+    [data-theme="light"] .feedback-empty,
+    [data-theme="light"] .feedback-user span,
+    [data-theme="light"] .feedback-date,
+    [data-theme="light"] .feedback-message {
+        color: #6d634f;
+    }
+
+    [data-theme="light"] .feedback-progress {
+        background: rgba(143, 109, 39, 0.12);
+    }
+
+    [data-theme="light"] .feedback-table th {
+        background: rgba(143, 109, 39, 0.06);
+        border-top-color: rgba(143, 109, 39, 0.08);
+    }
+
+    [data-theme="light"] .feedback-table th,
+    [data-theme="light"] .feedback-rating-badge {
+        color: #8f6d27;
+    }
+
+    [data-theme="light"] .feedback-table td {
+        border-top-color: rgba(143, 109, 39, 0.08);
+    }
+
+    [data-theme="light"] .feedback-table tr:hover td {
+        background: rgba(143, 109, 39, 0.04);
+    }
+
+    [data-theme="light"] .feedback-rating-badge {
+        background: rgba(212, 175, 55, 0.14);
+        border-color: rgba(143, 109, 39, 0.18);
+    }
+
+    @media (max-width: 768px) {
+        .feedback-summary-card,
+        .feedback-table-head,
+        .feedback-empty {
+            padding-inline: 18px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block admin_header_title %}
+    <h1 style="font-size: 2.7rem; font-weight: 900; color: #fff; margin-bottom: 8px;">سجل التقييمات</h1>
+    <p style="color: rgba(255,255,255,0.58); font-weight: 600;">عرض مركزي لكل تقييمات المستخدمين مع المتوسط العام وأحدث الرسائل الواردة للإدارة.</p>
+{% endblock %}
+
+{% block admin_content %}
+<section class="feedback-admin-shell">
+    <article class="feedback-summary-card">
+        <div class="feedback-summary-header">
+            <div>
+                <h2>مؤشر رضا المستخدمين</h2>
+                <p>المتوسط محسوب من جميع التقييمات التي تحتوي على قيمة رقمية فعلية داخل قاعدة البيانات.</p>
+            </div>
+            <div class="feedback-summary-value">{{ average_rating|floatformat:1 }} / 5</div>
+        </div>
+        <div class="feedback-progress" aria-hidden="true">
+            <div class="feedback-progress-bar" style="width: {{ average_rating_percent }}%;"></div>
+        </div>
+        <div class="feedback-summary-meta">إجمالي التقييمات الرقمية: {{ rating_count }} | نسبة الرضا: {{ average_rating_percent|floatformat:1 }}%</div>
+    </article>
+
+    <article class="feedback-table-card">
+        <div class="feedback-table-head">
+            <h3>جدول التقييمات</h3>
+        </div>
+
+        {% if feedback_entries %}
+        <div class="feedback-table-wrap">
+            <table class="feedback-table">
+                <thead>
+                    <tr>
+                        <th>رقم التقييم</th>
+                        <th>المستخدم</th>
+                        <th>قيمة التقييم</th>
+                        <th>الرسالة</th>
+                        <th>تاريخ الإدخال</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feedback in feedback_entries %}
+                    <tr>
+                        <td>#{{ feedback.id }}</td>
+                        <td>
+                            <div class="feedback-user">
+                                <strong>{{ feedback.user.full_name|default:feedback.user.username }}</strong>
+                                <span>@{{ feedback.user.username }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if feedback.rating %}
+                            <span class="feedback-rating-badge">{{ feedback.rating }} / 5</span>
+                            {% else %}
+                            <span class="feedback-date">بدون تقييم رقمي</span>
+                            {% endif %}
+                        </td>
+                        <td class="feedback-message">{{ feedback.message }}</td>
+                        <td class="feedback-date">{{ feedback.date_created|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="feedback-empty">لا توجد تقييمات مسجلة حتى الآن.</div>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

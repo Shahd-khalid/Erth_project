@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from administration.models import FiqhBook
 
 @login_required
 def dashboard(request):
@@ -34,3 +35,10 @@ def help_page(request):
     Publicly accessible user manual page.
     """
     return render(request, 'dashboard/help.html')
+
+def fiqh_library(request):
+    """
+    Publicly accessible Fiqh library for all users (guests and logged-in).
+    """
+    books = FiqhBook.objects.all()
+    return render(request, 'dashboard/library.html', {'books': books})

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-history text-primary me-2"></i> السجل الزمني للقضية رقم #{{ case.id }}
+        </h2>
+        <p class="text-muted mt-1 mb-0">توثيق جميع الإجراءات والقرارات المتخذة في هذه القضية منذ فتحها.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'cases:review_distribution' case.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i> العودة للقضية
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-body p-4">
+        {% if logs %}
+            <div class="timeline position-relative">
+                <style>
+                    .timeline::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        bottom: 0;
+                        right: 20px; /* Adjust for RTL */
+                        width: 3px;
+                        background: #e9ecef;
+                    }
+                    .timeline-item {
+                        position: relative;
+                        padding-right: 45px; /* Adjust for RTL */
+                        margin-bottom: 30px;
+                    }
+                    .timeline-item:last-child {
+                        margin-bottom: 0;
+                    }
+                    .timeline-icon {
+                        position: absolute;
+                        right: 8px; /* Offset to center on line, adjust based on size */
+                        top: 0;
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 14px;
+                        z-index: 1;
+                    }
+                    .timeline-date {
+                        color: #6c757d;
+                        font-size: 0.9rem;
+                        font-weight: 500;
+                        margin-bottom: 5px;
+                    }
+                </style>
+                
+                {% for log in logs %}
+                    <div class="timeline-item">
+                        {% if log.action == 'CASE_OPENED' %}
+                            <div class="timeline-icon bg-info"><i class="fas fa-folder-open"></i></div>
+                        {% elif log.action == 'PORTAL_OPENED' %}
+                            <div class="timeline-icon bg-success"><i class="fas fa-door-open"></i></div>
+                        {% elif log.action == 'USER_SELECTION' %}
+                            <div class="timeline-icon bg-primary"><i class="fas fa-hand-pointer"></i></div>
+                        {% elif log.action == 'JUDGE_DECISION' %}
+                            <div class="timeline-icon bg-warning text-dark"><i class="fas fa-gavel"></i></div>
+                        {% elif log.action == 'PAYMENT_CONFIRMED' %}
+                            <div class="timeline-icon bg-success"><i class="fas fa-money-bill-wave"></i></div>
+                        {% elif log.action == 'FINAL_REPORT' %}
+                            <div class="timeline-icon bg-danger"><i class="fas fa-file-contract"></i></div>
+                        {% else %}
+                            <div class="timeline-icon bg-secondary"><i class="fas fa-clock"></i></div>
+                        {% endif %}
+                        
+                        <div class="card bg-light border-0">
+                            <div class="card-body p-3">
+                                <div class="timeline-date">
+                                    <i class="far fa-calendar-alt me-1"></i> {{ log.created_at|date:"d M Y, h:i A" }}
+                                </div>
+                                <h6 class="mb-1 fw-bold">{{ log.get_action_display }}</h6>
+                                <p class="mb-2 text-dark">{{ log.description }}</p>
+                                <small class="text-muted"><i class="fas fa-user me-1"></i> المشغل: {{ log.user.get_full_name|default:log.user.username }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="display-3 text-muted mb-3"><i class="fas fa-history text-light"></i></div>
+                <h5 class="text-muted">لا توجد سجلات بعد</h5>
+                <p class="text-muted">لم يتم توثيق أي أحداث في هذه القضية حتى الآن.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

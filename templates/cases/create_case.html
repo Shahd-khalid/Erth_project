@@ -11,9 +11,13 @@
 
             <h4 style="color: var(--secondary-color); margin-bottom: 15px;">بيانات القضية</h4>
             <div class="form-group">
-                <label for="{{ case_form.case_number.id_for_label }}">رقم القضية:</label>
-                {{ case_form.case_number }}
-                {{ case_form.case_number.errors }}
+                <label>رقم القضية:</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    value="سيتم توليد الرقم التسلسلي تلقائيًا وفق تسلسل قضايا القاضي"
+                    disabled
+                >
             </div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">

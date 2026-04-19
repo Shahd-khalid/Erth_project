@@ -39,6 +39,11 @@
         border: 1px solid rgba(212, 175, 55, 0.1);
     }
 
+    .mawareth-table-shell {
+        overflow-x: auto;
+        border-radius: 18px;
+    }
+
     .back-btn {
         background: transparent;
         border: 1px solid var(--accent-color);
@@ -91,13 +96,14 @@
         text-align: right;
         border: 1px solid #ffffff;
         color: var(--text-color);
+        font-size: 1.02rem;
     }
 
     .mawareth-table th {
         background: rgba(26, 35, 47, 0.9);
         color: var(--accent-color);
         font-family: 'Tajawal', sans-serif;
-        font-size: 1.1rem;
+        font-size: 1.16rem;
         font-weight: 600;
         letter-spacing: 0.5px;
     }
@@ -121,26 +127,149 @@
         border-radius: 20px;
         color: var(--accent-color);
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 1.02rem;
     }
 
     .condition-text {
-        font-size: 0.95rem;
+        font-size: 1.02rem;
         color: rgba(255, 255, 255, 0.85);
         line-height: 1.6;
     }
 
     .heir-name {
         font-weight: 600;
-        font-size: 1.05rem;
+        font-size: 1.12rem;
         color: #fff;
     }
 
+    [data-theme="light"] .table-container {
+        padding: 24px 0 10px;
+    }
+
+    [data-theme="light"] .table-header {
+        margin-bottom: 30px;
+    }
+
+    [data-theme="light"] .table-header h1 {
+        color: #b58a2d;
+        font-size: clamp(2.1rem, 1.85rem + 0.95vw, 2.85rem);
+        font-family: 'Reem Kufi Ink', 'Amiri Quran', sans-serif;
+    }
+
+    [data-theme="light"] .table-header p {
+        color: #6f6452;
+        opacity: 1;
+    }
+
+    [data-theme="light"] .controls-wrapper {
+        background: linear-gradient(180deg, #fffdf8 0%, #f8f1e4 100%);
+        border: 1px solid rgba(143, 109, 39, 0.14);
+        border-radius: 18px;
+        box-shadow: 0 14px 30px rgba(96, 67, 24, 0.08);
+        padding: 14px 18px;
+    }
+
+    [data-theme="light"] .back-btn {
+        border-color: rgba(181, 138, 45, 0.35);
+        color: #b58a2d;
+        background: rgba(255, 253, 248, 0.96);
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    [data-theme="light"] .back-btn:hover {
+        background: linear-gradient(135deg, #d2a63d 0%, #b58a2d 100%);
+        border-color: rgba(143, 109, 39, 0.2);
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(143, 109, 39, 0.18);
+    }
+
+    [data-theme="light"] .mawareth-table-shell {
+        background: linear-gradient(180deg, #fffdf8 0%, #f8f1e4 100%);
+        border: 1px solid rgba(143, 109, 39, 0.14);
+        box-shadow: 0 18px 40px rgba(96, 67, 24, 0.12);
+    }
+
+    [data-theme="light"] .mawareth-table {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        border-radius: 18px;
+    }
+
+    [data-theme="light"] .mawareth-table th,
+    [data-theme="light"] .mawareth-table td {
+        border: 1px solid rgba(143, 109, 39, 0.12);
+        color: #2f2a22;
+        padding: 18px 18px;
+        vertical-align: middle;
+    }
+
+    [data-theme="light"] .mawareth-table th {
+        background: linear-gradient(180deg, #f8f1e4 0%, #f2e6cf 100%);
+        color: #8f6d27;
+        font-size: 1.1rem;
+        font-weight: 800;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    [data-theme="light"] .mawareth-table tbody tr:nth-child(even):not(.heir-group) td {
+        background: rgba(248, 241, 228, 0.62);
+    }
+
+    [data-theme="light"] .mawareth-table tr:hover td {
+        background: rgba(205, 166, 70, 0.08);
+    }
+
+    [data-theme="light"] .heir-group td {
+        background: linear-gradient(135deg, rgba(181, 138, 45, 0.14) 0%, rgba(242, 232, 212, 0.96) 100%);
+        color: #8f6d27;
+        font-size: 1.05rem;
+        letter-spacing: 0.01em;
+    }
+
+    [data-theme="light"] .share-badge {
+        background: rgba(181, 138, 45, 0.14);
+        border-color: rgba(143, 109, 39, 0.2);
+        color: #8f6d27;
+        box-shadow: 0 6px 14px rgba(143, 109, 39, 0.08);
+    }
+
+    [data-theme="light"] .condition-text {
+        color: #615846;
+        line-height: 1.75;
+    }
+
+    [data-theme="light"] .heir-name {
+        color: #2f2a22;
+        font-weight: 800;
+    }
+
+    [data-theme="light"] .mawareth-table-shell::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    [data-theme="light"] .mawareth-table-shell::-webkit-scrollbar-track {
+        background: rgba(143, 109, 39, 0.08);
+        border-radius: 999px;
+    }
+
+    [data-theme="light"] .mawareth-table-shell::-webkit-scrollbar-thumb {
+        background: rgba(181, 138, 45, 0.42);
+        border-radius: 999px;
+    }
+
     @media (max-width: 768px) {
-        .mawareth-table {
-            display: block;
-            overflow-x: auto;
+        .mawareth-table-shell {
             white-space: nowrap;
+        }
+
+        .mawareth-table th,
+        .mawareth-table td {
+            padding: 15px 14px;
+            font-size: 0.98rem;
         }
     }
 </style>
@@ -159,6 +288,7 @@
         </a>
     </div>
 
+    <div class="mawareth-table-shell">
     <table class="mawareth-table">
         <thead>
             <tr>
@@ -393,5 +523,6 @@
 
         </tbody>
     </table>
+    </div>
 </div>
 {% endblock %}

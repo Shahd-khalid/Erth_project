@@ -1,0 +1,616 @@
+{% extends 'base.html' %}
+
+{% block title %}التقييمات والملاحظات | إرث{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feedback-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 28px 16px 48px;
+    }
+
+    .feedback-shell {
+        background: linear-gradient(180deg, rgba(13, 17, 23, 0.88) 0%, rgba(18, 24, 32, 0.92) 100%);
+        border: 1px solid rgba(212, 175, 55, 0.18);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
+    }
+
+    .feedback-hero {
+        padding: 32px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background:
+            radial-gradient(circle at top right, rgba(212, 175, 55, 0.16), transparent 32%),
+            linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(46, 204, 113, 0.06));
+    }
+
+    .feedback-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        color: var(--accent-color);
+        background: rgba(212, 175, 55, 0.12);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    .feedback-hero h1 {
+        margin: 0 0 12px;
+        color: #fff;
+        font-size: clamp(1.9rem, 4vw, 2.7rem);
+    }
+
+    .feedback-hero p {
+        margin: 0;
+        color: #c5c8ce;
+        line-height: 1.9;
+        max-width: 700px;
+    }
+
+    .feedback-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        padding: 24px 32px 0;
+    }
+
+    .feedback-meta-card {
+        border-radius: 18px;
+        padding: 18px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #f8f8f8;
+    }
+
+    .feedback-meta-card strong {
+        display: block;
+        color: var(--accent-color);
+        margin-bottom: 6px;
+        font-size: 0.95rem;
+    }
+
+    .feedback-form-wrap {
+        padding: 32px;
+    }
+
+    .platform-rating {
+        padding: 28px 32px 0;
+    }
+
+    .platform-rating-card {
+        border-radius: 24px;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        display: grid;
+        gap: 18px;
+    }
+
+    .platform-rating-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .platform-rating-title {
+        display: grid;
+        gap: 8px;
+    }
+
+    .platform-rating-title h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.25rem;
+    }
+
+    .platform-rating-title p {
+        margin: 0;
+        color: #aeb4bf;
+        line-height: 1.8;
+    }
+
+    .platform-rating-score {
+        text-align: left;
+        display: grid;
+        gap: 8px;
+    }
+
+    .platform-rating-score strong {
+        color: #fff;
+        font-size: clamp(1.6rem, 3vw, 2rem);
+    }
+
+    .platform-rating-score span {
+        color: #b9bfca;
+        font-size: 0.95rem;
+    }
+
+    .platform-rating-stars {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .platform-rating-star {
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.18);
+        transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .platform-rating-star.is-active {
+        color: #d4af37;
+        text-shadow: 0 0 14px rgba(212, 175, 55, 0.35);
+    }
+
+    .platform-rating-bar {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .platform-rating-bar-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #d4af37 0%, #f1c84a 55%, #ffe08a 100%);
+        box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+    }
+
+    .platform-rating-caption {
+        color: #aeb4bf;
+        line-height: 1.8;
+        font-size: 0.95rem;
+    }
+
+    .feedback-form-grid {
+        display: grid;
+        gap: 24px;
+    }
+
+    .feedback-field label {
+        display: block;
+        color: #f2f2f2;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .feedback-textarea,
+    .feedback-select {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: #fff;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: 0.25s ease;
+    }
+
+    .feedback-textarea {
+        min-height: 180px;
+        padding: 16px 18px;
+        resize: vertical;
+        line-height: 1.8;
+    }
+
+    .feedback-select {
+        padding: 14px 16px;
+    }
+
+    .feedback-select-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .feedback-textarea:focus,
+    .feedback-select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .feedback-help {
+        margin-top: 8px;
+        color: #a9adb6;
+        font-size: 0.92rem;
+    }
+
+    .star-rating-wrap {
+        display: grid;
+        gap: 14px;
+    }
+
+    .star-rating {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 18px 20px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .star-rating-button {
+        border: none;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.26);
+        cursor: pointer;
+        padding: 0;
+        font-size: clamp(2rem, 4vw, 2.6rem);
+        line-height: 1;
+        transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .star-rating-button:hover,
+    .star-rating-button:focus-visible {
+        outline: none;
+        transform: translateY(-2px) scale(1.04);
+    }
+
+    .star-rating-button.is-active {
+        color: #d4af37;
+        text-shadow: 0 0 16px rgba(212, 175, 55, 0.45);
+    }
+
+    .star-rating-summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #f1f1f1;
+        font-weight: 700;
+    }
+
+    .star-rating-summary strong {
+        color: var(--accent-color);
+    }
+
+    .star-rating-clear {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+        color: #d7d7d7;
+        border-radius: 999px;
+        padding: 8px 14px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+
+    .star-rating-clear:hover,
+    .star-rating-clear:focus-visible {
+        outline: none;
+        border-color: rgba(212, 175, 55, 0.45);
+        color: var(--accent-color);
+    }
+
+    .feedback-errors {
+        margin-top: 10px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(231, 76, 60, 0.12);
+        border: 1px solid rgba(231, 76, 60, 0.28);
+        color: #ffb2a8;
+    }
+
+    .feedback-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+    }
+
+    .feedback-submit {
+        border: none;
+        border-radius: 16px;
+        padding: 15px 28px;
+        background: linear-gradient(135deg, #d4af37 0%, #b88b19 100%);
+        color: #151515;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 14px 28px rgba(184, 139, 25, 0.28);
+        transition: 0.25s ease;
+    }
+
+    .feedback-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 32px rgba(184, 139, 25, 0.34);
+    }
+
+    .feedback-note {
+        color: #a9adb6;
+        line-height: 1.8;
+    }
+
+    [data-theme="light"] .feedback-shell {
+        background: linear-gradient(180deg, #fffdf8 0%, #fff8ed 100%);
+        border-color: rgba(143, 109, 39, 0.16);
+        box-shadow: 0 24px 40px rgba(96, 67, 24, 0.12);
+    }
+
+    [data-theme="light"] .feedback-hero h1,
+    [data-theme="light"] .feedback-meta-card,
+    [data-theme="light"] .feedback-field label {
+        color: #2f261c;
+    }
+
+    [data-theme="light"] .feedback-hero p,
+    [data-theme="light"] .feedback-note,
+    [data-theme="light"] .feedback-help {
+        color: #6f6556;
+    }
+
+    [data-theme="light"] .feedback-meta-card,
+    [data-theme="light"] .feedback-textarea,
+    [data-theme="light"] .feedback-select {
+        background: rgba(255, 255, 255, 0.72);
+        border-color: rgba(143, 109, 39, 0.16);
+        color: #2f261c;
+    }
+
+    [data-theme="light"] .platform-rating-card {
+        background: rgba(255, 255, 255, 0.78);
+        border-color: rgba(143, 109, 39, 0.16);
+    }
+
+    [data-theme="light"] .platform-rating-title h2,
+    [data-theme="light"] .platform-rating-score strong {
+        color: #2f261c;
+    }
+
+    [data-theme="light"] .platform-rating-title p,
+    [data-theme="light"] .platform-rating-score span,
+    [data-theme="light"] .platform-rating-caption {
+        color: #6f6556;
+    }
+
+    [data-theme="light"] .platform-rating-star {
+        color: rgba(47, 38, 28, 0.18);
+    }
+
+    [data-theme="light"] .platform-rating-star.is-active {
+        color: #c99616;
+        text-shadow: 0 0 14px rgba(201, 150, 22, 0.22);
+    }
+
+    [data-theme="light"] .platform-rating-bar {
+        background: rgba(143, 109, 39, 0.12);
+    }
+
+    [data-theme="light"] .star-rating {
+        background: rgba(255, 255, 255, 0.72);
+        border-color: rgba(143, 109, 39, 0.16);
+    }
+
+    [data-theme="light"] .star-rating-button {
+        color: rgba(47, 38, 28, 0.18);
+    }
+
+    [data-theme="light"] .star-rating-button.is-active {
+        color: #c99616;
+        text-shadow: 0 0 14px rgba(201, 150, 22, 0.28);
+    }
+
+    [data-theme="light"] .star-rating-summary {
+        color: #2f261c;
+    }
+
+    [data-theme="light"] .star-rating-clear {
+        background: rgba(255, 255, 255, 0.82);
+        border-color: rgba(143, 109, 39, 0.16);
+        color: #6f6556;
+    }
+
+    [data-theme="light"] .feedback-badge {
+        color: #8f6d27;
+        background: rgba(212, 175, 55, 0.14);
+        border-color: rgba(143, 109, 39, 0.16);
+    }
+
+    @media (max-width: 768px) {
+        .feedback-page {
+            padding-inline: 10px;
+        }
+
+        .feedback-hero,
+        .feedback-form-wrap {
+            padding: 22px 18px;
+        }
+
+        .platform-rating {
+            padding: 20px 18px 0;
+        }
+
+        .feedback-meta {
+            padding: 18px 18px 0;
+        }
+
+        .feedback-actions {
+            align-items: stretch;
+        }
+
+        .feedback-submit {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="feedback-page">
+    <div class="feedback-shell">
+        <div class="feedback-hero">
+            <div class="feedback-badge">
+                <i class="fas fa-comments"></i>
+                <span>قناة مباشرة مع الإدارة</span>
+            </div>
+            <h1>التقييمات والملاحظات</h1>
+            <p>
+                شاركنا رأيك أو أرسل ملاحظتك بشكل مباشر. سيتم حفظ الرسالة باسم حسابك الحالي حتى يتمكن فريق الإدارة من مراجعتها والرد عليها عند الحاجة.
+            </p>
+        </div>
+
+        <div class="feedback-meta">
+            <div class="feedback-meta-card">
+                <strong>الحساب المرسل</strong>
+                <span>{{ request.user.full_name|default:request.user.username }}</span>
+            </div>
+            <div class="feedback-meta-card">
+                <strong>نوع الحساب</strong>
+                <span>{{ request.user.get_role_display }}</span>
+            </div>
+        </div>
+
+        <div class="platform-rating">
+            <div class="platform-rating-card">
+                <div class="platform-rating-header">
+                    <div class="platform-rating-title">
+                        <h2>متوسط تقييم المنصة</h2>
+                        <p>يتم حساب هذا المتوسط مباشرة من جميع التقييمات الموجودة في قاعدة البيانات.</p>
+                    </div>
+                    <div class="platform-rating-score">
+                        <strong>{{ average_rating|floatformat:1 }} / 5</strong>
+                        <span>إجمالي التقييمات: {{ rating_count }}</span>
+                    </div>
+                </div>
+
+                <div class="platform-rating-stars" aria-label="متوسط تقييم المنصة">
+                    <span class="platform-rating-star {% if average_rating_rounded >= 1 %}is-active{% endif %}">★</span>
+                    <span class="platform-rating-star {% if average_rating_rounded >= 2 %}is-active{% endif %}">★</span>
+                    <span class="platform-rating-star {% if average_rating_rounded >= 3 %}is-active{% endif %}">★</span>
+                    <span class="platform-rating-star {% if average_rating_rounded >= 4 %}is-active{% endif %}">★</span>
+                    <span class="platform-rating-star {% if average_rating_rounded >= 5 %}is-active{% endif %}">★</span>
+                </div>
+
+                <div class="platform-rating-bar" aria-hidden="true">
+                    <div class="platform-rating-bar-fill" style="width: {{ average_rating_percent }}%;"></div>
+                </div>
+
+                <div class="platform-rating-caption">
+                    نسبة التقييم الحالية {{ average_rating_percent|floatformat:1 }}% من الحد الأعلى.
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback-form-wrap">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="feedback-form-grid">
+                    <div class="feedback-field">
+                        <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+                        {{ form.message }}
+                        <div class="feedback-help">اكتب رسالتك بوضوح، ويمكنك ذكر أي اقتراح أو ملاحظة أو مشكلة واجهتك.</div>
+                        {% if form.message.errors %}
+                        <div class="feedback-errors">{{ form.message.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="feedback-field">
+                        <label for="{{ form.rating.id_for_label }}">{{ form.rating.label }}</label>
+                        <div class="star-rating-wrap" data-star-rating data-current="{{ form.rating.value|default_if_none:'' }}">
+                            {{ form.rating }}
+                            <div class="star-rating" role="group" aria-label="اختيار التقييم بالنجوم">
+                                <button type="button" class="star-rating-button" data-star-value="1" aria-label="نجمة واحدة">★</button>
+                                <button type="button" class="star-rating-button" data-star-value="2" aria-label="نجمتان">★</button>
+                                <button type="button" class="star-rating-button" data-star-value="3" aria-label="3 نجوم">★</button>
+                                <button type="button" class="star-rating-button" data-star-value="4" aria-label="4 نجوم">★</button>
+                                <button type="button" class="star-rating-button" data-star-value="5" aria-label="5 نجوم">★</button>
+                            </div>
+                            <div class="star-rating-summary">
+                                <span>القيمة الحالية:</span>
+                                <strong data-star-label>بدون تقييم</strong>
+                                <button type="button" class="star-rating-clear" data-star-clear>مسح</button>
+                            </div>
+                        </div>
+                        <div class="feedback-help">اضغط على النجوم لاختيار التقييم، وسيتم حفظ القيمة الرقمية نفسها تلقائيًا في الخلفية.</div>
+                        {% if form.rating.errors %}
+                        <div class="feedback-errors">{{ form.rating.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="feedback-errors" style="margin-top: 18px;">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="feedback-actions">
+                    <p class="feedback-note">
+                        بعد الإرسال ستظهر رسالة نجاح، وسيتم فتح النموذج من جديد فارغًا تلقائيًا.
+                    </p>
+                    <button type="submit" class="feedback-submit">
+                        <i class="fas fa-paper-plane"></i>
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-star-rating]').forEach((container) => {
+            const select = container.querySelector('select');
+            const buttons = Array.from(container.querySelectorAll('[data-star-value]'));
+            const label = container.querySelector('[data-star-label]');
+            const clearButton = container.querySelector('[data-star-clear]');
+
+            if (!select || !buttons.length || !label) {
+                return;
+            }
+
+            select.classList.add('feedback-select-hidden');
+
+            const updateStars = (value) => {
+                const numericValue = Number(value) || 0;
+
+                buttons.forEach((button) => {
+                    const buttonValue = Number(button.dataset.starValue);
+                    const isActive = buttonValue <= numericValue;
+                    button.classList.toggle('is-active', isActive);
+                    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                });
+
+                label.textContent = numericValue ? `${numericValue} من 5` : 'بدون تقييم';
+                select.value = numericValue ? String(numericValue) : '';
+            };
+
+            buttons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    updateStars(button.dataset.starValue);
+                });
+            });
+
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    updateStars('');
+                });
+            }
+
+            updateStars(select.value || container.dataset.current || '');
+        });
+    });
+</script>
+{% endblock %}

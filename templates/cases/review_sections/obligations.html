@@ -1,0 +1,97 @@
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">الديون والوصايا</h3>
+        <p class="mb-0 text-muted">أصبح هذا القسم جزءًا من مراجعة القضية نفسها لمتابعة تصفية الالتزامات قبل الانتقال لتوزيع التركة على الورثة.</p>
+    </div>
+    <div class="review-card-body">
+        <div class="review-stat-grid mb-4">
+            <div class="review-stat">
+                <div class="text-muted small mb-2">إجمالي المطلوب</div>
+                <div class="fs-4 fw-bold">{{ obligation_status.total_required|floatformat:2 }} ر.س</div>
+            </div>
+            <div class="review-stat">
+                <div class="text-muted small mb-2">إجمالي المخصص</div>
+                <div class="fs-4 fw-bold">{{ obligation_status.total_allocated|floatformat:2 }} ر.س</div>
+            </div>
+            <div class="review-stat">
+                <div class="text-muted small mb-2">المتبقي</div>
+                <div class="fs-4 fw-bold">{{ obligation_status.total_remaining|floatformat:2 }} ر.س</div>
+            </div>
+            <div class="review-stat">
+                <div class="text-muted small mb-2">الحالة</div>
+                <div class="fs-4 fw-bold">{% if obligation_status.is_settled %}مكتملة{% else %}قيد التصفية{% endif %}</div>
+            </div>
+        </div>
+
+        <div class="review-note mb-4">
+            {% if obligation_status.is_settled %}
+                تمت تغطية جميع الديون والوصايا بالكامل، ويمكن متابعة بقية مراحل القضية مع بقاء هذا السجل مرجعًا داخل مراجعة القضية.
+            {% else %}
+                لا يمكن اعتماد التوزيع النهائي قبل استكمال تصفية جميع الديون والوصايا بالكامل.
+            {% endif %}
+        </div>
+
+        {% if obligation_status.items %}
+        <div class="table-responsive">
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>الالتزام</th>
+                        <th>المبلغ</th>
+                        <th>المخصص</th>
+                        <th>المتبقي</th>
+                        <th>العناصر المرتبطة</th>
+                        <th>الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in obligation_status.items %}
+                    <tr>
+                        <td>
+                            <strong>{% if item.kind == 'debt' %}دين{% else %}وصية{% endif %}: {{ item.label }}</strong>
+                        </td>
+                        <td>{{ item.amount|floatformat:2 }} ر.س</td>
+                        <td>{{ item.allocated|floatformat:2 }} ر.س</td>
+                        <td>{{ item.remaining|floatformat:2 }} ر.س</td>
+                        <td>
+                            {% for allocation in item.allocations %}
+                            <span class="review-badge mb-1">{{ allocation.target_label }} - {{ allocation.allocated_amount|floatformat:2 }}</span>
+                            {% empty %}
+                            <span class="text-muted">لم يتم تخصيص أي أصل أو جزء بعد.</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if item.can_open_allocation_stage %}
+                            <a class="review-btn review-btn-primary" href="{{ item.allocation_stage_url }}">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>
+                                    {% if item.kind == 'debt' %}
+                                        {% if item.has_existing_allocations %}إعادة تصفية الدين{% else %}تصفية الدين{% endif %}
+                                    {% else %}
+                                        {% if item.has_existing_allocations %}إعادة تصفية الوصية{% else %}تصفية الوصية{% endif %}
+                                    {% endif %}
+                                </span>
+                            </a>
+                            {% else %}
+                            <button class="review-btn review-btn-primary" type="button" disabled title="{% if not item.has_selected_allocations %}لا يوجد أي اختيار من الورثة على العناصر المخصصة لهذا الالتزام.{% elif not item.all_heirs_in_approved_table %}يجب إضافة جميع الورثة أولًا إلى جدول التوزيع المعتمد.{% else %}لا يمكن فتح مرحلة التصفية حاليًا.{% endif %}">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>
+                                    {% if item.kind == 'debt' %}
+                                        {% if item.has_existing_allocations %}إعادة تصفية الدين{% else %}تصفية الدين{% endif %}
+                                    {% else %}
+                                        {% if item.has_existing_allocations %}إعادة تصفية الوصية{% else %}تصفية الوصية{% endif %}
+                                    {% endif %}
+                                </span>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="review-note">لا توجد ديون أو وصايا مسجلة على هذه القضية حاليًا.</div>
+        {% endif %}
+    </div>
+</section>

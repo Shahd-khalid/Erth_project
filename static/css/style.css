@@ -1,3 +1,55 @@
+@font-face {
+    font-family: 'Amiri Quran';
+    src: url('../fonts/Amiri_Quran/AmiriQuran-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Reem Kufi Ink';
+    src: url('../fonts/Amiri_Quran,Reem_Kufi_Ink/Reem_Kufi_Ink/ReemKufiInk-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-palette-values --ink-gold {
+    font-family: 'Reem Kufi Ink';
+    base-palette: 0;
+    override-colors: 0 #d4af37, 1 #d4af37, 2 #d4af37, 3 #d4af37, 4 #d4af37;
+}
+
+@font-palette-values --ink-white {
+    font-family: 'Reem Kufi Ink';
+    base-palette: 0;
+    override-colors: 0 #ffffff, 1 #ffffff, 2 #ffffff, 3 #ffffff, 4 #ffffff;
+}
+
+@font-palette-values --ink-gold-dark {
+    font-family: 'Reem Kufi Ink';
+    base-palette: 0;
+    override-colors: 0 #996515, 1 #996515, 2 #996515, 3 #996515, 4 #996515;
+}
+
+@font-palette-values --ink-dark {
+    font-family: 'Reem Kufi Ink';
+    base-palette: 0;
+    override-colors: 0 #1a202c, 1 #1a202c, 2 #1a202c, 3 #1a202c, 4 #1a202c;
+}
+
+h1,
+h2,
+h3 {
+    font-family: 'Reem Kufi Ink', 'Amiri Quran', sans-serif;
+    font-palette: --ink-gold;
+}
+
+[data-theme="light"] h1,
+[data-theme="light"] h2 {
+    font-palette: --ink-gold-dark;
+}
+
 :root {
     --primary-color: #d4af37;
     --primary-hover: #b8962d;
@@ -24,7 +76,7 @@
 }
 
 body {
-    font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
+    font-family: 'Amiri Quran', 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
     background-color: var(--background-color);
     background-image: var(--premium-gradient);
     background-attachment: fixed;
@@ -216,7 +268,7 @@ ul {
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
     border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-    height: 95px;
+    min-height: 90px;
     display: flex;
     align-items: center;
     position: sticky;
@@ -246,7 +298,7 @@ ul {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    height: 100%;
+    gap: 30px;
 }
 
 .navbar-logo {
@@ -286,7 +338,7 @@ ul {
     font-weight: 800;
     color: #fff;
     line-height: 1.1;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-family: 'Amiri Quran', 'IBM Plex Sans Arabic', sans-serif;
     letter-spacing: 0.5px;
 }
 
@@ -300,33 +352,53 @@ ul {
 
 /* Nav Desktop Links */
 .nav-content {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 40px;
+}
+
+.nav-desktop-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-right: 40px;
     height: 100%;
+    /* يشغل كامل ارتفاع الحاوية للتوسيط */
 }
 
 .nav-links {
     display: flex;
-    gap: 25px;
+    gap: 15px;
+    align-items: center;
+    list-style: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100%;
+}
+
+.nav-links li {
+    display: flex;
     align-items: center;
     height: 100%;
-    margin: 0;
-    padding: 0;
 }
 
 .nav-link {
     color: rgba(255, 255, 255, 0.8);
     font-weight: 600;
     font-size: 1rem;
-    padding: 10px 18px;
+    padding: 8px 15px;
     border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 8px;
     position: relative;
     overflow: hidden;
+    line-height: 1;
+    height: 45px;
+    /* ارتفاع ثابت ليتناسب مع قسم المستخدم */
 }
 
 .nav-link::before {
@@ -374,10 +446,12 @@ ul {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(212, 175, 55, 0.2);
     border-radius: 50px;
-    padding: 6px 8px 6px 24px;
-    gap: 15px;
+    padding: 4px 6px 4px 20px;
+    gap: 12px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    height: 45px;
+    /* نفس ارتفاع الروابط بالضبط */
 }
 
 .user-menu-wrapper:hover {
@@ -398,7 +472,7 @@ ul {
 
 .user-profile-link span {
     font-weight: 700;
-    font-family: 'Tajawal', sans-serif;
+    font-family: 'Amiri Quran', 'Tajawal', sans-serif;
     letter-spacing: 0.5px;
 }
 
@@ -484,7 +558,7 @@ ul {
     border-radius: 12px;
     border: none;
     font-weight: 800;
-    font-family: 'Tajawal', sans-serif;
+    font-family: 'Amiri Quran', 'Tajawal', sans-serif;
     box-shadow: 0 8px 25px rgba(212, 175, 55, 0.25);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     cursor: pointer;
@@ -529,7 +603,7 @@ ul {
     padding: 10px 28px;
     border-radius: 12px;
     font-weight: 700;
-    font-family: 'Tajawal', sans-serif;
+    font-family: 'Amiri Quran', 'Tajawal', sans-serif;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: inline-flex;
     align-items: center;
@@ -636,6 +710,90 @@ textarea {
     font-size: 1.1rem;
     transition: var(--transition);
 }
+
+.password-field-shell {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.password-field-shell > input[type="password"],
+.password-field-shell > input[type="text"].password-toggle-input,
+.password-field-shell > .form-control {
+    padding-right: 3.35rem !important;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 0.85rem;
+    left: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.35rem;
+    height: 2.35rem;
+    border: none;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--primary-color);
+    cursor: pointer;
+    z-index: 2;
+    transition: background-color 0.22s ease, color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.password-toggle-btn:hover {
+    background: rgba(212, 175, 55, 0.18);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.16);
+}
+
+.password-toggle-btn:focus-visible {
+    outline: 2px solid rgba(212, 175, 55, 0.4);
+    outline-offset: 2px;
+}
+
+.password-toggle-btn i {
+    font-size: 0.95rem;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    filter: none !important;
+    transform: none !important;
+    margin: 0 !important;
+    pointer-events: none;
+}
+
+select option {
+    background-color: #0c0e12 !important;
+    color: #ffffff !important;
+}
+
+/* Select2 Custom Styles */
+.select2-container--default .select2-results__option {
+    background-color: #0c0e12 !important;
+    color: #ffffff !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected],
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: #d4af37 !important;
+    color: #000000 !important;
+}
+
+.select2-dropdown {
+    background-color: #0c0e12 !important;
+    border: 1px solid #d4af37 !important;
+}
+
+.select2-search__field {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(212, 175, 55, 0.3) !important;
+}
+
+
 
 .form-control:focus {
     outline: none;
@@ -763,4 +921,1204 @@ tr:hover td {
     border-top: 1px solid var(--glass-border);
     text-align: center;
     color: var(--text-muted);
+}
+
+/* =========================================
+   LIGHT THEME OVERRIDES (Zero-Backend)
+   ========================================= */
+[data-theme="light"] {
+    --primary-color: #b8860b;
+    --primary-hover: #996515;
+    --background-color: #f7f9fc;
+    --premium-gradient: linear-gradient(135deg, #fdfbf7 0%, #f4f0e6 100%);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --glass-bg: rgba(255, 255, 255, 1);
+    --glass-border: rgba(184, 134, 11, 0.25);
+    --text-color: #1a202c;
+    --text-muted: #4a5568;
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Hardcoded Element Adjustments for Light Mode */
+[data-theme="light"] .navbar {
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid rgba(184, 134, 11, 0.3);
+}
+
+[data-theme="light"] .logo-title,
+[data-theme="light"] .nav-link:not(:hover),
+[data-theme="light"] .toast-message,
+[data-theme="light"] .glass-card-title,
+[data-theme="light"] .profile-info h1,
+[data-theme="light"] .stat-value,
+[data-theme="light"] .stat-label,
+[data-theme="light"] .guide-card h3,
+[data-theme="light"] .guide-card p,
+[data-theme="light"] .heir-card {
+    color: var(--text-color);
+}
+
+[data-theme="light"] .nav-link {
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .nav-link:hover {
+    color: var(--primary-color);
+    background: rgba(184, 134, 11, 0.05);
+}
+
+[data-theme="light"] .user-menu-wrapper {
+    background: rgba(255, 255, 255, 1);
+}
+
+[data-theme="light"] .toast-message {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+[data-theme="light"] .custom-field-wrapper input,
+[data-theme="light"] .custom-field-wrapper textarea,
+[data-theme="light"] .custom-field-wrapper select,
+[data-theme="light"] .form-control {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: var(--text-color);
+}
+
+[data-theme="light"] .custom-field-wrapper input:focus,
+[data-theme="light"] .form-control:focus {
+    background: #fff;
+    box-shadow: 0 0 10px rgba(184, 134, 11, 0.2);
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] .glass-card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .guide-card,
+[data-theme="light"] .table-container,
+[data-theme="light"] .profile-header-card {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: var(--shadow);
+}
+
+[data-theme="light"] .heir-card.active {
+    color: #fff;
+}
+
+[data-theme="light"] th {
+    background: rgba(184, 134, 11, 0.05);
+    color: var(--primary-color);
+}
+
+/* =========================================
+   GLOBAL FORCE-OVERRIDE FOR INLINE WHITE FONTS
+   ========================================= */
+[data-theme="light"] [style*="color: #fff"],
+[data-theme="light"] [style*="color: white"],
+[data-theme="light"] [style*="color: #ffffff"],
+[data-theme="light"] [style*="color:#fff"],
+[data-theme="light"] [style*="color:white"],
+[data-theme="light"] [style*="color:#ffffff"],
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-light {
+    color: var(--text-color) !important;
+}
+
+/* Exceptions: Elements that MUST stay white/dark depending on their own background even in light theme */
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .badge-danger,
+[data-theme="light"] .badge-success,
+[data-theme="light"] .message.user {
+    color: #fff !important;
+}
+
+[data-theme="light"] .message.user {
+    color: #000 !important;
+}
+
+/* =========================================
+   GLOBAL ACT: REPLACE ALL GRAY WITH GOLD (User Request)
+   ========================================= */
+.text-muted,
+.text-secondary,
+.sidebar-link,
+[style*="color: #888"],
+[style*="color:#888"],
+[style*="color: #aaa"],
+[style*="color:#aaa"],
+[style*="color: #999"],
+[style*="color:#999"],
+[style*="color: #777"],
+[style*="color:#777"],
+[style*="color: #666"],
+[style*="color:#666"],
+[style*="color: #bbb"],
+[style*="color:#bbb"],
+[style*="color: #ccc"],
+[style*="color:#ccc"],
+[style*="color: #ddd"],
+[style*="color:#ddd"],
+[style*="color: #eee"],
+[style*="color:#eee"],
+[style*="color: #95a5a6"],
+[style*="color: gray"],
+[style*="color: grey"],
+[style*="color: lightgray"],
+[style*="color: darkgray"] {
+    color: #c5a967 !important;
+    /* Elegant Muted Gold */
+}
+
+/* Specific Light Theme Override for Readability: 
+   Wait, if it's on white background, light gold is still too light.
+   Let's use a Dark Gold/Bronze for Light theme reading.
+*/
+[data-theme="light"] .text-muted,
+[data-theme="light"] .text-secondary,
+[data-theme="light"] [style*="color: #888"],
+[data-theme="light"] [style*="color:#888"],
+[data-theme="light"] [style*="color: #aaa"],
+[data-theme="light"] [style*="color:#aaa"],
+[data-theme="light"] [style*="color: #999"],
+[data-theme="light"] [style*="color:#999"],
+[data-theme="light"] [style*="color: #777"],
+[data-theme="light"] [style*="color:#777"],
+[data-theme="light"] [style*="color: #666"],
+[data-theme="light"] [style*="color:#666"],
+[data-theme="light"] [style*="color: #bbb"],
+[data-theme="light"] [style*="color:#bbb"],
+[data-theme="light"] [style*="color: #ccc"],
+[data-theme="light"] [style*="color:#ccc"],
+[data-theme="light"] [style*="color: #ddd"],
+[data-theme="light"] [style*="color:#ddd"],
+[data-theme="light"] [style*="color: #eee"],
+[data-theme="light"] [style*="color:#eee"],
+[data-theme="light"] [style*="color: #f1f1f1"],
+[data-theme="light"] [style*="color:#f1f1f1"],
+[data-theme="light"] [style*="color: #95a5a6"],
+[data-theme="light"] [style*="color: gray"],
+[data-theme="light"] [style*="color: grey"],
+[data-theme="light"] [style*="opacity"],
+[data-theme="light"] .opacity-50,
+[data-theme="light"] .opacity-75 {
+    color: #8b6b23 !important;
+    /* High Contrast Bronze Gold */
+    opacity: 1 !important;
+    /* Force full opacity for readability */
+}
+
+/* Ensure secondary labels are dark enough */
+[data-theme="light"] .stat-pill-card small,
+[data-theme="light"] .stats-card-premium h6,
+[data-theme="light"] .text-muted {
+    color: #5a4a2a !important;
+}
+
+/* Gray SHAPES (Backgrounds) to Gold Customization */
+.bg-secondary,
+.btn-secondary,
+.badge-secondary,
+.badge-premium-secondary,
+[style*="background: #888"],
+[style*="background:#888"],
+[style*="background-color: #888"],
+[style*="background-color:#888"],
+[style*="background: gray"],
+[style*="background-color: gray"],
+[style*="background: grey"],
+[style*="background-color: grey"] {
+    background-color: var(--primary-color) !important;
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Fix borders that were gray to be gold */
+[style*="border-color: #888"],
+[style*="border-color:#888"],
+[style*="border-color: #aaa"],
+[style*="border-color:#aaa"],
+[style*="border-color: #ccc"],
+[style*="border-color:#ccc"],
+[style*="border-color: #ddd"],
+[style*="border-color:#ddd"],
+[style*="border-color: #eee"],
+[style*="border-color:#eee"],
+[style*="border: 1px solid #888"],
+[style*="border: 1px solid #aaa"],
+[style*="border: 1px solid #ccc"],
+[style*="border: 1px solid #ddd"],
+[style*="border: 1px solid #eee"],
+[style*="border-right: 4px solid #888"],
+[style*="border-right: 4px solid #aaa"],
+[style*="border-right: 4px solid #d4af37"] {
+    border-color: var(--primary-color) !important;
+}
+
+[data-theme="light"] [style*="border"] {
+    border-color: rgba(184, 134, 11, 0.2) !important;
+}
+
+.btn-secondary:hover {
+    background: var(--primary-hover) !important;
+    color: #fff !important;
+}
+
+.btn-outline-secondary {
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--primary-color) !important;
+    color: #fff !important;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    color: var(--primary-color) !important;
+}
+
+/* =========================================
+   USER SPECIFIC REQUEST: GRAY SHAPES -> GOLD WITH WHITE TEXT
+   ========================================= */
+
+/* Force any dark card/sidebar to be Gold in Light Theme */
+[data-theme="light"] .judge-sidebar,
+[data-theme="light"] .premium-header,
+[data-theme="light"] .premium-card,
+[data-theme="light"] .smart-case-card,
+[data-theme="light"] .urgent-center,
+[data-theme="light"] .urgent-item,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .bg-dark,
+[data-theme="light"] [style*="background: rgba(10"],
+[data-theme="light"] [style*="background:rgba(10"] {
+    background: var(--primary-color) !important;
+    background-color: var(--primary-color) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 10px 30px rgba(184, 134, 11, 0.2) !important;
+}
+
+/* Ensure text inside these gold boxes is white (except badges/buttons) */
+[data-theme="light"] .judge-sidebar *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .premium-header *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .premium-card *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .smart-case-card *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .urgent-center *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .urgent-item *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .stat-card *:not(.badge):not(.btn):not(i) {
+    color: #fff !important;
+}
+
+[data-theme="light"] .judge-sidebar i,
+[data-theme="light"] .premium-header i,
+[data-theme="light"] .premium-card i,
+[data-theme="light"] .stat-card i {
+    color: #fff !important;
+}
+
+/* Make active links White on Gold to stand out */
+[data-theme="light"] .judge-sidebar .sidebar-link.active,
+[data-theme="light"] .judge-sidebar .sidebar-link:hover {
+    background: #fff !important;
+    color: var(--primary-color) !important;
+    border-right: 4px solid #fff !important;
+}
+
+[data-theme="light"] .judge-sidebar .sidebar-link.active *,
+[data-theme="light"] .judge-sidebar .sidebar-link:hover * {
+    color: var(--primary-color) !important;
+}
+
+[data-theme="light"] .judge-sidebar .sidebar-brand div {
+    background: #fff !important;
+}
+
+[data-theme="light"] .judge-sidebar .sidebar-brand div i {
+    color: var(--primary-color) !important;
+}
+
+/* Override any dark body backgrounds that were hardcoded */
+[data-theme="light"] body {
+    background-color: var(--background-color) !important;
+    background: var(--background-color) !important;
+}
+
+/* =========================================
+   TYPOGRAPHY COMFORT SCALE
+   ========================================= */
+html {
+    font-size: 18.5px;
+}
+
+body {
+    font-size: 1.06rem;
+    line-height: 1.9;
+}
+
+h1 {
+    font-size: clamp(2.35rem, 2rem + 1.35vw, 3.2rem);
+    line-height: 1.35;
+}
+
+h2 {
+    font-size: clamp(2.05rem, 1.75rem + 1vw, 2.7rem);
+    line-height: 1.4;
+}
+
+h3 {
+    font-size: clamp(1.75rem, 1.55rem + 0.75vw, 2.2rem);
+    line-height: 1.45;
+}
+
+h4 {
+    font-size: clamp(1.5rem, 1.3rem + 0.45vw, 1.9rem);
+    line-height: 1.5;
+}
+
+h5,
+h6 {
+    line-height: 1.55;
+}
+
+p,
+li,
+label,
+input,
+select,
+textarea,
+button,
+a,
+td,
+th {
+    font-size: 1.1rem;
+}
+
+small,
+.form-text,
+.text-muted,
+.badge,
+.badge-premium,
+.badge-secondary {
+    font-size: 1rem;
+}
+
+/* Boost inline text sizes found in templates without touching logic */
+:is(p, li, label, td, th, span, a, button, input, select, textarea)[style*="font-size"] {
+    font-size: 1.1em !important;
+}
+
+@media (max-width: 992px) {
+    html {
+        font-size: 17.5px;
+    }
+}
+
+@media (max-width: 576px) {
+    html {
+        font-size: 17px;
+    }
+
+    body {
+        line-height: 1.82;
+    }
+}
+
+/* =========================================
+   WARM PREMIUM LIGHT THEME SYSTEM
+   ========================================= */
+[data-theme="light"] {
+    --rv-card: #fffdf8;
+    --rv-card-soft: #f8f2e7;
+    --rv-accent: #b58a2d;
+    --rv-accent-deep: #8f6d27;
+    --rv-text: #2f2a22;
+    --rv-muted: #766b58;
+    --rv-line: rgba(143, 109, 39, 0.2);
+    --rv-shadow: 0 18px 40px rgba(96, 67, 24, 0.12);
+    --status-success-bg: rgba(46, 160, 103, 0.15);
+    --status-success-text: #1f7a4d;
+    --status-warning-bg: rgba(185, 128, 30, 0.16);
+    --status-warning-text: #8f6111;
+    --status-danger-bg: rgba(198, 74, 62, 0.14);
+    --status-danger-text: #a23b31;
+    --status-info-bg: rgba(60, 123, 187, 0.14);
+    --status-info-text: #2f6699;
+    --status-secondary-bg: rgba(116, 108, 93, 0.14);
+    --status-secondary-text: #615846;
+    --primary-color: var(--rv-accent);
+    --primary-hover: var(--rv-accent-deep);
+    --background-color: #f7f2e8;
+    --premium-gradient: linear-gradient(145deg, #f8f3e8 0%, #efe4cf 48%, #f9f5eb 100%);
+    --card-bg: var(--rv-card);
+    --glass-bg: var(--rv-card-soft);
+    --glass-border: var(--rv-line);
+    --text-color: var(--rv-text);
+    --text-muted: var(--rv-muted);
+    --shadow: var(--rv-shadow);
+}
+
+[data-theme="light"] body,
+[data-theme="light"] p,
+[data-theme="light"] li,
+[data-theme="light"] label,
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea,
+[data-theme="light"] button,
+[data-theme="light"] a,
+[data-theme="light"] td,
+[data-theme="light"] th,
+[data-theme="light"] span,
+[data-theme="light"] .nav-link,
+[data-theme="light"] .sidebar-item,
+[data-theme="light"] .mobile-link,
+[data-theme="light"] .user-profile-link span,
+[data-theme="light"] .logo-subtitle,
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .btn-outline,
+[data-theme="light"] .form-control,
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="password"],
+[data-theme="light"] input[type="email"],
+[data-theme="light"] input[type="number"],
+[data-theme="light"] input[type="tel"] {
+    font-family: 'Amiri Quran', 'IBM Plex Sans Arabic', 'Tajawal', sans-serif !important;
+}
+
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6,
+[data-theme="light"] .logo-title,
+[data-theme="light"] .card-header,
+[data-theme="light"] .settings-card h3,
+[data-theme="light"] .settings-hero h2 {
+    font-family: 'Reem Kufi Ink', 'Amiri Quran', sans-serif;
+    font-palette: --ink-gold-dark;
+    color: var(--rv-text);
+}
+
+[data-theme="light"] body {
+    background: var(--premium-gradient) !important;
+    color: var(--rv-text) !important;
+}
+
+[data-theme="light"] p,
+[data-theme="light"] li,
+[data-theme="light"] td,
+[data-theme="light"] label,
+[data-theme="light"] span {
+    color: var(--rv-text);
+}
+
+[data-theme="light"] .text-muted,
+[data-theme="light"] small,
+[data-theme="light"] .form-text {
+    color: var(--rv-muted) !important;
+}
+
+[data-theme="light"] [style*="color: rgba(255,255,255"],
+[data-theme="light"] [style*="color:rgba(255,255,255"],
+[data-theme="light"] [style*="color: rgba(255, 255, 255"],
+[data-theme="light"] [style*="color:rgba(255, 255, 255"],
+[data-theme="light"] [style*="color: #f8f9fa"],
+[data-theme="light"] [style*="color:#f8f9fa"],
+[data-theme="light"] [style*="color: #e9ecef"],
+[data-theme="light"] [style*="color:#e9ecef"],
+[data-theme="light"] [style*="color: #adb5bd"],
+[data-theme="light"] [style*="color:#adb5bd"] {
+    color: var(--rv-text) !important;
+}
+
+[data-theme="light"] .premium-card p,
+[data-theme="light"] .premium-card li,
+[data-theme="light"] .premium-card span,
+[data-theme="light"] .glass-card p,
+[data-theme="light"] .glass-card li,
+[data-theme="light"] .stat-card p,
+[data-theme="light"] .table-container p,
+[data-theme="light"] .table-container span,
+[data-theme="light"] .guide-card p,
+[data-theme="light"] .guide-card li {
+    color: var(--rv-text) !important;
+}
+
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea,
+[data-theme="light"] ::placeholder {
+    color: #5f5647 !important;
+}
+
+[data-theme="light"] .navbar {
+    background: rgba(255, 253, 248, 0.94) !important;
+    border-bottom: 1px solid var(--rv-line) !important;
+    box-shadow: 0 10px 24px rgba(99, 70, 29, 0.1) !important;
+}
+
+[data-theme="light"] .navbar-logo .logo-title {
+    font-size: 1.82rem !important;
+    font-weight: 800 !important;
+    color: var(--rv-text) !important;
+}
+
+[data-theme="light"] .navbar-logo .logo-subtitle {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    color: var(--rv-muted) !important;
+}
+
+[data-theme="light"] .nav-link,
+[data-theme="light"] .sidebar-link {
+    color: var(--rv-text) !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    transition: all 0.22s ease;
+}
+
+[data-theme="light"] .nav-link i,
+[data-theme="light"] .sidebar-link i {
+    font-size: 1.04rem !important;
+}
+
+[data-theme="light"] .menu-link,
+[data-theme="light"] .premium-nav-link,
+[data-theme="light"] .sidebar-item,
+[data-theme="light"] .list-group-item,
+[data-theme="light"] .list-group-item-action {
+    transition: all 0.22s ease !important;
+}
+
+[data-theme="light"] .sidebar-link:hover,
+[data-theme="light"] .sidebar-link.active,
+[data-theme="light"] .premium-nav-link:hover {
+    transform: translateX(-3px);
+}
+
+[data-theme="light"] .sidebar-link:hover,
+[data-theme="light"] .sidebar-link.active,
+[data-theme="light"] .premium-nav-link:hover,
+[data-theme="light"] .premium-nav-link.active,
+[data-theme="light"] .menu-link:hover,
+[data-theme="light"] .menu-link.active,
+[data-theme="light"] .sidebar-item:hover,
+[data-theme="light"] .sidebar-item.active,
+[data-theme="light"] .list-group-item-action:hover {
+    background: linear-gradient(135deg, #cda646 0%, #b58a2d 100%) !important;
+    color: #fff !important;
+    border-color: rgba(143, 109, 39, 0.22) !important;
+    box-shadow: 0 10px 22px rgba(143, 109, 39, 0.18) !important;
+}
+
+[data-theme="light"] .sidebar-link:hover *,
+[data-theme="light"] .sidebar-link.active *,
+[data-theme="light"] .premium-nav-link:hover *,
+[data-theme="light"] .premium-nav-link.active *,
+[data-theme="light"] .menu-link:hover *,
+[data-theme="light"] .menu-link.active *,
+[data-theme="light"] .sidebar-item:hover *,
+[data-theme="light"] .sidebar-item.active *,
+[data-theme="light"] .list-group-item-action:hover * {
+    color: #fff !important;
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] .premium-card,
+[data-theme="light"] .glass-card,
+[data-theme="light"] .table-container,
+[data-theme="light"] .stats-card-premium,
+[data-theme="light"] .profile-header-card {
+    background: var(--rv-card) !important;
+    border: 1px solid var(--rv-line) !important;
+    border-radius: 22px !important;
+    box-shadow: var(--rv-shadow) !important;
+}
+
+[data-theme="light"] .premium-card-header,
+[data-theme="light"] .table thead th,
+[data-theme="light"] th,
+[data-theme="light"] .premium-table thead th {
+    background: var(--rv-card-soft) !important;
+    color: var(--rv-accent-deep) !important;
+    border-color: var(--rv-line) !important;
+    font-size: 0.95rem !important;
+}
+
+[data-theme="light"] .table-container {
+    overflow: hidden !important;
+}
+
+[data-theme="light"] .table-responsive {
+    margin-bottom: 0 !important;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(255, 253, 248, 0.95) 0%, rgba(248, 241, 228, 0.88) 100%);
+}
+
+[data-theme="light"] table,
+[data-theme="light"] .premium-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+[data-theme="light"] .table thead th,
+[data-theme="light"] th,
+[data-theme="light"] .premium-table thead th {
+    padding: 1rem 1.1rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.01em;
+    border-bottom: 1px solid rgba(143, 109, 39, 0.16) !important;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="light"] .premium-table tbody td,
+[data-theme="light"] td {
+    padding: 1rem 1.1rem !important;
+    color: var(--rv-text) !important;
+    border-color: rgba(143, 109, 39, 0.16) !important;
+    background: transparent !important;
+    vertical-align: middle;
+}
+
+[data-theme="light"] tbody tr,
+[data-theme="light"] .premium-table tbody tr {
+    transition: background-color 0.22s ease, transform 0.22s ease;
+}
+
+[data-theme="light"] tbody tr:nth-child(even),
+[data-theme="light"] .premium-table tbody tr:nth-child(even) {
+    background: rgba(248, 241, 228, 0.55);
+}
+
+[data-theme="light"] tbody tr:hover,
+[data-theme="light"] .premium-table tbody tr:hover {
+    background: rgba(205, 166, 70, 0.08) !important;
+}
+
+[data-theme="light"] tbody tr:hover td,
+[data-theme="light"] .premium-table tbody tr:hover td {
+    background: transparent !important;
+}
+
+[data-theme="light"] tbody tr:last-child td,
+[data-theme="light"] .premium-table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+[data-theme="light"] .table-hover tbody tr:hover {
+    box-shadow: inset 4px 0 0 rgba(181, 138, 45, 0.42);
+}
+
+[data-theme="light"] .table-responsive::-webkit-scrollbar {
+    height: 10px;
+}
+
+[data-theme="light"] .table-responsive::-webkit-scrollbar-track {
+    background: rgba(143, 109, 39, 0.08);
+    border-radius: 999px;
+}
+
+[data-theme="light"] .table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(181, 138, 45, 0.45);
+    border-radius: 999px;
+}
+
+@media (max-width: 768px) {
+    [data-theme="light"] .table thead th,
+    [data-theme="light"] th,
+    [data-theme="light"] .premium-table thead th,
+    [data-theme="light"] .premium-table tbody td,
+    [data-theme="light"] td {
+        padding: 0.85rem 0.9rem !important;
+        font-size: 0.98rem !important;
+    }
+}
+
+[data-theme="light"] .dashboard-sidebar,
+[data-theme="light"] .judge-sidebar,
+[data-theme="light"] .admin-sidebar,
+[data-theme="light"] .sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(181, 138, 45, 0.55) transparent;
+}
+
+[data-theme="light"] .dashboard-sidebar,
+[data-theme="light"] .judge-sidebar,
+[data-theme="light"] .admin-sidebar {
+    overflow-y: auto;
+    max-height: calc(100vh - 110px);
+    padding-inline-end: 0.4rem;
+}
+
+[data-theme="light"] .btn,
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .gold-btn,
+[data-theme="light"] .btn.btn-primary {
+    border-radius: 13px !important;
+    transition: all 0.22s ease !important;
+}
+
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .gold-btn,
+[data-theme="light"] .btn.btn-primary {
+    background: linear-gradient(135deg, #d2a63d 0%, #b58a2d 100%) !important;
+    color: #fff !important;
+    border: 1px solid rgba(143, 109, 39, 0.22) !important;
+    box-shadow: 0 8px 22px rgba(143, 109, 39, 0.3) !important;
+}
+
+[data-theme="light"] .password-toggle-btn {
+    background: rgba(181, 138, 45, 0.12);
+    color: #8f6d27;
+    box-shadow: 0 8px 16px rgba(143, 109, 39, 0.08);
+}
+
+[data-theme="light"] .password-toggle-btn:hover {
+    background: rgba(181, 138, 45, 0.2);
+    color: #6e541f;
+}
+
+[data-theme="light"] .btn-primary:hover,
+[data-theme="light"] .gold-btn:hover,
+[data-theme="light"] .btn.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(143, 109, 39, 0.3) !important;
+}
+
+[data-theme="light"] .text-gold {
+    color: var(--rv-accent-deep) !important;
+}
+
+[data-theme="light"] .badge,
+[data-theme="light"] .alert {
+    border-radius: 14px;
+    border: 1px solid transparent;
+}
+
+[data-theme="light"] .text-success,
+[data-theme="light"] .badge-success,
+[data-theme="light"] .badge-premium-success,
+[data-theme="light"] .alert-success,
+[data-theme="light"] .bg-success {
+    background: var(--status-success-bg) !important;
+    color: var(--status-success-text) !important;
+    border-color: rgba(31, 122, 77, 0.25) !important;
+}
+
+[data-theme="light"] .text-warning,
+[data-theme="light"] .badge-warning,
+[data-theme="light"] .badge-premium-warning,
+[data-theme="light"] .alert-warning,
+[data-theme="light"] .bg-warning {
+    background: var(--status-warning-bg) !important;
+    color: var(--status-warning-text) !important;
+    border-color: rgba(143, 97, 17, 0.26) !important;
+}
+
+[data-theme="light"] .text-danger,
+[data-theme="light"] .badge-danger,
+[data-theme="light"] .badge-premium-danger,
+[data-theme="light"] .alert-danger,
+[data-theme="light"] .bg-danger {
+    background: var(--status-danger-bg) !important;
+    color: var(--status-danger-text) !important;
+    border-color: rgba(162, 59, 49, 0.26) !important;
+}
+
+[data-theme="light"] .text-info,
+[data-theme="light"] .badge-info,
+[data-theme="light"] .badge-premium-info,
+[data-theme="light"] .alert-info,
+[data-theme="light"] .bg-info {
+    background: var(--status-info-bg) !important;
+    color: var(--status-info-text) !important;
+    border-color: rgba(47, 102, 153, 0.24) !important;
+}
+
+[data-theme="light"] .text-secondary,
+[data-theme="light"] .badge-secondary,
+[data-theme="light"] .badge-premium-secondary,
+[data-theme="light"] .alert-secondary,
+[data-theme="light"] .bg-secondary {
+    background: var(--status-secondary-bg) !important;
+    color: var(--status-secondary-text) !important;
+    border-color: rgba(97, 88, 70, 0.22) !important;
+}
+
+[data-theme="light"] .dashboard-layout {
+    gap: 1.4rem !important;
+    align-items: flex-start;
+}
+
+[data-theme="light"] .dashboard-sidebar {
+    flex: 0 0 270px !important;
+}
+
+[data-theme="light"] .container.mt-5 {
+    max-width: 1380px !important;
+}
+
+[data-theme="light"] #control-panel {
+    padding: 2rem 1.2rem !important;
+}
+
+[data-theme="light"] .text-center.mb-5.mt-4 > h2.text-gold {
+    font-size: clamp(1.8rem, 2.3vw, 2.5rem) !important;
+}
+
+[data-theme="light"] .text-center.mb-5.mt-4 > p.text-muted {
+    font-size: 1.05rem !important;
+}
+
+[data-theme="light"] .toast-message {
+    background: rgba(255, 253, 248, 0.97) !important;
+    border: 1px solid var(--rv-line) !important;
+    color: var(--rv-text) !important;
+    box-shadow: 0 12px 28px rgba(99, 70, 29, 0.15) !important;
+}
+
+[data-theme="light"] .judge-sidebar,
+[data-theme="light"] .premium-header,
+[data-theme="light"] .smart-case-card,
+[data-theme="light"] .urgent-center,
+[data-theme="light"] .urgent-item,
+[data-theme="light"] .stat-card {
+    background: var(--rv-card) !important;
+    border-color: var(--rv-line) !important;
+    box-shadow: var(--rv-shadow) !important;
+}
+
+[data-theme="light"] [style*="background: rgba(10"],
+[data-theme="light"] [style*="background:rgba(10"] {
+    background: var(--rv-card) !important;
+    color: var(--rv-text) !important;
+}
+
+[data-theme="light"] .judge-sidebar *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .premium-header *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .premium-card *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .smart-case-card *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .urgent-center *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .urgent-item *:not(.badge):not(.btn):not(i),
+[data-theme="light"] .stat-card *:not(.badge):not(.btn):not(i) {
+    color: var(--rv-text) !important;
+}
+
+[data-theme="light"] .judge-sidebar i,
+[data-theme="light"] .premium-header i,
+[data-theme="light"] .premium-card i,
+[data-theme="light"] .stat-card i {
+    color: var(--rv-accent-deep) !important;
+}
+
+[data-theme="light"] .judge-sidebar .sidebar-link.active,
+[data-theme="light"] .judge-sidebar .sidebar-link:hover {
+    background: linear-gradient(135deg, #cda646 0%, #b58a2d 100%) !important;
+    color: #fff !important;
+    border-right: 4px solid var(--rv-accent) !important;
+    box-shadow: 0 10px 22px rgba(143, 109, 39, 0.18) !important;
+}
+
+[data-theme="light"] .judge-sidebar .sidebar-link.active *,
+[data-theme="light"] .judge-sidebar .sidebar-link:hover * {
+    color: #fff !important;
+}
+
+[data-theme="light"] .text-success {
+    background: transparent !important;
+    color: var(--status-success-text) !important;
+}
+
+[data-theme="light"] .text-warning {
+    background: transparent !important;
+    color: var(--status-warning-text) !important;
+}
+
+[data-theme="light"] .text-danger {
+    background: transparent !important;
+    color: var(--status-danger-text) !important;
+}
+
+[data-theme="light"] .text-info {
+    background: transparent !important;
+    color: var(--status-info-text) !important;
+}
+
+[data-theme="light"] .text-secondary {
+    background: transparent !important;
+    color: var(--status-secondary-text) !important;
+}
+
+/* =========================================
+   Global Responsive Layer
+   ========================================= */
+img,
+video,
+canvas,
+svg,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+table {
+    width: 100%;
+}
+
+.table-responsive,
+.table-container,
+.overflow-table,
+.cases-table-wrapper,
+.report-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table,
+.table-container table,
+.overflow-table table,
+.cases-table-wrapper table,
+.report-table-wrapper table {
+    min-width: 640px;
+}
+
+textarea,
+select,
+input,
+button {
+    max-width: 100%;
+}
+
+.btn,
+.btn-primary,
+.btn-outline,
+.gold-btn,
+button[type="submit"],
+button[type="button"],
+.nav-btn-primary {
+    min-height: 46px;
+}
+
+@media (max-width: 1200px) {
+    .container,
+    .container.mt-5,
+    .main-content.container {
+        max-width: 100%;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .dashboard-layout,
+    .hero-grid,
+    .topbar-layout,
+    .premium-dashboard-grid {
+        gap: 1.25rem !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .container,
+    .container.mt-5,
+    .main-content.container {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .dashboard-layout,
+    .hero-grid,
+    .topbar-layout,
+    .premium-dashboard-grid,
+    .dashboard-grid,
+    .split-layout,
+    .two-column-layout,
+    .case-layout,
+    .review-layout,
+    .assign-existing-grid,
+    .assign-existing-meta,
+    .financial-grid,
+    .estate-financial-grid,
+    .judge-financial-grid,
+    .topbar-actions,
+    .action-buttons {
+        grid-template-columns: 1fr !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .dashboard-sidebar,
+    .judge-sidebar,
+    .sidebar {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        position: relative !important;
+        top: auto !important;
+        max-height: none !important;
+    }
+
+    .card,
+    .glass-card,
+    .premium-card,
+    .stat-card,
+    .asset-card,
+    .feature-card,
+    .hero-card,
+    .hero-visual {
+        padding: 20px !important;
+        border-radius: 20px !important;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-outline,
+    .gold-btn,
+    .nav-btn-primary,
+    button[type="submit"],
+    button[type="button"] {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .inline-form {
+        width: 100%;
+    }
+
+    .inline-form .btn,
+    .inline-form button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    h1,
+    .page-title,
+    .hero-title {
+        font-size: clamp(1.8rem, 7vw, 2.35rem) !important;
+        line-height: 1.3 !important;
+    }
+
+    h2,
+    .section-title,
+    .glass-card-title {
+        font-size: clamp(1.35rem, 5.5vw, 1.8rem) !important;
+        line-height: 1.35 !important;
+    }
+
+    h3 {
+        font-size: clamp(1.1rem, 4.8vw, 1.35rem) !important;
+    }
+
+    p,
+    li,
+    label,
+    input,
+    select,
+    textarea,
+    .nav-link,
+    .mobile-link {
+        font-size: 0.97rem !important;
+    }
+
+    .stats-grid,
+    .cards-grid,
+    .feature-grid,
+    .assets-grid,
+    .cases-grid,
+    .heirs-grid,
+    .market-grid,
+    .requests-grid,
+    .overview-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .card,
+    .glass-card,
+    .premium-card,
+    .stat-card,
+    .asset-card,
+    .feature-card,
+    .hero-card,
+    .hero-visual,
+    .urgent-item {
+        padding: 18px !important;
+        border-radius: 18px !important;
+    }
+
+    .form-row,
+    .form-grid,
+    .premium-form-grid,
+    .filters-row,
+    .toolbar-row,
+    .header-actions,
+    .summary-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .toast-container {
+        inset-inline: 12px !important;
+        width: auto !important;
+    }
+
+    .toast-message {
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+
+@media (max-width: 576px) {
+    html {
+        font-size: 14px;
+    }
+
+    .container,
+    .container.mt-5,
+    .main-content.container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .card,
+    .glass-card,
+    .premium-card,
+    .stat-card,
+    .asset-card,
+    .feature-card,
+    .hero-card,
+    .hero-visual {
+        padding: 16px !important;
+        border-radius: 16px !important;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-outline,
+    .gold-btn,
+    .nav-btn-primary,
+    button[type="submit"],
+    button[type="button"] {
+        min-height: 48px;
+        font-size: 0.96rem !important;
+        padding: 12px 16px !important;
+    }
+
+    .table-responsive table,
+    .table-container table,
+    .overflow-table table,
+    .cases-table-wrapper table,
+    .report-table-wrapper table {
+        min-width: 560px;
+    }
 }

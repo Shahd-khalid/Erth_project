@@ -96,6 +96,235 @@
         z-index: 2000;
         box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     }
+
+    [data-theme="light"] .admin-wrapper {
+        background:
+            radial-gradient(circle at top right, rgba(205, 166, 70, 0.16), transparent 28%),
+            linear-gradient(180deg, #fbf7ef 0%, #f4ecdc 100%);
+    }
+
+    [data-theme="light"] .admin-sidebar {
+        background: rgba(255, 252, 245, 0.92);
+        border-right: 1px solid rgba(143, 109, 39, 0.16);
+        box-shadow: 0 18px 34px rgba(96, 67, 24, 0.12);
+        backdrop-filter: blur(18px);
+    }
+
+    [data-theme="light"] .sidebar-item {
+        color: #6d634f;
+        border-radius: 18px;
+        margin: 4px 10px;
+        width: calc(100% - 20px);
+        font-weight: 700;
+    }
+
+    [data-theme="light"] .sidebar-item i {
+        color: #8f6d27;
+    }
+
+    [data-theme="light"] .sidebar-item span {
+        font-size: 1.02rem;
+        color: #3e3528;
+    }
+
+    [data-theme="light"] .sidebar-item:hover,
+    [data-theme="light"] .sidebar-item.active {
+        background: linear-gradient(135deg, #d2a63d 0%, #b58a2d 100%);
+        color: #fff;
+        box-shadow: 0 12px 24px rgba(143, 109, 39, 0.22);
+    }
+
+    [data-theme="light"] .sidebar-item:hover i,
+    [data-theme="light"] .sidebar-item.active i,
+    [data-theme="light"] .sidebar-item:hover span,
+    [data-theme="light"] .sidebar-item.active span {
+        color: #fff;
+    }
+
+    [data-theme="light"] .admin-main {
+        padding: 42px;
+    }
+
+    [data-theme="light"] .admin-header {
+        align-items: center;
+        padding: 0 0 24px;
+        margin-bottom: 34px;
+        border-bottom: 1px solid rgba(143, 109, 39, 0.14);
+    }
+
+    [data-theme="light"] .admin-header h1 {
+        color: #8f6d27 !important;
+        font-size: clamp(2.6rem, 2.2rem + 1vw, 3.35rem) !important;
+        line-height: 1.28;
+        margin-bottom: 0.5rem !important;
+    }
+
+    [data-theme="light"] .admin-header p {
+        color: #6e6453 !important;
+        font-size: 1.08rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    [data-theme="light"] .notif-dot {
+        border-color: #fff8ec;
+        box-shadow: 0 0 0 4px rgba(198, 74, 62, 0.12);
+    }
+
+    [data-theme="light"] #notifBell > div:first-child {
+        background: rgba(255, 251, 242, 0.96) !important;
+        border: 1px solid rgba(143, 109, 39, 0.16) !important;
+        box-shadow: 0 12px 26px rgba(96, 67, 24, 0.12);
+    }
+
+    [data-theme="light"] #notifBell > div:first-child i {
+        color: #8f6d27 !important;
+    }
+
+    [data-theme="light"] #notifDropdown {
+        background: #fffdf8;
+        border: 1px solid rgba(143, 109, 39, 0.16);
+        box-shadow: 0 24px 44px rgba(96, 67, 24, 0.16);
+    }
+
+    [data-theme="light"] #notifDropdown h4 {
+        color: #8f6d27 !important;
+        background: linear-gradient(180deg, #fffdf8 0%, #f8f1e4 100%);
+        border-bottom-color: rgba(143, 109, 39, 0.12) !important;
+    }
+
+    [data-theme="light"] #notifDropdown .notif-item {
+        background: #fffaf1 !important;
+        border-color: rgba(143, 109, 39, 0.14) !important;
+        box-shadow: 0 10px 22px rgba(96, 67, 24, 0.08);
+    }
+
+    [data-theme="light"] #notifDropdown .notif-item:hover {
+        background: #f8efdf !important;
+        border-color: rgba(181, 138, 45, 0.26) !important;
+    }
+
+    [data-theme="light"] #notifDropdown .notif-item span:first-child {
+        color: #2f2a22 !important;
+    }
+
+    [data-theme="light"] #notifDropdown .notif-item span:last-child {
+        color: #7f725c !important;
+    }
+
+    [data-theme="light"] #notifDropdown .notif-item p {
+        color: #6f6452 !important;
+    }
+
+    [data-theme="light"] #notifDropdown #notifList > p {
+        color: #766b58 !important;
+    }
+
+    [data-theme="light"] .admin-header > div:last-child > div:last-child {
+        background: linear-gradient(135deg, #cfa340, #b58a2d) !important;
+        color: #fff !important;
+        box-shadow: 0 12px 24px rgba(143, 109, 39, 0.22);
+    }
+
+    @media (max-width: 992px) {
+        .admin-wrapper {
+            flex-direction: column;
+            min-height: auto;
+        }
+
+        .admin-sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+            top: auto;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 10px;
+            padding: 12px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            border-right: none;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .admin-sidebar:hover {
+            width: 100%;
+        }
+
+        .admin-sidebar > div[style*="flex: 1"] {
+            display: none;
+        }
+
+        .sidebar-item {
+            flex: 0 0 auto;
+            width: auto;
+            min-width: 150px;
+            margin: 0;
+            justify-content: center;
+            padding: 14px 18px;
+            border-radius: 16px;
+        }
+
+        .sidebar-item span,
+        .admin-sidebar:hover .sidebar-item span {
+            opacity: 1;
+        }
+
+        .admin-main {
+            padding: 26px 18px 34px;
+        }
+
+        .admin-header {
+            align-items: flex-start;
+            gap: 18px;
+            flex-direction: column;
+        }
+
+        .admin-header > div:last-child {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        [data-theme="light"] .admin-main {
+            padding: 26px 18px 34px;
+        }
+
+        [data-theme="light"] .admin-header {
+            align-items: flex-start;
+            gap: 18px;
+        }
+
+        [data-theme="light"] .admin-sidebar {
+            border-right: none;
+            border-bottom: 1px solid rgba(143, 109, 39, 0.14);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .admin-main {
+            padding: 22px 12px 28px;
+        }
+
+        .sidebar-item {
+            min-width: 132px;
+            padding: 13px 14px;
+        }
+
+        .sidebar-item i {
+            font-size: 1.1rem;
+        }
+
+        .sidebar-item span {
+            font-size: 0.92rem;
+        }
+
+        .admin-header h1 {
+            font-size: clamp(1.9rem, 8vw, 2.4rem) !important;
+        }
+
+        .admin-header p {
+            font-size: 0.95rem !important;
+        }
+    }
 </style>
 {% block admin_extra_css %}{% endblock %}
 {% endblock %}
@@ -107,25 +336,29 @@
             <i class="fas fa-th-large"></i>
             <span>مركز القيادة</span>
         </a>
-        <a href="{% url 'administration:dashboard' %}#verification-hub" class="sidebar-item">
+        <a href="{% url 'administration:verification_hub' %}" class="sidebar-item {% if request.resolver_match.url_name == 'verification_hub' %}active{% endif %}">
             <i class="fas fa-user-shield"></i>
             <span>محطة التحقق</span>
         </a>
-        <a href="{% url 'administration:dashboard' %}#case-tracking" class="sidebar-item">
+        <a href="{% url 'administration:case_tracking' %}" class="sidebar-item {% if request.resolver_match.url_name == 'case_tracking' %}active{% endif %}">
             <i class="fas fa-map-marked-alt"></i>
             <span>خريطة القضايا</span>
         </a>
-        <a href="{% url 'administration:dashboard' %}#market-oversight" class="sidebar-item">
+        <a href="{% url 'administration:market_oversight' %}" class="sidebar-item {% if request.resolver_match.url_name == 'market_oversight' %}active{% endif %}">
             <i class="fas fa-shopping-bag"></i>
             <span>وحدة السوق</span>
         </a>
-        <a href="{% url 'administration:dashboard' %}#heirs-management" class="sidebar-item">
+        <a href="{% url 'administration:heirs_management' %}" class="sidebar-item {% if request.resolver_match.url_name == 'heirs_management' %}active{% endif %}">
             <i class="fas fa-users"></i>
             <span>إدارة الورثة</span>
         </a>
-        <a href="{% url 'administration:dashboard' %}#reporting-unit" class="sidebar-item">
+        <a href="{% url 'administration:reporting_hub' %}" class="sidebar-item {% if request.resolver_match.url_name == 'reporting_hub' %}active{% endif %}">
             <i class="fas fa-file-invoice"></i>
             <span>التقارير</span>
+        </a>
+        <a href="{% url 'administration:feedback_list' %}" class="sidebar-item {% if request.resolver_match.url_name == 'feedback_list' %}active{% endif %}">
+            <i class="fas fa-star-half-alt"></i>
+            <span>التقييمات</span>
         </a>
         
         <div style="flex: 1;"></div>

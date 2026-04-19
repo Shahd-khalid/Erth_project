@@ -1,0 +1,68 @@
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">التسويات المالية والمقترحات</h3>
+        <p class="mb-0 text-muted">كل المبالغ المعلقة أو المقترحات التي تحتاج حسمًا قبل الاعتماد النهائي.</p>
+    </div>
+    <div class="review-card-body">
+        {% if pending_payments or relevant_proposals %}
+            <div class="table-responsive">
+                <table class="review-table">
+                    <thead>
+                        <tr>
+                            <th>صاحب الالتزام</th>
+                            <th>المبلغ</th>
+                            <th>السبب</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in pending_payments %}
+                            <tr>
+                                <td>{{ payment.payer.name }}</td>
+                                <td>{{ payment.amount }}</td>
+                                <td>{{ payment.reason }}</td>
+                                <td>
+                                    {% if not payment.is_draft %}
+                                        <form method="post" action="{% url 'cases:review_distribution' case.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="mark_paid">
+                                            <input type="hidden" name="payment_id" value="{{ payment.id }}">
+                                            
+                                            {% if not payment.original_owner %}
+                                                {# Settle to Estate (Debt/Will) #}
+                                                <button class="review-btn review-btn-primary" type="submit" {% if not payment.heir_confirmed_payment %}disabled title="بانتظار تأكيد الوريث بالدفع"{% endif %}>تأكيد السداد</button>
+                                                {% if not payment.heir_confirmed_payment %}
+                                                    <div class="mt-1 small text-danger"><i class="fas fa-clock"></i> بانتظار الوريث</div>
+                                                {% endif %}
+                                            {% else %}
+                                                {# Settle to another Heir #}
+                                                <button class="review-btn review-btn-primary" type="submit" {% if not payment.receiver_confirmed_payment %}disabled title="بانتظار تأكيد استلام الوريث المستحق"{% endif %}>تأكيد السداد</button>
+                                                {% if not payment.heir_confirmed_payment %}
+                                                    <div class="mt-1 small text-danger"><i class="fas fa-clock"></i> بانتظار دفع الوريث</div>
+                                                {% elif not payment.receiver_confirmed_payment %}
+                                                    <div class="mt-1 small text-warning"><i class="fas fa-clock"></i> بانتظار إقرار المستلم</div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </form>
+                                    {% else %}
+                                        <span class="review-badge">مسودة التزام</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {% for proposal in relevant_proposals %}
+                            <tr>
+                                <td>{{ proposal.heir.name }}</td>
+                                <td>{{ proposal.difference_amount }}</td>
+                                <td>مقترح توزيع قيد الاعتماد</td>
+                                <td><span class="review-badge">{{ proposal.get_status_display }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="review-note">لا توجد تسويات أو مقترحات مالية معلقة حاليًا.</div>
+        {% endif %}
+    </div>
+</section>

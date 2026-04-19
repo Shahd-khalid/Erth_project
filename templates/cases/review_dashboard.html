@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}مراجعة القضية {{ case.display_case_number }}{% endblock %}
+
+{% block content %}
+<style>
+    .review-shell {
+        max-width: 1440px;
+        margin: 2rem auto 4rem;
+        padding: 0 1rem;
+    }
+    .review-hero,
+    .review-card,
+    .review-sidebar {
+        background: rgba(10, 15, 20, 0.9);
+        border: 1px solid rgba(212, 175, 55, 0.16);
+        border-radius: 24px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+    }
+    .review-hero {
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .review-grid {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 1.5rem;
+        align-items: start;
+    }
+    .review-sidebar {
+        position: sticky;
+        top: 110px;
+        padding: 1rem;
+    }
+    .review-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.95rem 1rem;
+        border-radius: 16px;
+        text-decoration: none;
+        color: #e9dfc7;
+        font-weight: 700;
+        transition: .2s ease;
+        margin-bottom: 0.4rem;
+    }
+    .review-nav-link:hover,
+    .review-nav-link.is-active {
+        background: rgba(212, 175, 55, 0.12);
+        color: #f1c75b;
+        transform: translateX(-4px);
+    }
+    .review-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    .review-card {
+        overflow: hidden;
+    }
+    .review-card-header {
+        padding: 1.15rem 1.4rem;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+        background: rgba(3, 5, 8, 0.45);
+    }
+    .review-card-body {
+        padding: 1.4rem;
+    }
+    .review-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: inherit;
+    }
+    .review-table th,
+    .review-table td {
+        padding: 0.95rem 1rem;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+        vertical-align: top;
+    }
+    .review-table th {
+        color: #d4af37;
+        font-weight: 800;
+        background: rgba(212, 175, 55, 0.04);
+    }
+    .review-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        background: rgba(212, 175, 55, 0.12);
+        color: #f1c75b;
+    }
+    .review-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .review-stat {
+        padding: 1rem 1.1rem;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(212, 175, 55, 0.08);
+    }
+    .review-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .review-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 0.7rem 1.2rem;
+        font-weight: 800;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .review-btn-primary {
+        background: linear-gradient(135deg, #d4af37, #f0c419);
+        color: #18130a;
+    }
+    .review-btn-outline {
+        background: transparent;
+        border: 1px solid rgba(212, 175, 55, 0.34);
+        color: #e9dfc7;
+    }
+    .review-note {
+        padding: 1rem 1.1rem;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(212,175,55,0.1);
+    }
+    [data-theme="light"] .review-hero,
+    [data-theme="light"] .review-card,
+    [data-theme="light"] .review-sidebar {
+        background: #fffdf8;
+        color: #2f2a22;
+        border-color: rgba(143,109,39,0.16);
+        box-shadow: 0 18px 40px rgba(96, 67, 24, 0.12);
+    }
+    [data-theme="light"] .review-card-header {
+        background: #f7f1e3;
+        border-bottom-color: rgba(143,109,39,0.12);
+    }
+    [data-theme="light"] .review-nav-link {
+        color: #5d523f;
+    }
+    [data-theme="light"] .review-nav-link:hover,
+    [data-theme="light"] .review-nav-link.is-active {
+        color: #8f6d27;
+        background: rgba(181,138,45,0.12);
+    }
+    [data-theme="light"] .review-table th {
+        color: #8f6d27;
+        background: #f6efe1;
+    }
+    [data-theme="light"] .review-stat,
+    [data-theme="light"] .review-note {
+        background: #fffaf1;
+        border-color: rgba(143,109,39,0.1);
+    }
+    @media (max-width: 1100px) {
+        .review-grid {
+            grid-template-columns: 1fr;
+        }
+        .review-sidebar {
+            position: static;
+        }
+        .review-stat-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 768px) {
+        .review-stat-grid {
+            grid-template-columns: 1fr;
+        }
+        .review-shell {
+            padding: 0 0.75rem;
+        }
+    }
+</style>
+
+<div class="review-shell">
+    <section class="review-hero">
+        <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start">
+            <div>
+                <div class="review-badge mb-3"><i class="fas fa-scale-balanced"></i> قضية رقم {{ case.display_case_number }}</div>
+                <h1 class="mb-2">مراجعة القضية وتوزيع التركة</h1>
+                <p class="mb-0 text-muted">تم تفكيك صفحة المراجعة إلى صفحات مستقلة حتى يصبح كل قسم أوضح وأسهل في المتابعة.</p>
+            </div>
+            <div class="review-actions">
+                <a class="review-btn review-btn-outline" href="{% url 'cases:case_timeline' case.id %}">
+                    <i class="fas fa-history"></i>
+                    <span>السجل الزمني</span>
+                </a>
+                <a class="review-btn review-btn-primary" href="{% url 'cases:start_lottery' case.id %}">
+                    <i class="fas fa-dharmachakra"></i>
+                    <span>صفحة القرعة</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="review-grid">
+        <aside class="review-sidebar">
+            <div class="mb-3 px-2 text-gold fw-bold">أقسام المراجعة</div>
+            {% for section_key, section_label in review_sections.items %}
+                <a class="review-nav-link {% if active_review_section == section_key %}is-active{% endif %}" href="{% url 'cases:review_section' case.id section_key %}">
+                    <i class="fas {% if section_key == 'overview' %}fa-chart-line{% elif section_key == 'call' %}fa-video{% elif section_key == 'obligations' %}fa-file-invoice-dollar{% elif section_key == 'heirs' %}fa-users{% elif section_key == 'approvals' %}fa-box-open{% elif section_key == 'settlements' %}fa-money-bill-wave{% elif section_key == 'warnings' %}fa-triangle-exclamation{% elif section_key == 'disputes' %}fa-handshake-slash{% elif section_key == 'manual' %}fa-pen-ruler{% else %}fa-gavel{% endif %}"></i>
+                    <span>{{ section_label }}</span>
+                    {% if section_key == 'disputes' and active_disputes_count %}
+                        <span class="badge bg-danger ms-auto">{{ active_disputes_count }}</span>
+                    {% elif section_key == 'obligations' and obligation_status.items|length > 0 %}
+                        <span class="badge bg-danger ms-auto">{{ obligation_status.items|length }}</span>
+                    {% elif section_key == 'approvals' and confirmed_heirs_count > 0 %}
+                        <span class="badge bg-danger ms-auto">{{ confirmed_heirs_count }}</span>
+                    {% elif section_key == 'settlements' and pending_payments|length > 0 %}
+                        <span class="badge bg-danger ms-auto">{{ pending_payments|length }}</span>
+                    {% elif section_key == 'manual' and manual_allocation_heirs|length > 0 %}
+                        <span class="badge bg-danger ms-auto">{{ manual_allocation_heirs|length }}</span>
+                    {% elif section_key == 'decision' and judge_completion_status.ready %}
+                        <span class="badge bg-success ms-auto"><i class="fas fa-check"></i> جاهز</span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </aside>
+
+        <main class="review-content">
+            {% include section_template %}
+        </main>
+    </div>
+</div>
+{% endblock %}

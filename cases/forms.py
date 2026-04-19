@@ -4,10 +4,7 @@ from .models import Case, Deceased, Asset, Debt, Will
 class CaseForm(forms.ModelForm):
     class Meta:
         model = Case
-        fields = ['case_number']
-        widgets = {
-            'case_number': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+        fields = []
 
 class DeceasedForm(forms.ModelForm):
     class Meta:

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="margin-top: 50px; padding-bottom: 100px;">
+    <div class="results-container" style="max-width: 1100px; margin: 0 auto;">
+        
+        <!-- Header -->
+        <div class="card" style="padding: 40px; border-radius: 30px; background: rgba(255, 255, 255, 0.02); margin-bottom: 30px; text-align: center; border: 1px solid rgba(212, 175, 55, 0.1);">
+            <div style="background: var(--primary-color); width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #000; margin: 0 auto 20px;">
+                <i class="fas fa-file-invoice-dollar" style="font-size: 2.2rem;"></i>
+            </div>
+            <h1 style="font-weight: 800; color: #fff; font-size: 2.5rem; margin-bottom: 10px;">نتائج التوزيع الشرعي</h1>
+            <p style="color: var(--text-muted);">تقرير مفصل بالأنصبة والحصص الشرعية بناءً على البيانات المدخلة.</p>
+            
+            <div style="margin-top: 30px; display: inline-flex; gap: 20px; padding: 15px 30px; background: rgba(212, 175, 55, 0.05); border-radius: 999px; border: 1px solid rgba(212, 175, 55, 0.15);">
+                <span style="color: var(--text-muted);">إجمالي التركة:</span>
+                <span style="color: var(--primary-color); font-weight: 900; font-size: 1.4rem;">{{ net_estate }} ر.س</span>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-error" style="margin-bottom: 40px; background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; color: #e74c3c; padding: 25px; border-radius: 20px; text-align: center;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+            <span style="font-size: 1.2rem; font-weight: 700;">{{ error }}</span>
+        </div>
+        <div style="text-align: center;">
+            <a href="{% url 'calculator:public_calculator' %}" class="btn-outline" style="padding: 15px 40px; border-radius: 15px; font-weight: 800;">العودة للحاسبة</a>
+        </div>
+        {% else %}
+
+        <div style="display: grid; grid-template-columns: 1fr 380px; gap: 30px;">
+            
+            <!-- Table Section -->
+            <div class="card" style="padding: 40px; border-radius: 30px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="color: var(--primary-color); font-weight: 800; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;">
+                    <i class="fas fa-list-ol"></i> تفاصيل الحصص الشرعية
+                </h4>
+                
+                <div class="table-container" style="border: none; background: transparent;">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0 12px;">
+                        <thead>
+                            <tr style="background: rgba(212, 175, 55, 0.1);">
+                                <th style="padding: 18px; border-radius: 12px 0 0 12px; font-size: 1rem; color: var(--primary-color);">الوارث</th>
+                                <th style="padding: 18px; font-size: 1rem; color: var(--primary-color); text-align: center;">النصيب</th>
+                                <th style="padding: 18px; font-size: 1rem; color: var(--primary-color); text-align: center;">القيمة (ريال)</th>
+                                <th style="padding: 18px; font-size: 1rem; color: var(--primary-color); text-align: center;">التعديل (عول/رد)</th>
+                                <th style="padding: 18px; border-radius: 0 12px 12px 0; font-size: 1rem; color: var(--primary-color); text-align: center;">سبب الحجب</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in result %}
+                            <tr style="background: rgba(255,255,255,0.03); transition: 0.3s;">
+                                <td style="padding: 22px; font-weight: 800; color: #fff; border-radius: 15px 0 0 15px;">{{ item.name }}</td>
+                                <td style="padding: 22px; text-align: center;">
+                                    <span style="background: {% if item.fraction == 'محجوب' %}#e74c3c{% else %}var(--primary-color){% endif %}; color: {% if item.fraction == 'محجوب' %}#fff{% else %}#000{% endif %}; padding: 8px 18px; border-radius: 10px; font-weight: 900; font-size: 1.1rem;">
+                                        {{ item.fraction }}
+                                    </span>
+                                </td>
+                                <td style="padding: 22px; text-align: center; font-weight: 900; color: var(--primary-color); font-size: 1.3rem;">
+                                    {% if item.value > 0 %}{{ item.value }}{% else %}-{% endif %}
+                                </td>
+                                <td style="padding: 22px; text-align: center; font-weight: 700; color: #fff;">
+                                    {% if item.adjustment %}
+                                        <span style="background: rgba(212, 175, 55, 0.2); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--primary-color);">
+                                            {{ item.adjustment }}
+                                        </span>
+                                    {% else %}
+                                        <span style="color: var(--text-muted); opacity: 0.3;">-</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 22px; text-align: center; font-size: 0.95rem; color: #e74c3c; font-weight: 600; border-radius: 0 15px 15px 0;">
+                                    {% if item.blocking_reason %}
+                                        <i class="fas fa-ban" style="margin-left: 5px;"></i> {{ item.blocking_reason }}
+                                    {% else %}
+                                        <span style="color: var(--text-muted); opacity: 0.3;">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 40px; padding: 25px; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px dashed rgba(212,175,55,0.2); text-align: center;">
+                    <p style="color: var(--text-muted); margin-bottom: 0;">ملاحظة: تم الحساب وفقاً لقواعد المواريث في الشريعة الإسلامية.</p>
+                </div>
+            </div>
+
+            <!-- Side Panel (Chart & Actions) -->
+            <div style="display: flex; flex-direction: column; gap: 30px;">
+                {% if chart_data %}
+                <div class="card" style="padding: 30px; border-radius: 30px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <h5 style="color: #fff; font-weight: 800; margin-bottom: 25px; text-align: center;">التوزيع البياني</h5>
+                    {{ chart_data|json_script:"inheritance-chart-data" }}
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="inheritancePieChart"></canvas>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card" style="padding: 30px; border-radius: 30px; background: var(--primary-color); border: none; text-align: center;">
+                    <button onclick="window.print()" style="width: 100%; background: #000; color: var(--primary-color); border: none; height: 65px; border-radius: 18px; font-weight: 900; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.3s;">
+                        <i class="fas fa-print"></i> طباعة التقرير
+                    </button>
+                    <a href="{% url 'calculator:public_calculator' %}" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; color: #000; font-weight: 800; text-decoration: none;">
+                        <i class="fas fa-undo"></i> إجراء حساب جديد
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    [data-theme="light"] .card {
+        background: #fffdf8 !important;
+        border-color: rgba(143, 109, 39, 0.14) !important;
+        box-shadow: 0 15px 35px rgba(96, 67, 24, 0.08) !important;
+    }
+    [data-theme="light"] h1, [data-theme="light"] h4, [data-theme="light"] h5 {
+        color: #2f2a22 !important;
+    }
+    [data-theme="light"] td {
+        color: #5d523f !important;
+    }
+    [data-theme="light"] .results-container > .card {
+        background: linear-gradient(135deg, #fffdf8 0%, #f7f1e3 100%) !important;
+    }
+    [data-theme="light"] tr[style*="background: rgba(255,255,255,0.03)"] {
+        background: #fffaf1 !important;
+        border: 1px solid rgba(143, 109, 39, 0.08) !important;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const chartNode = document.getElementById('inheritance-chart-data');
+        const pieCanvas = document.getElementById('inheritancePieChart');
+
+        if (chartNode && pieCanvas && window.Chart) {
+            let payload = JSON.parse(chartNode.textContent);
+            const labels = payload.labels || [];
+            const values = payload.values || [];
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#e9dfc7' : '#2f2a22';
+
+            new Chart(pieCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#d4af37', '#f0c85c', '#8ccf7e', '#5ca9f0', '#d97fe8',
+                            '#ff8b6b', '#7fe0d6', '#a6b7ff', '#ffd36e', '#c49a6c',
+                        ],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            rtl: true,
+                            labels: {
+                                color: textColor,
+                                font: { family: "'IBM Plex Sans Arabic', sans-serif", size: 12 }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

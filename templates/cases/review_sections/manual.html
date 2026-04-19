@@ -1,0 +1,65 @@
+    <div class="review-card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="mb-1">التخصيص اليدوي</h3>
+            <p class="mb-0 text-muted">الورثة الذين يحتاجون تدخلًا يدويًا من القاضي لإتمام الحصة.</p>
+        </div>
+    </div>
+    <style>
+        .notify-btn-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            background-color: #ff4d4d;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+            z-index: 10;
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255, 77, 77, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+        }
+    </style>
+    <div class="review-card-body">
+        {% if manual_allocation_heirs %}
+            <div class="table-responsive">
+                <table class="review-table">
+                    <thead>
+                        <tr>
+                            <th>الوارث</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for heir in manual_allocation_heirs %}
+                            <tr>
+                                <td>{{ heir.name }}</td>
+                                <td class="text-start">
+                                    <div class="notify-btn-wrapper">
+                                        {% if heir.id in accepted_proposal_heir_ids %}
+                                            <span class="notification-dot" title="الوريث وافق على التخصيص"></span>
+                                        {% endif %}
+                                        <a class="review-btn review-btn-primary" href="{% url 'cases:allocate_share' case.id heir.id %}?process_type=heir">
+                                            <i class="fas fa-pen-ruler"></i>
+                                            <span>فتح صفحة التخصيص</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="review-note">لا يوجد ورثة يحتاجون تخصيصًا يدويًا في الوقت الحالي.</div>
+        {% endif %}
+    </div>
+</section>

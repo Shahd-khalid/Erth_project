@@ -187,6 +187,7 @@ class InheritanceEngine:
                 self.shares[h.id] = {
                     'fraction': 'محجوب',
                     'blocking_reason': reason,
+                    'adjustment': '',
                     'percentage': Decimal(0),
                     'value': Decimal(0),
                     'raw_share': Decimal(0),
@@ -209,6 +210,10 @@ class InheritanceEngine:
         
         has_descendant = has_son or has_son_of_son or has_daughter or has_daughter_of_son
         has_male_descendant = has_son or has_son_of_son
+        has_father = get_count([Heir.Relationship.FATHER]) > 0
+        has_grandfather = get_count([Heir.Relationship.GRANDFATHER_FATHER]) > 0
+        husband_present = get_count([Heir.Relationship.HUSBAND]) > 0
+        wife_present = get_count([Heir.Relationship.WIFE]) > 0
         
         has_siblings_multiple_or_mix = len([h for h in self.active_heirs if 'BROTHER' in h.relationship or 'SISTER' in h.relationship]) > 1
 
@@ -234,11 +239,11 @@ class InheritanceEngine:
                 if has_descendant:
                     base = Decimal(1)/Decimal(8)
                     share = base / Decimal(wives_count)
-                    fraction_str = "1/8" if wives_count == 1 else f"1/8 divided by {wives_count}"
+                    fraction_str = "1/8" if wives_count == 1 else f"1/8 بالاشتراك ({wives_count})"
                 else:
                     base = Decimal(1)/Decimal(4)
                     share = base / Decimal(wives_count)
-                    fraction_str = "1/4" if wives_count == 1 else f"1/4 divided by {wives_count}"
+                    fraction_str = "1/4" if wives_count == 1 else f"1/4 بالاشتراك ({wives_count})"
 
             # --- Father ---
             elif r == Heir.Relationship.FATHER:
@@ -256,11 +261,16 @@ class InheritanceEngine:
                     share = Decimal(1)/Decimal(6)
                     fraction_str = "1/6"
                 else:
-                    # Umariyatan case check (Spouse + Mother + Father) - Mother gets 1/3 of remainder?
-                    # Simplified for now: Standard 1/3
-                    # TODO: Implement Umariyatan
-                    share = Decimal(1)/Decimal(3)
-                    fraction_str = "1/3"
+                    # Umariyatan case check (Spouse + Mother + Father)
+                    # When heirs are only (Husband/Wife + Mother + Father), Mother takes 1/3 of remainder
+                    if has_father and (husband_present or wife_present):
+                        # Calculate spouse share (Husband 1/2 or Wife 1/4 - since no descendants)
+                        spouse_share = Decimal(1)/Decimal(2) if husband_present else Decimal(1)/Decimal(4)
+                        share = (Decimal(1) - spouse_share) / Decimal(3)
+                        fraction_str = "1/3 الباقي"
+                    else:
+                        share = Decimal(1)/Decimal(3)
+                        fraction_str = "1/3"
 
             # --- Grandfather ---
             elif r == Heir.Relationship.GRANDFATHER_FATHER:
@@ -307,7 +317,7 @@ class InheritanceEngine:
                     elif d_count == 1:
                         # Takmilat al-Thuluthayn (Complement to 2/3)
                         share = (Decimal(1)/Decimal(6)) / Decimal(ds_count)
-                        fraction_str = "1/6 (Takmila)"
+                        fraction_str = "1/6 (تكملة الثلثين)"
                     # If d_count >= 2, no share unless "Blessed Brother" (not implemented yet)
             
             # --- Sisters (Full) ---
@@ -342,6 +352,7 @@ class InheritanceEngine:
                 self.shares[heir.id] = {
                     'fraction': fraction_str,
                     'raw_share': share,
+                    'adjustment': '',
                     'is_fixed': True
                 }
                 total_faraid_share += share
@@ -489,6 +500,7 @@ class InheritanceEngine:
             self.shares[heir.id] = {
                 'fraction': 'عصبة',
                 'raw_share': share_amount,
+                'adjustment': '',
                 'is_fixed': False
             }
 
@@ -496,6 +508,7 @@ class InheritanceEngine:
         self.shares[heir.id] = {
             'fraction': label,
             'raw_share': share,
+            'adjustment': '',
             'is_fixed': False
         }
 
@@ -509,7 +522,7 @@ class InheritanceEngine:
             # Reduce all shares proportionally
             for hid in self.shares:
                 self.shares[hid]['raw_share'] /= total_share
-                self.shares[hid]['fraction'] += " (Awal)"
+                self.shares[hid]['adjustment'] = "عول"
         
         # Radd: Total shares < 1
         elif total_share < Decimal(1) - Decimal('0.0001'):
@@ -532,7 +545,7 @@ class InheritanceEngine:
                     ratio = self.shares[hid]['raw_share'] / eligible_total
                     add_amt = remainder * ratio
                     self.shares[hid]['raw_share'] += add_amt
-                    self.shares[hid]['fraction'] += " + مع الرد"
+                    self.shares[hid]['adjustment'] = "رد"
             else:
                 # If only spouses act, or no one eligible?
                 # If only spouses, technically Byte al-Mal, or in modern law often Radd to spouses.
@@ -541,7 +554,7 @@ class InheritanceEngine:
                     for hid in self.shares:
                         ratio = self.shares[hid]['raw_share'] / total_share
                         self.shares[hid]['raw_share'] += (Decimal(1) - total_share) * ratio
-                        self.shares[hid]['fraction'] += " + مع الرد"
+                        self.shares[hid]['adjustment'] = "رد"
 
 # def finalize_values(self):
     #     for hid in self.shares:

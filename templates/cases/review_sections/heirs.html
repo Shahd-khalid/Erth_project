@@ -1,0 +1,83 @@
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">طلبات الورثة واختياراتهم</h3>
+        <p class="mb-0 text-muted">صفحة مستقلة لمراجعة اختيارات كل وارث واعتمادها أو رفضها.</p>
+    </div>
+    <div class="review-card-body">
+        <div class="table-responsive">
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>الوارث</th>
+                        <th>النصيب الشرعي</th>
+                        <th>قيمة المختار</th>
+                        <th>الفرق</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in heir_stats %}
+                        <tr>
+                            <td>
+                                <strong>{{ stat.name }}</strong>
+                                <div class="text-muted small mt-2">
+                                    {% for item in stat.intent_items %}
+                                        <span class="badge {% if item.won_raffle %}bg-warning text-dark{% elif item.heir_consented %}bg-success text-white{% elif item.is_judge_default %}bg-info text-white{% else %}review-badge{% endif %} mb-1 py-1 px-2">
+                                            {% if item.won_raffle %}<i class="fas fa-trophy me-1"></i>{% endif %}
+                                            {% if item.heir_consented %}<i class="fas fa-check-double me-1"></i>{% endif %}
+                                            {% if item.is_judge_default %}<i class="fas fa-gavel me-1"></i>{% endif %}
+                                            {{ item.name }}
+                                            {% if item.heir_consented %} (موافق من الوريث){% elif item.is_judge_default %} (تخصيص مبدئي){% endif %}
+                                            {% if item.won_raffle %} (فوز بالقرعة){% endif %}
+                                        </span>
+                                    {% empty %}
+                                        <span class="text-muted small">لا توجد اختيارات حالية</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>{{ stat.share_value|floatformat:2 }}</td>
+                            <td>{{ stat.selected_value|floatformat:2 }}</td>
+                            <td>{{ stat.diff|floatformat:2 }}</td>
+                            <td><span class="review-badge">{{ stat.display_status }}</span></td>
+                            <td>
+                                <div class="review-actions">
+                                    <form method="post" action="{% url 'cases:review_distribution' case.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="accept_heir">
+                                        <input type="hidden" name="heir_id" value="{{ stat.obj.id }}">
+                                        {% if stat.has_active_dispute %}
+                                            <button class="review-btn review-btn-primary" style="opacity:0.5; cursor:not-allowed;" type="button" onclick="alert('خطأ برمجي وقانوني: لا يمكن القبول، يوجد نزاع نشط يجب حسمه بالقرعة أولاً.')">قبول</button>
+                                        {% elif stat.obj.is_judge_confirmed %}
+                                            <button class="review-btn review-btn-primary" style="opacity:0.5; cursor:not-allowed;" type="button" onclick="alert('عذراً: لا يمكن القبول، لقد تم اعتماد وتخصيص نصيب هذا الوارث مسبقاً بنجاح.')">قبول</button>
+                                        {% elif stat.obj.acceptance_status == 'REJECTED' %}
+                                            <button class="review-btn review-btn-primary" style="opacity:0.5; cursor:not-allowed;" type="button" onclick="alert('عذراً: لا يمكن القبول، هذا الوارث مرفوض وتمت إحالته لغرفة التخصيص اليدوي.')">قبول</button>
+                                        {% elif stat.diff < 0 %}
+                                            <button class="review-btn review-btn-primary" style="opacity:0.5; cursor:not-allowed;" type="button" onclick="alert('حماية النظام: لا يمكن القبول! إجمالي ما اختاره الوارث يقل عن نصيبه الشرعي. يجب إكمال النصاب الشرعي أولاً.')">قبول</button>
+                                        {% else %}
+                                            <button class="review-btn review-btn-primary" type="submit" onclick="document.querySelectorAll('.review-btn').forEach(btn => { btn.style.pointerEvents = 'none'; btn.style.opacity = '0.6'; }); this.innerHTML = '<i class=\'fas fa-spinner fa-spin\'></i> إرسال...'; this.form.submit();">قبول</button>
+                                        {% endif %}
+                                    </form>
+                                    <form method="post" action="{% url 'cases:review_distribution' case.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="reject_heir">
+                                        <input type="hidden" name="heir_id" value="{{ stat.obj.id }}">
+                                        {% if stat.has_active_dispute %}
+                                            <button class="review-btn review-btn-outline" style="color: #000 !important; opacity:0.5; cursor:not-allowed;" type="button" onclick="alert('خطأ برمجي: لا يمكن الرفض، يوجد نزاع نشط لهذا الوارث يجب حسمه بالقرعة أولاً.')">رفض</button>
+                                        {% elif stat.obj.acceptance_status == 'REJECTED' %}
+                                            <button class="review-btn review-btn-outline" style="color: #000 !important; opacity:0.5; cursor:not-allowed;" type="button" onclick="alert('عذراً: الوارث مرفوض مسبقاً.')">رفض</button>
+                                        {% elif stat.obj.is_judge_confirmed %}
+                                            <button class="review-btn review-btn-outline" style="color: #000 !important; opacity:0.5; cursor:not-allowed;" type="button" onclick="alert('حماية النظام: لا يمكن الرفض! هذا الوارث معتمد ومقفول ملفه، لإعادة فتحه يرجى مراسلة الدعم الفني لإلغاء الاعتماد.')">رفض</button>
+                                        {% else %}
+                                            <button class="review-btn review-btn-outline" type="submit" style="color: #000 !important;" onclick="document.querySelectorAll('.review-btn').forEach(btn => { btn.style.pointerEvents = 'none'; btn.style.opacity = '0.6'; }); this.innerHTML = '<i class=\'fas fa-spinner fa-spin\'></i> إرسال...'; this.form.submit();">رفض</button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

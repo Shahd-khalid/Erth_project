@@ -1,0 +1,281 @@
+{% extends 'judges/allocate_layout_base.html' %}
+{% load l10n %}
+
+{% block allocation_body %}
+<style>
+    .obligation-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .obligation-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
+        padding: 1.4rem;
+    }
+
+    .obligation-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed rgba(212,175,55,0.2);
+    }
+
+    .obligation-stats {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .obligation-pill {
+        min-width: 140px;
+        padding: 0.8rem 0.95rem;
+        border-radius: 16px;
+        background: rgba(0,0,0,0.16);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .obligation-pill span {
+        display: block;
+        color: var(--alloc-muted);
+        font-size: 0.82rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .obligation-pill strong {
+        color: var(--alloc-ink);
+        font-size: 1rem;
+    }
+
+    .target-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 0.9rem;
+    }
+
+    .target-card {
+        display: block;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .target-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(212,175,55,0.28);
+    }
+
+    .target-card input {
+        margin-left: 0.5rem;
+    }
+
+    .target-title {
+        color: var(--alloc-ink);
+        font-weight: 800;
+        margin-bottom: 0.3rem;
+    }
+
+    .target-subtitle {
+        color: var(--alloc-muted);
+        font-size: 0.88rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .target-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        color: var(--alloc-muted);
+        font-size: 0.88rem;
+    }
+
+    .obligation-note {
+        background: rgba(212,175,55,0.08);
+        border: 1px solid rgba(212,175,55,0.16);
+        color: var(--alloc-ink);
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+        line-height: 1.8;
+    }
+
+    [data-theme="light"] .obligation-card,
+    [data-theme="light"] .obligation-pill,
+    [data-theme="light"] .target-card {
+        background: #fffaf1;
+        border-color: rgba(143,109,39,0.16);
+        box-shadow: 0 16px 32px rgba(96,67,24,0.06);
+    }
+
+    [data-theme="light"] .obligation-head {
+        border-color: rgba(143,109,39,0.16);
+    }
+
+    [data-theme="light"] .obligation-note {
+        background: rgba(212,175,55,0.1);
+        border-color: rgba(143,109,39,0.18);
+        color: #4e4335;
+    }
+
+    [data-theme="light"] .target-card:hover {
+        background: #fff4dd;
+    }
+</style>
+
+<div class="obligation-grid">
+    <div class="judge-alloc-panel">
+        <div class="judge-alloc-panel-head">
+            <div>
+                <h2>
+                    {% if process_type == 'debt' %}
+                    تصفية الدين
+                    {% elif process_type == 'will' %}
+                    تنفيذ الوصية
+                    {% else %}
+                    تصفية الديون والوصايا قبل توزيع الورثة
+                    {% endif %}
+                </h2>
+                <p>
+                    {% if process_type == 'debt' %}
+                    اختر الأصول أو الأجزاء المخصصة لتسوية الديون فقط، دون الانتقال إلى مرحلة الورثة.
+                    {% elif process_type == 'will' %}
+                    اختر الأصول أو الأجزاء المخصصة لتنفيذ الوصايا فقط، دون خلط مع تصفية الديون أو توزيع الورثة.
+                    {% else %}
+                    اختر لكل دين أو وصية أصلًا كاملًا أو جزءًا أو عدة أجزاء بحيث يساوي مجموعها القيمة المطلوبة تمامًا.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="judge-alloc-top-actions">
+                <a href="{{ asset_stage_url }}" class="judge-alloc-btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة إلى تقسيم الأصول
+                </a>
+                {% if can_open_heirs_stage %}
+                <a href="{{ heirs_stage_url }}" class="judge-alloc-btn-primary">
+                    الانتقال إلى توزيع الورثة
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="judge-alloc-panel-body">
+            <div class="obligation-note mb-4">
+                {% if process_type == 'debt' %}
+                هذه مرحلة مخصصة لتصفية الديون فقط، ولن يتم فتح صفحة الورثة منها إلا بعد اكتمال جميع الديون والوصايا.
+                {% elif process_type == 'will' %}
+                هذه مرحلة مخصصة لتنفيذ الوصايا فقط، ولن يتم فتح صفحة الورثة منها إلا بعد اكتمال جميع الديون والوصايا.
+                {% else %}
+                لا يمكن الانتقال إلى صفحة توزيع الورثة أو إنهاء القضية ما لم تتم تغطية جميع الديون والوصايا بالكامل، وبدون استخدام الأصل نفسه في أكثر من التزام.
+                {% endif %}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_obligation_allocations">
+
+                {% for o_key, item in obligation_status.items %}
+                <div class="obligation-card mb-4">
+                    <div class="obligation-head">
+                        <div>
+                            <h3 class="mb-1" style="color: var(--alloc-ink); font-weight: 900;">
+                                {% if item.kind == 'debt' %}دين{% else %}وصية{% endif %}: {{ item.label }}
+                            </h3>
+                            <div style="color: var(--alloc-muted);">
+                                {% if item.is_settled %}
+                                تمت التصفية بالكامل.
+                                {% else %}
+                                ما زال هذا الالتزام يحتاج إلى تغطية دقيقة قبل الانتقال.
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="obligation-stats">
+                            <div class="obligation-pill">
+                                <span>المطلوب</span>
+                                <strong>{{ item.amount|floatformat:2 }} ر.س</strong>
+                            </div>
+                            <div class="obligation-pill">
+                                <span>المخصص</span>
+                                <strong>{{ item.allocated|floatformat:2 }} ر.س</strong>
+                            </div>
+                            <div class="obligation-pill">
+                                <span>المتبقي</span>
+                                <strong {% if item.remaining > 0 %}style="color:#ff8f8f;"{% else %}style="color:#2ecc71;"{% endif %}>
+                                    {{ item.remaining|floatformat:2 }} ر.س
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="target-grid">
+                        {% for target in obligation_targets %}
+                        <label class="target-card">
+                            <input
+                                type="radio"
+                                name="target_{{ target.key }}"
+                                value="{{ item.kind }}_{{ item.obj.id }}"
+                                {% for allocation in item.allocations %}
+                                    {% if allocation.asset_id == target.id and target.kind == 'asset' %}checked{% endif %}
+                                    {% if allocation.component_id == target.id and target.kind == 'component' %}checked{% endif %}
+                                {% endfor %}
+                            >
+                            <div class="target-title">
+                                {% if target.kind == 'asset' %}أصل كامل{% else %}جزء{% endif %}: {{ target.label }}
+                            </div>
+                            <div class="target-subtitle">
+                                {% if target.parent_label %}من أصل: {{ target.parent_label }}{% else %}أصل مستقل{% endif %}
+                            </div>
+                            <div class="target-meta">
+                                <span>القيمة: {{ target.gross_value|floatformat:2 }}</span>
+                                {% if target.obligation_total > 0 %}
+                                <span>محمل حاليًا: {{ target.obligation_total|floatformat:2 }}</span>
+                                {% endif %}
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="judge-alloc-empty">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        {% if process_type == 'debt' %}
+                        لا توجد ديون مسجلة على هذه القضية حاليًا.
+                        {% elif process_type == 'will' %}
+                        لا توجد وصايا مسجلة على هذه القضية حاليًا.
+                        {% else %}
+                        لا توجد ديون أو وصايا مسجلة على هذه القضية، ويمكن الانتقال مباشرة إلى توزيع الورثة.
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if obligation_status.items %}
+                <div class="judge-alloc-footer heir-footer">
+                    <p class="heir-footer-copy">
+                        بعد الحفظ سيعامل كل أصل أو جزء مخصص هنا بوصفه محمّلًا بالدين أو الوصية المرتبطة به في مراحل الاختيار والتراضي والقرعة.
+                    </p>
+                    <div class="heir-footer-actions">
+                        <button type="submit" class="btn-save-main">
+                            <i class="fas fa-save"></i>
+                            {% if process_type == 'debt' %}
+                            حفظ تصفية الدين
+                            {% elif process_type == 'will' %}
+                            حفظ تنفيذ الوصية
+                            {% else %}
+                            حفظ تصفية الديون والوصايا
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

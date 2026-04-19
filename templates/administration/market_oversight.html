@@ -1,0 +1,137 @@
+{% extends 'administration/admin_base.html' %}
+
+{% block admin_header_title %}
+    <h1 style="font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 8px;">وحدة السوق</h1>
+    <p style="color: rgba(255,255,255,0.58); font-weight: 600;">صفحة منفصلة لعروض البيع، مع مساحة أكبر لكل أصل معروض.</p>
+{% endblock %}
+
+{% block admin_content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- إحصائيات السوق -->
+<div class="card" style="padding: 24px; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center;">
+    <h3 style="margin: 0 0 20px; color: #fff; width: 100%;">مؤشرات المبيعات</h3>
+    <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+        {% if active_listings_count > 0 or sold_items_count > 0 %}
+        <canvas id="marketChart"></canvas>
+        {% else %}
+        <p style="color: rgba(255,255,255,0.58); align-self: center;">لا توجد بيانات كافية لعرض المخطط البياني.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- جدول المعروض والمباع -->
+<div class="card" style="padding: 24px; margin-bottom: 30px; overflow-x: auto;">
+    <h3 style="margin: 0 0 20px; color: #fff;">سجل الأصول (المعروضة والمُباعة)</h3>
+    <table style="width: 100%; text-align: right; border-collapse: collapse; min-width: 600px;">
+        <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <th style="padding: 12px; color: var(--text-muted);">اسم الأصل/الجزء</th>
+                <th style="padding: 12px; color: var(--text-muted);">النوع</th>
+                <th style="padding: 12px; color: var(--text-muted);">المالك / البائع</th>
+                <th style="padding: 12px; color: var(--text-muted);">الحالة</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- المعروضات النشطة -->
+            {% for list in listings %}
+            {% if list.is_active %}
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px; color: #fff;">{{ list.component.description }}</td>
+                <td style="padding: 12px; color: #fff;">جزء معروض للبيع</td>
+                <td style="padding: 12px; color: #fff;">{{ list.seller_name }}</td>
+                <td style="padding: 12px;">
+                    <span style="background: rgba(52, 152, 219, 0.2); color: #3498db; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem;">معروض حالياً</span>
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+
+            <!-- المُباعة (أجزاء) -->
+            {% for comp in sold_components %}
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px; color: #fff;">{{ comp.description }}</td>
+                <td style="padding: 12px; color: #fff;">جزء مباع</td>
+                <td style="padding: 12px; color: #fff;">{{ comp.assigned_to.name }}</td>
+                <td style="padding: 12px;">
+                    <span style="background: rgba(46, 204, 113, 0.2); color: #2ecc71; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem;">تم البيع</span>
+                </td>
+            </tr>
+            {% endfor %}
+
+            <!-- المُباعة (أصول كاملة) -->
+            {% for asset in sold_assets %}
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px; color: #fff;">{{ asset.description }}</td>
+                <td style="padding: 12px; color: #fff;">أصل بالكامل مباع</td>
+                <td style="padding: 12px; color: #fff;">{{ asset.assigned_to.name }}</td>
+                <td style="padding: 12px;">
+                    <span style="background: rgba(46, 204, 113, 0.2); color: #2ecc71; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem;">تم البيع</span>
+                </td>
+            </tr>
+            {% endfor %}
+            
+            {% if active_listings_count == 0 and sold_items_count == 0 %}
+            <tr>
+                <td colspan="4" style="padding: 15px; text-align: center; color: rgba(255,255,255,0.62);">لا توجد حركات في السوق بعد.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<h3 style="margin: 0 0 20px; color: #fff;">إدارة عروض المتجر العام</h3>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px;">
+    {% for list in listings %}
+    <div class="card" style="padding: 24px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px;">
+            <div>
+                <h3 style="margin: 0 0 8px; color: #fff;">{{ list.component.description }}</h3>
+                <div style="color: rgba(255,255,255,0.58);">{{ list.seller_name }}</div>
+            </div>
+            <span class="badge {% if list.is_active %}badge-active{% else %}badge-danger{% endif %}">{% if list.is_active %}نشط{% else %}مخفي{% endif %}</span>
+        </div>
+        <p style="color: rgba(255,255,255,0.62); line-height: 1.8;">{{ list.description|truncatechars:140 }}</p>
+        <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary-color); margin: 18px 0;">{{ list.price|floatformat:0 }} ر.س</div>
+        <form action="{% url 'administration:toggle_listing' list.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-outline">{% if list.is_active %}إخفاء العرض{% else %}إظهار العرض{% endif %}</button>
+        </form>
+    </div>
+    {% empty %}
+    <div class="card" style="padding: 24px; color: rgba(255,255,255,0.62);">لا توجد عروض حالية.</div>
+    {% endfor %}
+</div>
+
+{% if active_listings_count > 0 or sold_items_count > 0 %}
+<script>
+    var ctx = document.getElementById('marketChart').getContext('2d');
+    var marketChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ market_chart_data.labels|safe }},
+            datasets: [{
+                data: {{ market_chart_data.values|safe }},
+                backgroundColor: {{ market_chart_data.colors|safe }},
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'bottom', 
+                    labels: { 
+                        color: '#fff',
+                        font: { family: 'Tajawal', size: 14 }
+                    } 
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+
+{% endblock %}

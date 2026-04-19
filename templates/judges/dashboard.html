@@ -1,442 +1,632 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container" style="margin-top: 50px;">
+<style>
+    /* Custom styles for Judge Dashboard with Sidebar */
+    .judge-wrapper {
+        display: flex;
+        gap: 30px;
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 0 20px;
+        align-items: flex-start;
+    }
+    
+    .judge-sidebar {
+        width: 280px;
+        background: rgba(10, 15, 20, 0.6);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 30px 20px;
+        position: sticky;
+        top: 100px;
+        flex-shrink: 0;
+    }
+    
+    .judge-main {
+        flex-grow: 1;
+        min-width: 0; /* prevent flex blowout */
+    }
 
-    <!-- Dashboard Header -->
-    <div class="card dashboard-header-responsive"
-        style="margin-bottom: 30px; padding: 40px; border-radius: 30px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255,255,255,0.01) 100%);">
-        <div class="header-main" style="display: flex; align-items: center; gap: 20px;">
-            <div class="header-icon"
-                style="background: var(--primary-color); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #000;">
-                <i class="fas fa-gavel" style="font-size: 2.2rem;"></i>
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .sidebar-link {
+        width: 100%;
+        text-align: right;
+        background: transparent;
+        border: none;
+        color: #888;
+        padding: 15px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 8px;
+        font-size: 1.05rem;
+        font-family: inherit;
+    }
+    
+    .sidebar-link i {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    .sidebar-link-with-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .notification-badge {
+        margin-right: auto;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        font-weight: 800;
+        line-height: 1;
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
+    }
+
+    .notification-badge-danger {
+        background: #d93a3a;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    
+    .sidebar-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+    
+    .sidebar-link.active {
+        background: rgba(212, 175, 55, 0.1);
+        color: var(--primary-color, #d4af37);
+        border-right: 4px solid var(--primary-color, #d4af37);
+    }
+    
+    .view-section {
+        display: none;
+        animation: fadeIn 0.4s ease forwards;
+    }
+    
+    .view-section.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Keep previous premium styles for internals */
+    .premium-header {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(10, 25, 47, 0.8) 100%);
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        border-radius: 20px;
+        padding: 30px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: transform 0.3s ease, background 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        background: rgba(212, 175, 55, 0.05);
+        border-color: rgba(212, 175, 55, 0.3);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: rgba(212, 175, 55, 0.1);
+        color: var(--primary-color, #d4af37);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+    .smart-case-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .smart-case-card:hover {
+        border-color: rgba(212, 175, 55, 0.2);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+
+    .urgent-center {
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(0,0,0, 0.2) 100%);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .urgent-item {
+        background: rgba(0,0,0,0.3);
+        border-left: 4px solid #e74c3c;
+        padding: 15px 20px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    @media (max-width: 992px) {
+        .judge-wrapper {
+            flex-direction: column;
+        }
+        .judge-sidebar {
+            width: 100%;
+            position: static;
+        }
+    }
+</style>
+
+<div class="judge-wrapper">
+
+    <!-- Sidebar Navigation -->
+    <div class="judge-sidebar">
+        <div class="sidebar-brand">
+            <div style="width: 45px; height: 45px; background: var(--primary-color); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000; font-size: 1.5rem;">
+                <i class="fas fa-balance-scale"></i>
             </div>
             <div>
-                <h1 class="header-title" style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0;">لوحة تحكم
-                    القضاء</h1>
-                <p class="header-subtitle" style="color: var(--text-muted); margin: 5px 0 0; font-size: 1.1rem;">أهلاً
-                    بك، فضيلة القاضي {{ user.get_full_name|default:user.username }}</p>
+                <h3 style="color: #fff; margin: 0; font-size: 1.1rem; font-weight: 800;">بوابة القاضي</h3>
+                <p style="color: #888; margin: 0; font-size: 0.85rem;">{{ user.get_full_name|default:user.username }}</p>
             </div>
         </div>
-        <a href="{% url 'judges:manage_clerks' %}" class="btn-primary header-action"
-            style="padding: 0.8rem 2rem; font-size: 1.05rem; border-radius: 12px;">
-            <i class="fas fa-users-cog"></i> إدارة التشكيل الإداري
-        </a>
+
+        <button class="sidebar-link" onclick="switchView(event, 'view-overview')">
+            <i class="fas fa-chart-line"></i> نظرة عامة
+        </button>
+        <button class="sidebar-link" onclick="switchView(event, 'view-cases')">
+            <i class="fas fa-folder-open"></i> إدارة القضايا
+        </button>
+        <button class="sidebar-link sidebar-link-with-badge" onclick="switchView(event, 'view-consent-requests')">
+            <i class="fas fa-handshake"></i> طلبات القسمة بالتراضي
+            {% if consent_requests_count %}
+            <span class="notification-badge notification-badge-danger">{{ consent_requests_count }}</span>
+            {% endif %}
+        </button>
+        <button class="sidebar-link sidebar-link-with-badge" onclick="switchView(event, 'view-judge-approval')">
+            <i class="fas fa-stamp"></i> طلبات اعتماد قسمة القاضي
+            {% if judge_completion_requests_count %}
+            <span class="notification-badge notification-badge-danger">{{ judge_completion_requests_count }}</span>
+            {% endif %}
+        </button>
+
+        <button class="sidebar-link" onclick="switchView(event, 'view-archive')">
+            <i class="fas fa-archive"></i> الأرشيف المنتهي
+        </button>
+        
+        <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+            <a href="{% url 'judges:manage_clerks' %}" class="sidebar-link" style="color: #3498db; text-decoration: none;">
+                <i class="fas fa-users-cog"></i> التشكيل الإداري
+            </a>
+            <a href="{% url 'judges:report_print' %}" target="_blank" class="sidebar-link" style="color: #2ecc71; text-decoration: none; margin-top: 10px; border: 1px dashed rgba(46, 204, 113, 0.3);">
+                <i class="fas fa-file-pdf"></i> استخراج تقرير العمليات
+            </a>
+        </div>
     </div>
 
-    <!-- New Assigned Cases (Grid) -->
-    <div style="margin-bottom: 60px;">
-        <h3
-            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
-            <i class="fas fa-plus-circle" style="color: var(--primary-color);"></i> الطلبات الواردة حديثاً
-        </h3>
+    <!-- Main Content Area -->
+    <div class="judge-main">
+        
+        <!-- View: Overview -->
+        <div id="view-overview" class="view-section">
+            <!-- Header -->
+            <div class="premium-header">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0;">محرك القرار</h1>
+                    <p style="color: #aaa; margin: 5px 0 0; font-size: 1.1rem;">مرحباً بك في لوحة تحكم القضاء الموحدة.</p>
+                </div>
+                <!-- Notifications Bell -->
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; display: flex; gap: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="text-align: left;">
+                        <span style="display: block; color: var(--primary-color); font-weight: bold;">{{ active_cases_count }}</span>
+                        <small style="color: #888;">قضية نشطة</small>
+                    </div>
+                </div>
+            </div>
 
-        {% if new_cases %}
-        <div class="dashboard-grid">
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #e74c3c; background: rgba(231, 76, 60, 0.1);"><i class="fas fa-exclamation-circle"></i></div>
+                    <div>
+                        <h3 style="margin: 0; color: #fff; font-size: 1.5rem; font-weight: 800;">{{ pending_decisions_count }}</h3>
+                        <span style="color: #888; font-size: 0.9rem;">قرارات بانتظارك</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #2ecc71; background: rgba(46, 204, 113, 0.1);"><i class="fas fa-coins"></i></div>
+                    <div>
+                        <h3 style="margin: 0; color: #fff; font-size: 1.3rem; font-weight: 800;">{{ total_estate_value|floatformat:0 }} ر.س</h3>
+                        <span style="color: #888; font-size: 0.9rem;">إجمالي التركات</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #3498db; background: rgba(52, 152, 219, 0.1);"><i class="fas fa-money-check-alt"></i></div>
+                    <div>
+                        <h3 style="margin: 0; color: #fff; font-size: 1.3rem; font-weight: 800;">{{ collected_amounts|floatformat:0 }} ر.س</h3>
+                        <span style="color: #888; font-size: 0.9rem;">المبالغ تحت التسوية</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Urgent Action Center -->
+            {% if urgent_approval_cases or pending_raffles or unconfirmed_payments %}
+            <div class="urgent-center">
+                <h3 style="color: #fff; font-weight: 800; margin-bottom: 20px; font-size: 1.4rem; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-bolt" style="color: #e74c3c;"></i> يتطلب تدخل فضيلتكم الآن
+                </h3>
+                
+                {% for case in urgent_approval_cases %}
+                <div class="urgent-item">
+                    <div>
+                        <h5 style="color: #fff; margin: 0 0 5px 0;">القضية رقـم {{ case.case_number }}: إجماع الورثة على التراضي</h5>
+                        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">جميع الورثة وافقوا على القسمة بالتراضي بدلاً من تقسيم القضاء.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="openCaseModal({{ case.id }}, '{% url 'judges:case_details' case.id %}', '{% url 'cases:review_distribution' case.id %}', {% if case.can_open_mutual_balance %}true{% else %}false{% endif %})" class="btn-outline" style="padding: 6px 15px; border-radius: 6px; font-size: 0.85rem;"><i class="fas fa-folder-open"></i> الدخول للقضية</button>
+                        <form method="post" action="{% url 'judges:approve_mutual_consent' case.id %}" style="display: flex; gap: 10px; margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="approve" class="btn-primary" style="padding: 6px 15px; border-radius: 6px; font-size: 0.85rem; border:none; background: #2ecc71; color: #000;">اعتماد</button>
+                            <button type="submit" name="action" value="reject" class="btn-outline" style="padding: 6px 15px; border-radius: 6px; font-size: 0.85rem;">رفض</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% for raffle in pending_raffles %}
+                <div class="urgent-item">
+                    <div>
+                        <h5 style="color: #fff; margin: 0 0 5px 0;">القضية رقيم {{ raffle.case.case_number }}: نزاع على {% if raffle.asset %}{{ raffle.asset.description }}{% else %}{{ raffle.component.description }}{% endif %}</h5>
+                        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">انتهت مدة النزاع، يرجى إجراء القرعة بين المتنازعين إلكترونياً واعتمادها.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="openCaseModal({{ raffle.case.id }}, '{% url 'judges:case_details' raffle.case.id %}', '{% url 'cases:review_distribution' raffle.case.id %}', {% if raffle.case.can_open_mutual_balance %}true{% else %}false{% endif %})" class="btn-outline" style="padding: 6px 15px; border-radius: 6px; font-size: 0.85rem;"><i class="fas fa-folder-open"></i> الدخول للقضية</button>
+                        <form method="post" action="{% url 'judges:resolve_raffle' raffle.id %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-primary" style="padding: 6px 15px; border-radius: 6px; font-size: 0.85rem; border:none;">إجراء القرعة</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% for p in unconfirmed_payments %}
+                <div class="urgent-item">
+                    <div>
+                        <h5 style="color: #fff; margin: 0 0 5px 0;">القضية رقيم {{ p.case.case_number }}: تأكيد سداد لـ {{ p.payer.name }}</h5>
+                        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">أرسل الوريث إشعار سداد بمبلغ <strong style="color: #f1c40f;">{{ p.amount }}</strong> ريال لحساب القاضي.</p>
+                    </div>
+                    <form method="post" action="{% url 'judges:confirm_payment' p.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-primary" style="padding: 6px 15px; border-radius: 6px; font-size: 0.85rem; border:none;">تأكيد الاستلام</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Global Feed -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 25px;">
+                <h4 style="color: #fff; margin-top: 0; margin-bottom: 20px; font-weight: 800;"><i class="fas fa-history" style="color: var(--primary-color);"></i> التحركات والنشاطات الأخيرة</h4>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    {% for log in latest_logs %}
+                    <div style="padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                        <div>
+                            <strong style="color: var(--primary-color);">{{ log.heir.name }} (قضية {{ log.case.case_number }}):</strong>
+                            <span style="color: #ddd;">{{ log.action_text }}</span>
+                        </div>
+                        <small style="color: #666;">{{ log.created_at|timesince }} مضت</small>
+                    </div>
+                    {% empty %}
+                    <p style="color: #888; font-style: italic;">لا توجد تحركات أخيرة.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Cases List -->
+        <div id="view-cases" class="view-section active">
+            <h2 style="color: #fff; margin-bottom: 30px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">ملفات القضايا النشطة</h2>
+            
             {% for case in new_cases %}
-            <div class="card"
-                style="border-radius: 25px; display: flex; flex-direction: column; justify-content: space-between; border-left: 4px solid var(--primary-color);">
-                <div style="margin-bottom: 25px;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-                        <span
-                            style="background: rgba(212, 175, 55, 0.1); color: var(--primary-color); padding: 5px 12px; border-radius: 6px; font-weight:700; font-size: 0.9rem;">قضية
-                            رقم: {{ case.case_number }}</span>
-                        <span class="badge badge-pending">بانتظار القبول</span>
+            <div class="smart-case-card" style="border-right: 4px solid var(--primary-color);">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <span style="color: var(--primary-color); font-weight: bold; font-size: 0.9rem;">مرحلة التأسيس - قضية جديدة: {{ case.case_number }}</span>
+                        <h4 style="margin: 5px 0; color: #fff;">بانتظار قبول القاضي</h4>
+                        <p style="color: #888; font-size: 0.85rem; margin: 0;"><i class="fas fa-clock"></i> {{ case.created_at|date:"Y-m-d" }}</p>
                     </div>
-                    <p style="color: var(--text-muted); font-size: 0.95rem; margin: 5px 0;"><i class="fas fa-clock"
-                            style="margin-left: 8px; opacity:0.5;"></i> {{ case.created_at|date:"Y-m-d" }}</p>
-                </div>
-
-                <div style="display: flex; gap: 15px; margin-top: 10px;">
-                    <form method="post" action="{% url 'judges:accept_case' case.id %}" style="flex: 1;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-primary"
-                            style="width: 100%; border-radius: 10px; padding: 0.7rem; font-size: 0.95rem;">إقرار
-                            القبول</button>
-                    </form>
-                    <form method="post" action="{% url 'judges:reject_case' case.id %}" style="flex: 1;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-outline"
-                            style="width: 100%; border-radius: 10px; padding: 0.7rem; font-size: 0.95rem;">رفض</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="alert alert-info"
-            style="background: rgba(255,255,255,0.02); border: 1px dashed var(--glass-border); text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 40px; border-radius: 20px;">
-            <i class="fas fa-info-circle" style="margin-left: 10px;"></i> لا توجد قضايا جديدة بانتظار القبول حالياً.
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Active Cases (Accepted but Waiting for Clerk/Action) -->
-    <div style="margin-bottom: 60px;">
-        <h3
-            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
-            <i class="fas fa-folder-open" style="color: var(--primary-color);"></i> قضايا تحت الإجراء
-        </h3>
-        {% if active_cases %}
-        <div class="table-container">
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr style="background: rgba(212, 175, 55, 0.04);">
-                            <th style="padding: 20px;">رقم القضية</th>
-                            <th style="padding: 20px;">الحالة الحالية</th>
-                            <th style="padding: 20px;">تاريخ القبول</th>
-                            <th style="padding: 20px;">العمليات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for case in active_cases %}
-                        {% if case.status != 'DATA_REVIEW' and case.status != 'SESSION_ACTIVE' %}
-                        <tr>
-                            <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
-                            <td style="padding: 20px; color: #ddd;">
-                                {% if case.clerk %}
-                                <span class="badge badge-info">عند الكاتب: {{ case.clerk.first_name }}</span>
-                                {% else %}
-                                <span class="badge badge-warning">بانتظار تعيين كاتب</span>
-                                {% endif %}
-                            </td>
-                            <td style="padding: 20px; color: var(--text-muted);">{{ case.created_at|date:"Y-m-d" }}</td>
-                            <td style="padding: 20px; display: flex; gap: 10px;">
-                                <a href="{% url 'judges:assign_clerk' case.id %}" class="btn-outline"
-                                    style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px;">
-                                    <i class="fas fa-user-plus"></i> تعيين كاتب
-                                </a>
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% else %}
-        <p
-            style="color: var(--text-muted); text-align: center; padding: 40px; background: rgba(255,255,255,0.01); border-radius: 20px;">
-            لا توجد قضايا تحت الإجراء حالياً.</p>
-        {% endif %}
-    </div>
-
-    <!-- Review Section (Table) -->
-    <div style="margin-bottom: 60px;">
-        <h3
-            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
-            <i class="fas fa-search" style="color: var(--primary-color);"></i> مراجعة بيانات التركات
-        </h3>
-        {% if review_cases %}
-        <div class="table-container">
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr style="background: rgba(212, 175, 55, 0.04);">
-                            <th style="padding: 20px;">رقم القضية</th>
-                            <th style="padding: 20px;">الكاتب المكلف</th>
-                            <th style="padding: 20px;">آخر تحديث</th>
-                            <th style="padding: 20px;">العمليات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for case in review_cases %}
-                        <tr>
-                            <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
-                            <td style="padding: 20px; color: #ddd;">{{ case.clerk.get_full_name|default:case.clerk.username }}</td>
-                            <td style="padding: 20px; color: var(--text-muted);">
-                                {{ case.created_at|default:case.created_at|date:"Y-m-d" }}</td>
-                            <td style="padding: 20px;">
-                                <a href="{% url 'judges:case_details' case.id %}" class="btn-primary"
-                                    style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 8px;">
-                                    <i class="fas fa-file-signature"></i> مراجعة وتدقيق
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% else %}
-        <p
-            style="color: var(--text-muted); text-align: center; padding: 40px; background: rgba(255,255,255,0.01); border-radius: 20px;">
-            لا توجد ملفات بانتظار المراجعة.</p>
-        {% endif %}
-    </div>
-
-    <!-- Heirs in Arrears / Payments Section -->
-    {% if pending_settlements or waiting_receiver_settlements %}
-    <div style="margin-bottom: 60px;">
-        <h3 style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
-            <i class="fas fa-hand-holding-usd" style="color: #f1c40f;"></i> الورثاء قيد السداد (المقاصة المالية)
-        </h3>
-        <div class="row">
-            {% if pending_settlements %}
-            <div class="col-md-6 mb-3">
-                <div class="card" style="border: 1px solid rgba(241, 196, 15, 0.3); background: rgba(241, 196, 15, 0.02);">
-                    <h5 style="color: #f1c40f; margin-bottom: 20px; font-weight: 800;"><i class="fas fa-clock"></i> بانتظار سداد الوريث للقاضي</h5>
-                    {% for p in pending_settlements %}
-                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong style="color: #fff; font-size: 1rem;">{{ p.payer.name }}</strong>
-                                <p style="margin: 2px 0; font-size: 0.85rem; color: var(--text-muted);">القضية: {{ p.case.case_number }}</p>
-                                {% if p.heir_confirmed_payment %}
-                                    <span class="badge bg-success-subtle text-success border border-success mt-1" style="font-size: 0.7rem;">
-                                        <i class="fas fa-check-double"></i> أفاد بالسداد
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-secondary-subtle text-muted border mt-1" style="font-size: 0.7rem;">بانتظار التحويل</span>
-                                {% endif %}
-                            </div>
-                            <div style="text-align: left;">
-                                <span style="display: block; color: #f1c40f; font-weight: 800; font-size: 1.1rem;">{{ p.amount }} ريال</span>
-                                <form method="post" action="{% url 'judges:confirm_payment' p.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-primary" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; margin-top: 5px;">إقرار الاستلام</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if waiting_receiver_settlements %}
-            <div class="col-md-6 mb-3">
-                <div class="card" style="border: 1px solid rgba(46, 204, 113, 0.3); background: rgba(46, 204, 113, 0.02);">
-                    <h5 style="color: #2ecc71; margin-bottom: 20px; font-weight: 800;"><i class="fas fa-check-double"></i> بانتظار تأكيد المستلم النهائي</h5>
-                    {% for p in waiting_receiver_settlements %}
-                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong style="color: #fff; font-size: 1rem;">{{ p.receiver.name }}</strong>
-                                <p style="margin: 2px 0; font-size: 0.85rem; color: var(--text-muted);">المبلغ المحول: {{ p.amount }} ريال</p>
-                            </div>
-                            <div style="text-align: left;">
-                                <span class="badge badge-success">تم السداد للقاضي</span>
-                                <small style="display: block; color: var(--text-muted); font-size: 0.75rem; margin-top: 5px;">بانتظار تأكيده من لوحته</small>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Active Sessions (Special Cards) -->
-    <div style="margin-bottom: 60px;">
-        <h3
-            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
-            <i class="fas fa-balance-scale" style="color: var(--primary-color);"></i> جلسات القسمة الجارية
-        </h3>
-        {% if session_cases %}
-        <div class="dashboard-grid">
-            {% for case in session_cases %}
-            <div class="card" style="border-radius: 25px; border-top: 5px solid var(--primary-color);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h4 style="margin: 0; font-size: 1.4rem; font-weight: 800;">قضية: {{ case.case_number }}</h4>
-                    <span class="badge badge-info">{{ case.get_status_display }}</span>
-                </div>
-
-                {% if case.waiting_for_judge_approval %}
-                <div class="alert alert-warning" style="border-radius: 15px; margin-bottom: 20px; border: 2px dashed #f39c12; background: rgba(243, 156, 18, 0.05);">
-                    <h5 style="color: #f39c12; font-weight: 800;"><i class="fas fa-exclamation-triangle"></i> إجماع الورثة على التراضي!</h5>
-                    <p style="font-size: 0.95rem; color: #fff;">لقد وافق جميع الورثة في هذه القضية على الدخول في مسار القسمة بالتراضي بدلاً من تقسيم القضاء.</p>
-                    <p style="font-weight: 700; color: var(--primary-color);">هل توافق على تحويل الجلسة لقسمة بالتراضي وتصفير التوزيع الحالي؟</p>
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <form method="post" action="{% url 'judges:approve_mutual_consent' case.id %}">
-                            {% csrf_token %}
-                            <button type="submit" name="action" value="approve" class="btn-primary" style="padding: 0.5rem 1.5rem; border-radius: 8px;">نعم، أوافق</button>
-                        </form>
-                        <form method="post" action="{% url 'judges:approve_mutual_consent' case.id %}">
-                            {% csrf_token %}
-                            <button type="submit" name="action" value="reject" class="btn-outline" style="padding: 0.5rem 1.5rem; border-radius: 8px;">لا، استمر بمسار النزاعات</button>
-                        </form>
-                    </div>
-                </div>
-                {% endif %}
-
-                <div
-                    style="margin-bottom: 30px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border);">
-                    <label
-                        style="font-size: 0.85rem; color: var(--primary-color); font-weight: 700; margin-bottom: 10px; display: block;">رابط
-                        الجلسة الموحد للورثة:</label>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text"
-                            value="{{ request.scheme }}://{{ request.get_host }}/heirs/session/{{ case.session_link }}/"
-                            readonly
-                            style="background: transparent; border: none; color: #fff; font-size: 0.85rem; flex: 1; outline: none;">
-                        <button
-                            style="background: var(--primary-color); border: none; color: #000; padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 0.8rem;"
-                            onclick="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}/heirs/session/{{ case.session_link }}/'); this.innerText='تم النسخ'">نسخ</button>
+                        <form method="post" action="{% url 'judges:accept_case' case.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-primary" style="padding: 8px 16px; border-radius: 8px;">قبول</button>
+                        </form>
+                        <form method="post" action="{% url 'judges:reject_case' case.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-outline" style="padding: 8px 16px; border-radius: 8px;">رفض</button>
+                        </form>
                     </div>
-                </div>
-
-                {% if case.selection_logs.exists %}
-                <div style="margin-bottom: 20px; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border);">
-                    <label style="font-size: 0.8rem; color: var(--primary-color); font-weight: 700; margin-bottom: 8px; display: block;">سجل النشاط (تحركات الورثة):</label>
-                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
-                        {% for log in case.selection_logs.all|slice:":10" %}
-                        <li style="margin-bottom: 5px; color: #ddd; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 3px;">
-                            <span style="color: var(--primary-color);">{{ log.heir.name }}:</span> {{ log.action_text }}
-                            <small style="display: block; color: var(--text-muted); font-size: 0.7rem;">{{ log.created_at|date:"H:i" }}</small>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <a href="{% url 'judges:allocate_assets' case.id %}" class="btn-primary"
-                        style="width: 100%; border-radius: 10px;">إدارة التوزيع اليدوي</a>
-                    <a href="{% url 'review_distribution' case.id %}" class="btn-outline"
-                        style="width: 100%; border-radius: 10px; border-style: dashed;">موازنة التراضي (التوزيع
-                        الحر)</a>
                 </div>
             </div>
             {% endfor %}
-        </div>
-        {% else %}
-        <p
-            style="color: var(--text-muted); text-align: center; padding: 40px; background: rgba(255,255,255,0.01); border-radius: 20px;">
-            لا توجد جلسات مفتوحة حالياً.</p>
-        {% endif %}
-    </div>
 
-    <!-- Completed Cases Archive (Table) -->
-    <div style="margin-bottom: 60px;">
-        <h3
-            style="margin-bottom: 30px; color: #fff; font-weight: 800; display: flex; align-items: center; gap: 15px; font-size: 1.6rem;">
-            <i class="fas fa-archive" style="color: var(--primary-color);"></i> أرشيف القضايا المكتملة
-        </h3>
-        {% if completed_cases %}
-        <div class="table-container">
-            <div class="table-responsive">
-                <table>
+            {% for case in foundation_cases %}
+            <div class="smart-case-card" style="border-right: 4px solid #888;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: #888; font-weight: bold; font-size: 0.9rem;">مرحلة التأسيس - قضية رقم: {{ case.case_number }}</span>
+                        <h4 style="margin: 5px 0; color: #fff;">{{ case.get_status_display }}</h4>
+                        <p style="color: #aaa; font-size: 0.85rem; margin: 0;">كاتب الضبط: {% if case.clerk %}{{ case.clerk.first_name }}{% else %}<span style="color: #e74c3c">غير معين</span>{% endif %}</p>
+                    </div>
+                    {% if not case.clerk %}
+                    <a href="{% url 'judges:assign_clerk' case.id %}" class="btn-outline" style="padding: 8px 16px; border-radius: 8px;">تعيين كاتب</a>
+                    {% else %}
+                    <button onclick="openCaseModal({{ case.id }}, '{% url 'judges:case_details' case.id %}', '{% url 'cases:review_distribution' case.id %}', {% if case.can_open_mutual_balance %}true{% else %}false{% endif %})" class="btn-primary" style="padding: 10px 20px; border-radius: 10px;"><i class="fas fa-folder-open"></i> الدخول للقضية</button>
+
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for case in partition_cases %}
+            <div class="smart-case-card" style="border-right: 4px solid #3498db;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: #3498db; font-weight: bold; font-size: 0.9rem;">مرحلة القسمة - قضية رقم: {{ case.case_number }}</span>
+                        <h4 style="margin: 5px 0; color: #fff;">{{ case.get_status_display }}</h4>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #aaa; margin-top: 10px; width: 250px;">
+                            <span>تقدم تخصيص الأصول: {{ case.progress_percentage|floatformat:0 }}%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="openCaseModal({{ case.id }}, '{% url 'judges:case_details' case.id %}', '{% url 'cases:review_distribution' case.id %}', {% if case.can_open_mutual_balance %}true{% else %}false{% endif %})" class="btn-primary" style="padding: 10px 20px; border-radius: 10px; font-size: 1rem; width: 100%;"><i class="fas fa-folder-open"></i> الدخول للقضية</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for case in liquidation_cases %}
+            <div class="smart-case-card" style="border-right: 4px solid #f1c40f;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: #f1c40f; font-weight: bold; font-size: 0.9rem;">مرحلة التصفية المالية - قضية رقم: {{ case.case_number }}</span>
+                        <h4 style="margin: 5px 0; color: #fff;">{{ case.get_status_display }}</h4>
+                    </div>
+                    <div>
+                        <button onclick="openCaseModal({{ case.id }}, '{% url 'judges:case_details' case.id %}')" class="btn-primary" style="padding: 10px 20px; border-radius: 10px; font-size: 1rem;"><i class="fas fa-folder-open"></i> الدخول للقضية</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% if not foundation_cases and not partition_cases and not liquidation_cases and not new_cases %}
+            <p style="color: #888; text-align: center; padding: 40px;">لا توجد قضايا نشطة لعرضها.</p>
+            {% endif %}
+
+        </div>
+
+        <!-- View: Consent Requests -->
+        <div id="view-consent-requests" class="view-section">
+            <h2 style="color: #fff; margin-bottom: 30px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">إدارة طلبات القسمة بالتراضي</h2>
+            
+            {% for case in mutual_consent_cases %}
+            <div class="smart-case-card" style="border-right: 4px solid #f1c40f; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: #f1c40f; font-weight: bold; font-size: 0.9rem;">قضية رقم: {{ case.case_number }}</span>
+                        <h4 style="margin: 5px 0; color: #fff;">{{ case.get_status_display }}</h4>
+                        <p style="color: #aaa; font-size: 0.85rem; margin: 0; max-width: 600px;">هناك عدم موافقة أو تداخل في الاختيارات بين الورثة يتطلب الموازنة لتسكينهم وتوزيع الأصول المتبقية.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="{% url 'cases:review_distribution' case.id %}" class="btn-primary" style="padding: 10px 20px; border-radius: 8px; background: rgba(212, 175, 55, 0.2); color: var(--primary-color); font-weight: bold; border: 1px solid var(--primary-color); text-decoration: none;"><i class="fas fa-balance-scale" style="margin-left: 5px;"></i> الموازنة بالتراضي (التحكم الشامل)</a>
+                        <button onclick="openCaseModal({{ case.id }}, '{% url 'judges:case_details' case.id %}')" class="btn-outline" style="padding: 10px 20px; border-radius: 8px; font-size: 0.9rem;"><i class="fas fa-folder-open"></i> الدخول للبيانات</button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 30px; background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed rgba(255,255,255,0.1); margin-bottom: 25px;">
+                <p style="color: #888; margin: 0;">لا توجد طلبات قسمة بالتراضي أو منازعات معلقة حالياً.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- View: Judge Completion Requests -->
+        <div id="view-judge-approval" class="view-section">
+            <h2 style="color: #fff; margin-bottom: 16px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">طلبات اعتماد قسمة القاضي</h2>
+            <p style="color: #999; margin: 0 0 25px; max-width: 900px; line-height: 1.8;">
+                تظهر هنا فقط القضايا التي اكتملت فيها موافقة جميع الورثة على قسمة القاضي، وانتهت فيها الديون والوصايا والنزاعات والتسويات المعلقة.
+            </p>
+
+            {% if judge_completion_cases %}
+            <div style="display: grid; gap: 18px;">
+                {% for item in judge_completion_cases %}
+                <div class="smart-case-card" style="border-right: 4px solid #2ecc71; background: rgba(46, 204, 113, 0.05);">
+                    <div style="display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="flex: 1 1 420px;">
+                            <span style="color: #2ecc71; font-weight: 700; font-size: 0.9rem;">قضية مكتملة (بإجماع الورثة): {{ item.case.case_number }}</span>
+                            <h4 style="margin: 8px 0 12px; color: #fff;">{{ item.title }}</h4>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+                                <span style="background: rgba(255,255,255,0.05); color: #fff; padding: 7px 12px; border-radius: 999px; font-size: 0.85rem;">عدد الورثة: {{ item.heirs_count }}</span>
+                                <span style="background: rgba(46, 204, 113, 0.12); color: #7dffb0; padding: 7px 12px; border-radius: 999px; font-size: 0.85rem;">تم إجماع الورثة</span>
+                                <span style="background: rgba(212, 175, 55, 0.12); color: #f1c75b; padding: 7px 12px; border-radius: 999px; font-size: 0.85rem;">مسار التوافق السريع</span>
+                            </div>
+                            <p style="color: #bbb; margin: 0; line-height: 1.8;">
+                                لقد أقر الجميع بقسمة القاضي المبدئية. يمكنك الآن إنهاء القضية فوراً بناءً على هذا التراضي التام وتجاوز أي متطلبات إدارية أخرى.
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 200px;">
+                            <a href="{% url 'cases:review_section' item.case.id 'decision' %}" class="btn-outline" style="padding: 10px 18px; border-radius: 10px; text-align: center;">
+                                <i class="fas fa-search"></i> مراجعة التفاصيل
+                            </a>
+                            <form method="post" action="{% url 'judges:finalize_case_distribution' item.case.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-primary" style="width: 100%; padding: 11px 18px; border-radius: 10px; background: #2ecc71; color: #051b0f; border: none; font-weight: 800;">
+                                    <i class="fas fa-check-double"></i> إنهاء بمسار الإجماع
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 45px; background: rgba(255,255,255,0.02); border-radius: 18px; border: 1px dashed rgba(255,255,255,0.1);">
+                <i class="fas fa-check-double" style="font-size: 2.2rem; color: rgba(46, 204, 113, 0.6); margin-bottom: 14px;"></i>
+                <p style="color: #999; margin: 0; line-height: 1.8;">لا توجد حاليًا قضايا مكتملة الشروط بانتظار اعتماد قسمة القاضي.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- View: Archive -->
+        <div id="view-archive" class="view-section">
+            <h2 style="color: #fff; margin-bottom: 30px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">الأرشيف والتاريخ</h2>
+            <div style="background: rgba(255,255,255,0.02); border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                <table style="width: 100%; text-align: right; border-collapse: collapse;">
                     <thead>
-                        <tr style="background: rgba(212, 175, 55, 0.04);">
-                            <th style="padding: 20px;">رقم القضية</th>
-                            <th style="padding: 20px;">تاريخ الاعتماد والاكتمال</th>
-                            <th style="padding: 20px;">الحالة</th>
-                            <th style="padding: 20px;">العمليات</th>
+                        <tr style="background: rgba(212, 175, 55, 0.05);">
+                            <th style="padding: 15px; font-weight: 600; color: var(--primary-color);">رقم القضية</th>
+                            <th style="padding: 15px; font-weight: 600; color: var(--primary-color);">تاريخ الانتهاء</th>
+                            <th style="padding: 15px; font-weight: 600; color: var(--primary-color);">الإجراء</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for case in completed_cases %}
-                        <tr>
-                            <td style="padding: 20px; font-weight: 800; color: #fff;">{{ case.case_number }}</td>
-                            <td style="padding: 20px; color: var(--text-muted);">
-                                <i class="fas fa-calendar-check" style="color: #2ecc71; margin-left: 5px;"></i>
-                                {{ case.created_at|date:"Y-m-d" }}
-                            </td>
-                            <td style="padding: 20px;">
-                                <span
-                                    style="background: rgba(243, 156, 18, 0.1); color: #f39c12; padding: 5px 12px; border-radius: 6px; font-weight: 700; border: 1px solid rgba(243, 156, 18, 0.3);">
-                                    <i class="fas fa-check-circle" style="margin-left: 5px;"></i> مكتملة
-                                </span>
-                            </td>
-                            <td style="padding: 20px;">
-                                <a href="{% url 'final_report' case.id %}" class="btn-primary"
-                                    style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 8px; background: linear-gradient(135deg, #f39c12 0%, #d35400 100%); border: none;">
-                                    <i class="fas fa-file-contract"></i> عرض الصك النهائي
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 15px; color: #fff;">{{ case.case_number }}</td>
+                            <td style="padding: 15px; color: #888;">{{ case.created_at|date:"Y-m-d" }}</td>
+                            <td style="padding: 15px;">
+                                <a href="{% url 'cases:final_report' case.id %}" class="btn-outline" style="padding: 6px 15px; border-radius: 6px; font-size: 0.85rem; color: #fff;">
+                                    <i class="fas fa-file-contract"></i> الصك النهائي
                                 </a>
                             </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: #888;">لا توجد تركات منتهية.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-        {% else %}
-        <p
-            style="color: var(--text-muted); text-align: center; padding: 40px; background: rgba(255,255,255,0.01); border-radius: 20px;">
-            لا توجد قضايا مكتملة في الأرشيف حتى الآن.</p>
-        {% endif %}
-    </div>
 
+    </div>
+</div>
+
+<!-- Case Navigation Modal -->
+<div id="caseNavigationModal" class="modal-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+    <div class="card" style="width: 90%; max-width: 500px; padding: 40px; border-radius: 25px; position: relative; background: #0a0f14; border: 1px solid rgba(255,255,255,0.1); animation: modalPop 0.3s ease;">
+        <button onclick="closeCaseModal()" style="position: absolute; top: 20px; left: 20px; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="width: 70px; height: 70px; background: rgba(52, 152, 219, 0.1); color: #3498db; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 15px;">
+                <i class="fas fa-balance-scale-right"></i>
+            </div>
+            <h3 style="color: #fff; margin: 0 0 10px 0;">خيارات الدخول للقضية</h3>
+            <p style="color: #888; font-size: 0.95rem; margin: 0;">الرجاء تحديد الواجهة التي ترغب بالانتقال إليها للتحكم بمسار القضية.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+
+            
+            <a id="modalDetailsBtn" href="#" class="btn-outline" style="padding: 15px 20px; border-radius: 12px; font-size: 1.05rem; text-align: right; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
+                <span>
+                    <i class="fas fa-edit" style="margin-left: 10px; color: #888;"></i>
+                    بيانات القضية / التوزيع اليدوي
+                </span>
+                <i class="fas fa-chevron-left" style="color: #666;"></i>
+            </a>
+        </div>
+    </div>
 </div>
 
 <style>
-    @media (max-width: 992px) {
-        .container {
-            margin-top: 20px !important;
-        }
-
-        .dashboard-header-responsive {
-            flex-direction: column;
-            align-items: center !important;
-            text-align: center !important;
-            gap: 25px;
-            padding: 30px 20px !important;
-            margin-bottom: 30px !important;
-        }
-
-        .header-main {
-            flex-direction: column !important;
-            gap: 15px !important;
-        }
-
-        .header-icon {
-            margin: 0 auto !important;
-            width: 60px !important;
-            height: 60px !important;
-        }
-
-        .header-icon i {
-            font-size: 1.8rem !important;
-        }
-
-        .header-title {
-            font-size: 1.6rem !important;
-        }
-
-        .header-subtitle {
-            font-size: 0.95rem !important;
-        }
-
-        .header-action {
-            width: 100% !important;
-            padding: 12px !important;
-        }
-
-        .dashboard-grid {
-            grid-template-columns: 1fr !important;
-            gap: 20px !important;
-        }
-
-        .card {
-            padding: 30px 20px !important;
-            border-radius: 20px !important;
-        }
-
-        h3 {
-            font-size: 1.3rem !important;
-            margin-bottom: 20px !important;
-        }
-
-        .table-container {
-            border-radius: 15px !important;
-        }
-
-        th,
-        td {
-            padding: 15px 12px !important;
-            font-size: 0.9rem !important;
-        }
-
-        .btn-outline,
-        .btn-primary {
-            font-size: 0.85rem !important;
-            padding: 10px !important;
-        }
+    @keyframes modalPop {
+        0% { transform: scale(0.9); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
     }
 </style>
+
+<script>
+    function switchView(event, viewId) {
+        // Hide all views
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Remove active class from all links
+        document.querySelectorAll('.sidebar-link').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Show target view
+        document.getElementById(viewId).classList.add('active');
+        
+        // Set clicked link as active
+        event.currentTarget.classList.add('active');
+    }
+
+    function openCaseModal(caseId, detailsUrl, reviewUrl = '') {
+        document.getElementById('modalDetailsBtn').href = detailsUrl;
+        document.getElementById('caseNavigationModal').style.display = 'flex';
+    }
+
+    function closeCaseModal() {
+        document.getElementById('caseNavigationModal').style.display = 'none';
+    }
+    
+    // Close modal if clicking outside
+    document.getElementById('caseNavigationModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCaseModal();
+        }
+    });
+</script>
 {% endblock %}

@@ -3,6 +3,7 @@ from django.urls import path, include
 from users import views as user_views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,6 +16,7 @@ urlpatterns = [
     path('clerks/', include('clerks.urls')),
     path('heirs/', include('heirs.urls')),
     path('administration/', include('administration.urls')),
-    path('admin_custom/', include('administration.urls')),
+
     path('chat/', include('chat_bot.urls')),
+    path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/javascript'), name='sw.js'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

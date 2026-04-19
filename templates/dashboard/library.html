@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}المكتبة الفقهية - إرث{% endblock %}
+
+{% block extra_css %}
+<style>
+    .library-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding: 1.6rem 1.8rem;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(181, 138, 45, 0.08) 0%, rgba(255, 253, 248, 0.96) 100%);
+        border: 1px solid rgba(143, 109, 39, 0.12);
+        box-shadow: 0 18px 38px rgba(96, 67, 24, 0.1);
+    }
+
+    .library-title {
+        margin: 0;
+    }
+
+    .library-subtitle {
+        margin: 0.75rem 0 0;
+    }
+
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.6rem;
+        align-items: stretch;
+    }
+
+    .book-grid-item {
+        min-width: 0;
+    }
+
+    .book-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .book-cover {
+        height: 260px;
+        object-fit: cover;
+        background: linear-gradient(180deg, #f7efdf 0%, #efe2c6 100%);
+    }
+
+    .book-cover-fallback {
+        height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #f7efdf 0%, #efe2c6 100%);
+        color: #b58a2d;
+    }
+
+    .book-card .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .book-title {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .book-meta {
+        margin: 0;
+    }
+
+    .book-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-top: auto;
+    }
+
+    .book-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .library-empty {
+        text-align: center;
+        padding: 4rem 1.5rem;
+        border-radius: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .library-hero {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 1.35rem 1.2rem;
+        }
+
+        .books-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .book-cover,
+        .book-cover-fallback {
+            height: 220px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="library-hero">
+    <div>
+        <h2 class="library-title"><i class="fas fa-book-open text-primary"></i> المكتبة الفقهية</h2>
+        <p class="text-muted library-subtitle">مجموعة من الكتب والمراجع الفقهية الخاصة بعلم الفرائض والمواريث.</p>
+    </div>
+    {% if user.role == 'ADMIN' %}
+    <div class="text-end">
+        <a href="{% url 'administration:upload_book' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> رفع كتاب جديد
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="books-grid">
+    {% for book in books %}
+    <div class="book-grid-item">
+        <div class="card premium-card book-card">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
+            {% else %}
+            <div class="card-img-top book-cover-fallback">
+                <i class="fas fa-book fa-5x"></i>
+            </div>
+            {% endif %}
+            
+            <div class="card-body">
+                <h5 class="card-title book-title">{{ book.title }}</h5>
+                {% if book.author %}
+                <p class="card-text text-muted book-meta"><i class="fas fa-pen-nib"></i> المؤلف: {{ book.author }}</p>
+                {% endif %}
+                <p class="card-text text-muted small book-meta"><i class="far fa-calendar-alt"></i> أضيف في: {{ book.uploaded_at|date:"Y-m-d" }}</p>
+                
+                <div class="book-actions">
+                    <a href="{{ book.pdf_file.url }}" class="btn btn-primary" download>
+                        <i class="fas fa-download"></i> تحميل
+                    </a>
+                    <a href="{{ book.pdf_file.url }}" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> استعراض
+                    </a>
+                    {% if user.role == 'ADMIN' %}
+                    <a href="{% url 'administration:edit_book' book.id %}" class="btn btn-warning" style="background: rgba(243, 156, 18, 0.15); border: 1px solid #f39c12; color: #f39c12;">
+                        <i class="fas fa-edit"></i> تعديل
+                    </a>
+                    <form action="{% url 'administration:delete_book' book.id %}" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذا الكتاب نهائياً؟');" style="display: inline-block; width: 100%;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" style="background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; color: #e74c3c; width: 100%;">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="library-empty premium-card">
+        <i class="fas fa-book-reader fa-4x text-muted mb-3"></i>
+        <h4>لا توجد كتب متاحة حاليًا</h4>
+        <p class="text-muted">لم يتم إضافة أي كتب فقهية للمكتبة حتى الآن.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    {% if user.role == 'ADMIN' %}
+    .book-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+    {% endif %}
+</style>
+{% endblock %}
+

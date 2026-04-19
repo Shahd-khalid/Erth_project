@@ -1,0 +1,48 @@
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">النزاعات والقرعة</h3>
+        <p class="mb-0 text-muted">كل أصل أو جزء متنازع عليه مع رابط مباشر إلى صفحة القرعة التفاعلية.</p>
+    </div>
+    <div class="review-card-body">
+        {% if active_disputes %}
+            <div class="table-responsive">
+                <table class="review-table">
+                    <thead>
+                        <tr>
+                            <th>العنصر المتنازع عليه</th>
+                            <th>القيمة</th>
+                            <th>المتنازعون</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dispute in active_disputes %}
+                            <tr>
+                                <td>
+                                    <strong>{% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}</strong>
+                                    <div class="text-muted small mt-1">
+                                        {% if dispute.asset %}أصل كامل{% else %}جزء من أصل: {{ dispute.component.asset.description }}{% endif %}
+                                    </div>
+                                </td>
+                                <td>{% if dispute.asset %}{{ dispute.asset.value }}{% else %}{{ dispute.component.value }}{% endif %}</td>
+                                <td>
+                                    {% for contender in dispute.contenders.all %}
+                                        <span class="review-badge mb-1">{{ contender.name }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a class="review-btn review-btn-primary" href="{% url 'cases:start_lottery' case.id %}?dispute={{ dispute.id }}">
+                                        <i class="fas fa-dharmachakra"></i>
+                                        <span>فتح صفحة القرعة</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="review-note">لا توجد نزاعات نشطة حاليًا.</div>
+        {% endif %}
+    </div>
+</section>

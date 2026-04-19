@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -59,3 +60,36 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+
+
+class Feedback(models.Model):
+    class Rating(models.IntegerChoices):
+        ONE = 1, _('1 نجمة')
+        TWO = 2, _('2 نجمتان')
+        THREE = 3, _('3 نجوم')
+        FOUR = 4, _('4 نجوم')
+        FIVE = 5, _('5 نجوم')
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='feedback_entries',
+        verbose_name=_('المستخدم'),
+    )
+    message = models.TextField(verbose_name=_('الرسالة / الملاحظة'))
+    rating = models.PositiveSmallIntegerField(
+        choices=Rating.choices,
+        blank=True,
+        null=True,
+        verbose_name=_('التقييم'),
+    )
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('تاريخ الإرسال'))
+
+    class Meta:
+        ordering = ['-date_created']
+        verbose_name = _('تقييم وملاحظة')
+        verbose_name_plural = _('التقييمات والملاحظات')
+
+    def __str__(self):
+        rating_display = f' - {self.rating}/5' if self.rating else ''
+        return f'{self.user.username}{rating_display}'

@@ -49,26 +49,20 @@
                     {% for asset in item.assets %}
                     <tr>
                         <td>{{ asset.description }}</td>
-                        <td class="text-start">{{ asset.value|floatformat:2 }} ريال</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="2" class="text-center text-muted">لا توجد أصول عينية (توزيع نقدي فقط)</td>
+                        <td class="text-start">{{ asset.value|floatformat:2 }}</td>
                     </tr>
                     {% endfor %}
-                    <tr class="fw-bold">
-                        <td>إجمالي قيمة الأصول المخصصة عيناً</td>
-                        <td class="text-start">{{ item.specific_assets_value|floatformat:2 }} ريال</td>
+                    {% for comp in item.components %}
+                    <tr>
+                        <td>{{ comp.description }}</td>
+                        <td class="text-start">{{ comp.value|floatformat:2 }}</td>
                     </tr>
-                    {% if item.pool_allocation > 0 %}
-                    <tr class="table-info">
-                        <td>نصيب نقدي/متبقي (توزيع تلقائي للمتبقي)</td>
-                        <td class="text-start">{{ item.pool_allocation|floatformat:2 }} ريال</td>
-                    </tr>
-                    {% endif %}
+                    {% endfor %}
+
+
                     <tr class="table-dark text-white fw-bold">
                         <td>إجمالي ما تم تخصيصه للوارث</td>
-                        <td class="text-start">{{ item.total_allocated|floatformat:2 }} ريال</td>
+                        <td class="text-start">{{ item.total_allocated|floatformat:2 }}</td>
                     </tr>
                 </tbody>
             </table>

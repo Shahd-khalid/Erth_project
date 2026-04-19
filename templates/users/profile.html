@@ -174,6 +174,7 @@
         align-items: center;
         gap: 12px;
         width: 100%;
+        text-decoration: none;
     }
 
     .tab-btn:not(:last-child) {
@@ -409,6 +410,76 @@
         color: #f87171;
     }
 
+    [data-theme="light"] .profile-header-card,
+    [data-theme="light"] .sidebar-nav,
+    [data-theme="light"] .glass-card,
+    [data-theme="light"] .stat-card {
+        background: #fffdf8;
+        border-color: rgba(143, 109, 39, 0.14);
+        box-shadow: 0 14px 30px rgba(96, 67, 24, 0.08);
+    }
+
+    [data-theme="light"] .profile-info h1,
+    [data-theme="light"] .glass-card-title,
+    [data-theme="light"] .stat-value,
+    [data-theme="light"] .pending-section-title {
+        color: #2f261c;
+    }
+
+    [data-theme="light"] .profile-meta,
+    [data-theme="light"] .tab-btn,
+    [data-theme="light"] .form-group label,
+    [data-theme="light"] .stat-label,
+    [data-theme="light"] .password-help,
+    [data-theme="light"] .custom-file-help,
+    [data-theme="light"] .glass-card p,
+    [data-theme="light"] .profile-header-card p {
+        color: #6d624f;
+    }
+
+    [data-theme="light"] .tab-btn:hover {
+        color: #2f261c;
+        background: rgba(143, 109, 39, 0.08);
+    }
+
+    [data-theme="light"] .tab-btn.active {
+        color: #8f6d27;
+        background: rgba(212, 175, 55, 0.14);
+        border-right-color: #8f6d27;
+    }
+
+    [data-theme="light"] .custom-field-wrapper input,
+    [data-theme="light"] .custom-field-wrapper select,
+    [data-theme="light"] .custom-field-wrapper textarea,
+    [data-theme="light"] .form-control {
+        background: #fffaf1 !important;
+        color: #2f261c !important;
+        border-color: rgba(143, 109, 39, 0.18) !important;
+    }
+
+    [data-theme="light"] .custom-field-wrapper input::placeholder,
+    [data-theme="light"] .custom-field-wrapper textarea::placeholder {
+        color: #9a8c75;
+    }
+
+    [data-theme="light"] .custom-field-wrapper input:disabled,
+    [data-theme="light"] .custom-field-wrapper input[readonly] {
+        background: #efe6d8;
+        color: #8a7b64;
+        border-color: rgba(143, 109, 39, 0.1);
+    }
+
+    [data-theme="light"] .role-badge {
+        background: rgba(212, 175, 55, 0.12);
+        color: #8f6d27;
+        border-color: rgba(143, 109, 39, 0.32);
+    }
+
+    [data-theme="light"] .stat-card:hover {
+        background: rgba(212, 175, 55, 0.08);
+        box-shadow: 0 16px 30px rgba(96, 67, 24, 0.12);
+    }
+
     @keyframes slideInLeft {
         from {
             transform: translateX(-100%);
@@ -475,6 +546,76 @@
             border-bottom-color: var(--accent-color);
         }
     }
+
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 24px 14px;
+            gap: 18px;
+        }
+
+        .profile-header-card,
+        .glass-card {
+            padding: 22px 16px;
+            border-radius: 20px;
+        }
+
+        .profile-header-card {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-header-main {
+            width: 100%;
+        }
+
+        .profile-header-main h1 {
+            font-size: clamp(1.8rem, 7vw, 2.3rem);
+        }
+
+        .glass-card-title {
+            font-size: clamp(1.3rem, 5.5vw, 1.7rem);
+        }
+
+        .form-grid,
+        .stats-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        .tab-content {
+            padding: 0;
+        }
+
+        .btn-save {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .profile-container {
+            padding: 18px 10px;
+        }
+
+        .profile-sidebar {
+            padding: 14px;
+        }
+
+        .sidebar-nav {
+            gap: 8px;
+        }
+
+        .tab-btn {
+            min-height: 46px;
+            font-size: 0.94rem;
+            padding: 12px 14px;
+        }
+
+        .profile-avatar {
+            width: 94px;
+            height: 94px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -539,17 +680,17 @@
 
         <!-- Navigation Links (Sidebar Tabs) -->
         <div class="sidebar-nav">
-            <button class="tab-btn active" onclick="switchTab('info')">
+            <a href="{% url 'users:profile' %}" class="tab-btn {% if initial_tab == 'info' %}active{% endif %}">
                 <i class="fas fa-{% if user.role == 'ADMIN' %}landmark{% else %}user-edit{% endif %}"></i> 
                 {% if user.role == 'ADMIN' %}بيانات المحكمة الرسمية{% else %}المعلومات الشخصية{% endif %}
-            </button>
-            <button class="tab-btn" onclick="switchTab('security')">
+            </a>
+            <a href="{% url 'users:profile_security' %}" class="tab-btn {% if initial_tab == 'security' %}active{% endif %}">
                 <i class="fas fa-user-shield"></i> إعدادات الأمان
-            </button>
+            </a>
             {% if stats %}
-            <button class="tab-btn" onclick="switchTab('activity')">
+            <a href="{% url 'users:profile_activity' %}" class="tab-btn {% if initial_tab == 'activity' %}active{% endif %}">
                 <i class="fas fa-chart-line"></i> لوحة النشاط والإحصائيات
-            </button>
+            </a>
             {% endif %}
         </div>
     </aside>
@@ -558,7 +699,7 @@
     <main class="profile-content">
 
         <!-- Tab: Personal Info -->
-        <div id="tab-info" class="tab-content active glass-card">
+        <div id="tab-info" class="tab-content glass-card {% if initial_tab == 'info' %}active{% endif %}">
             <h2 class="glass-card-title">
                 <i class="fas fa-{% if user.role == 'ADMIN' %}landmark{% else %}address-card{% endif %}"></i> 
                 {% if user.role == 'ADMIN' %}البيانات الرسمية للمنظمة{% else %}البيانات الشخصية{% endif %}
@@ -690,7 +831,7 @@
         </div>
 
         <!-- Tab: Security -->
-        <div id="tab-security" class="tab-content glass-card">
+        <div id="tab-security" class="tab-content glass-card {% if initial_tab == 'security' %}active{% endif %}">
             <h2 class="glass-card-title"><i class="fas fa-lock"></i> إعدادات الأمان</h2>
             <form method="post" action="{% url 'users:profile' %}">
                 {% csrf_token %}
@@ -719,7 +860,7 @@
 
         <!-- Tab: Activity & Stats -->
         {% if stats %}
-        <div id="tab-activity" class="tab-content glass-card">
+        <div id="tab-activity" class="tab-content glass-card {% if initial_tab == 'activity' %}active{% endif %}">
             <h2 class="glass-card-title"><i class="fas fa-chart-line"></i> نظرة عامة على نشاطك</h2>
 
             <div class="stats-grid">
@@ -766,23 +907,6 @@
 
 {% block extra_js %}
 <script>
-    function switchTab(tabId) {
-        // Hide all contents
-        document.querySelectorAll('.tab-content').forEach(el => {
-            el.classList.remove('active');
-            // Brief timeout to allow display to set before opacity transitions if needed
-        });
-
-        // Remove active class from buttons
-        document.querySelectorAll('.tab-btn').forEach(el => {
-            el.classList.remove('active');
-        });
-
-        // Show selected content and activate button
-        document.getElementById('tab-' + tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
-    }
-
     // Auto dismiss toasts after 5 seconds as fallback
     document.addEventListener("DOMContentLoaded", function () {
         const toasts = document.querySelectorAll('.toast-alert');

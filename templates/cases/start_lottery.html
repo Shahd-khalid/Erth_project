@@ -1,91 +1,837 @@
 {% extends 'base.html' %}
 
+{% block title %}قرعة القضية {{ case.display_case_number }}{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2>القرعة الإلكترونية وحل النزاعات ({{ case.case_number }})</h2>
-    <p class="lead">تستخدم القرعة لفك النزاع الآلي بين الورثة الذين اختاروا نفس الأصول أو العينات.</p>
+<style>
+    .lottery-shell {
+        max-width: 1480px;
+        margin: 2rem auto 4rem;
+        padding: 0 1rem;
+    }
+    .lottery-grid {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 1.5rem;
+        align-items: start;
+    }
+    .lottery-panel,
+    .lottery-card,
+    .lottery-wheel-card {
+        background: rgba(10, 15, 20, 0.9);
+        border: 1px solid rgba(212, 175, 55, 0.16);
+        border-radius: 28px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+    }
+    .lottery-panel {
+        padding: 1rem;
+        position: sticky;
+        top: 110px;
+    }
+    .lottery-card,
+    .lottery-wheel-card {
+        overflow: hidden;
+    }
+    .lottery-card-header {
+        padding: 1.25rem 1.4rem;
+        border-bottom: 1px solid rgba(212,175,55,0.12);
+        background: rgba(3,5,8,0.45);
+    }
+    .lottery-card-body {
+        padding: 1.4rem;
+    }
+    .lottery-nav-link {
+        display: block;
+        padding: 0.95rem 1rem;
+        border-radius: 18px;
+        text-decoration: none;
+        color: #e9dfc7;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        transition: .2s ease;
+    }
+    .lottery-nav-link:hover,
+    .lottery-nav-link.is-active {
+        background: rgba(212,175,55,0.12);
+        color: #f1c75b;
+    }
+    .lottery-asset-banner {
+        padding: 1.4rem 1.6rem;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.05));
+        border: 1px solid rgba(212,175,55,0.24);
+        margin-bottom: 1rem;
+    }
+    .winner-hero {
+        display: none;
+        margin-bottom: 1.5rem;
+        padding: 1.6rem 1.8rem;
+        border-radius: 30px;
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,0.14), transparent 38%),
+            linear-gradient(135deg, rgba(212,175,55,0.24), rgba(46,204,113,0.16));
+        border: 1px solid rgba(212,175,55,0.32);
+        box-shadow: 0 24px 46px rgba(70, 47, 10, 0.18);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .winner-hero.is-visible {
+        display: block;
+        animation: winnerHeroReveal 0.9s cubic-bezier(0.18, 0.89, 0.32, 1.16);
+    }
+    .winner-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+        transform: translateX(-100%);
+        animation: winnerHeroShine 3.8s ease-in-out infinite;
+    }
+    .winner-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.16);
+        color: #fff8e3;
+        font-weight: 900;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    .winner-hero-title {
+        font-size: clamp(1.5rem, 2vw, 2.1rem);
+        font-weight: 900;
+        color: #fff7e0;
+        position: relative;
+        z-index: 1;
+    }
+    .winner-hero-name {
+        font-size: clamp(2.3rem, 4vw, 4.2rem);
+        font-weight: 900;
+        line-height: 1.2;
+        color: #ffffff;
+        text-shadow: 0 8px 28px rgba(0,0,0,0.18);
+        margin-top: 0.8rem;
+        position: relative;
+        z-index: 1;
+    }
+    .winner-hero-subtitle {
+        font-size: 1rem;
+        color: rgba(255,255,255,0.86);
+        margin-top: 0.9rem;
+        position: relative;
+        z-index: 1;
+    }
+    .lottery-contenders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+    .lottery-contender-card {
+        position: relative;
+        padding: 1.1rem 1.15rem;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+        border: 1px solid rgba(212,175,55,0.14);
+        min-height: 142px;
+        overflow: hidden;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .lottery-contender-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 28px rgba(0,0,0,0.16);
+    }
+    .lottery-contender-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 6px;
+        background: var(--contender-accent, #d4af37);
+        opacity: 0.95;
+    }
+    .lottery-contender-card.is-winner {
+        border-color: rgba(46,204,113,0.55);
+        box-shadow: 0 0 0 2px rgba(46,204,113,0.2), 0 24px 42px rgba(12, 48, 24, 0.24);
+        background: linear-gradient(135deg, rgba(46,204,113,0.18), rgba(255,255,255,0.05));
+        transform: translateY(-8px) scale(1.035);
+        animation: winnerCardPulse 2.8s ease-in-out infinite;
+    }
+    .lottery-contender-card.is-winner::after {
+        content: "الفائز";
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 0.28rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(46,204,113,0.18);
+        color: #dfffea;
+        font-size: 0.82rem;
+        font-weight: 900;
+        border: 1px solid rgba(46,204,113,0.32);
+    }
+    .lottery-contender-name {
+        font-size: 1.35rem;
+        font-weight: 900;
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+        color: #fff;
+        padding-left: 3.3rem;
+    }
+    .lottery-contender-role,
+    .lottery-contender-share {
+        color: rgba(255,255,255,0.76);
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+    .lottery-contender-index {
+        display: inline-grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        font-weight: 900;
+        margin-bottom: 0.85rem;
+    }
+    .wheel-stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 620px;
+        padding: 2rem;
+    }
+    .wheel-pointer {
+        position: absolute;
+        top: 1.2rem;
+        width: 0;
+        height: 0;
+        border-left: 18px solid transparent;
+        border-right: 18px solid transparent;
+        border-top: 30px solid #d62828;
+        z-index: 3;
+        filter: drop-shadow(0 8px 18px rgba(214,40,40,0.4));
+    }
+    .wheel-outer {
+        position: relative;
+        width: min(540px, 78vw);
+        height: min(540px, 78vw);
+        border-radius: 50%;
+        padding: 18px;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), rgba(212,175,55,0.08));
+        border: 1px solid rgba(212,175,55,0.16);
+    }
+    #lottery-wheel {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: block;
+        transform: rotate(0deg);
+        transform-origin: 50% 50%;
+        filter: drop-shadow(0 30px 45px rgba(0,0,0,0.36));
+    }
+    .wheel-center {
+        position: absolute;
+        inset: 50%;
+        width: 110px;
+        height: 110px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(circle, #f7d56c 0%, #c79211 100%);
+        display: grid;
+        place-items: center;
+        color: #18130a;
+        font-weight: 900;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.28);
+        z-index: 2;
+    }
+    .lottery-actions {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+    .lottery-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 0.95rem 1.5rem;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+    }
+    .lottery-btn-primary {
+        background: linear-gradient(135deg, #d4af37, #f0c419);
+        color: #18130a;
+    }
+    .lottery-btn-outline {
+        background: transparent;
+        color: #e9dfc7;
+        border: 1px solid rgba(212,175,55,0.28);
+    }
+    .lottery-result {
+        margin-top: 1.5rem;
+        padding: 1.15rem 1.25rem;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(46,204,113,0.18), rgba(13,148,92,0.1));
+        border: 1px solid rgba(46,204,113,0.3);
+        box-shadow: 0 18px 30px rgba(8, 33, 18, 0.18);
+        display: none;
+        position: relative;
+        overflow: hidden;
+    }
+    .lottery-result.is-visible {
+        display: block;
+    }
+    .lottery-result::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        transform: translateX(-100%);
+        animation: resultShine 2.8s ease infinite;
+    }
+    .lottery-result-layout {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        position: relative;
+        z-index: 1;
+    }
+    .lottery-result-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        background: rgba(255,255,255,0.12);
+        color: #f6fffa;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+    .lottery-result-title {
+        font-size: 1.15rem;
+        font-weight: 900;
+        margin-bottom: 0.5rem;
+        color: #d7ffe5;
+    }
+    .lottery-result-winner {
+        font-size: 1.7rem;
+        font-weight: 900;
+        color: #ffffff;
+    }
+    .lottery-result-meta {
+        margin-top: 0.45rem;
+        color: rgba(255,255,255,0.82);
+    }
+    .lottery-empty {
+        padding: 2rem;
+        text-align: center;
+        color: #b9ae97;
+    }
+    .lottery-list-card {
+        margin-top: 1.5rem;
+    }
+    .lottery-list-item {
+        display: block;
+        padding: 1rem;
+        border-radius: 18px;
+        text-decoration: none;
+        color: inherit;
+        margin-bottom: 0.75rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(212,175,55,0.08);
+    }
+    .lottery-list-item.is-active {
+        border-color: rgba(212,175,55,0.32);
+        background: rgba(212,175,55,0.08);
+    }
+    .confetti-layer {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9998;
+        overflow: hidden;
+    }
+    .confetti-piece {
+        position: absolute;
+        top: -24px;
+        width: 12px;
+        height: 22px;
+        opacity: 0.98;
+        border-radius: 3px;
+        animation-name: confettiFall;
+        animation-timing-function: cubic-bezier(0.16, 0.72, 0.3, 1);
+        animation-fill-mode: forwards;
+        will-change: transform, opacity;
+    }
+    @keyframes winnerHeroReveal {
+        from {
+            opacity: 0;
+            transform: translateY(-18px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    @keyframes winnerHeroShine {
+        0% { transform: translateX(-100%); }
+        40%, 100% { transform: translateX(130%); }
+    }
+    @keyframes winnerCardPulse {
+        0%, 100% {
+            box-shadow: 0 0 0 2px rgba(46,204,113,0.2), 0 24px 42px rgba(12, 48, 24, 0.24);
+        }
+        50% {
+            box-shadow: 0 0 0 4px rgba(46,204,113,0.18), 0 28px 52px rgba(12, 48, 24, 0.34);
+        }
+    }
+    @keyframes resultShine {
+        0% { transform: translateX(-100%); }
+        45%, 100% { transform: translateX(130%); }
+    }
+    @keyframes confettiFall {
+        0% {
+            transform: translate3d(0, 0, 0) rotate(0deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 0.95;
+        }
+        100% {
+            transform: translate3d(var(--confetti-x, 0px), 112vh, 0) rotate(var(--confetti-rotate, 540deg));
+            opacity: 0;
+        }
+    }
+    [data-theme="light"] .lottery-panel,
+    [data-theme="light"] .lottery-card,
+    [data-theme="light"] .lottery-wheel-card {
+        background: #fffdf8;
+        color: #2f2a22;
+        border-color: rgba(143,109,39,0.16);
+        box-shadow: 0 18px 40px rgba(96, 67, 24, 0.12);
+    }
+    [data-theme="light"] .lottery-card-header {
+        background: #f7f1e3;
+        border-bottom-color: rgba(143,109,39,0.12);
+    }
+    [data-theme="light"] .lottery-nav-link,
+    [data-theme="light"] .lottery-btn-outline {
+        color: #5d523f;
+    }
+    [data-theme="light"] .lottery-nav-link:hover,
+    [data-theme="light"] .lottery-nav-link.is-active {
+        color: #8f6d27;
+        background: rgba(181,138,45,0.12);
+    }
+    [data-theme="light"] .lottery-contender-card,
+    [data-theme="light"] .lottery-list-item {
+        background: #fffaf1;
+        border-color: rgba(143,109,39,0.1);
+    }
+    [data-theme="light"] .lottery-contender-name {
+        color: #2f2a22;
+    }
+    [data-theme="light"] .lottery-contender-role,
+    [data-theme="light"] .lottery-contender-share {
+        color: #5f5648;
+    }
+    [data-theme="light"] .lottery-contender-index {
+        background: rgba(181,138,45,0.12);
+        color: #8f6d27;
+    }
+    [data-theme="light"] .lottery-contender-card.is-winner::after {
+        color: #0f6b3f;
+        background: rgba(34,197,94,0.12);
+    }
+    [data-theme="light"] .lottery-result {
+        background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(22,163,74,0.08));
+        border-color: rgba(34,197,94,0.22);
+    }
+    [data-theme="light"] .winner-hero {
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,0.7), transparent 42%),
+            linear-gradient(135deg, rgba(212,175,55,0.15), rgba(34,197,94,0.1));
+        border-color: rgba(143,109,39,0.24);
+    }
+    [data-theme="light"] .winner-hero-badge {
+        background: rgba(181,138,45,0.14);
+        color: #8f6d27;
+    }
+    [data-theme="light"] .winner-hero-title {
+        color: #7f5f1f;
+    }
+    [data-theme="light"] .winner-hero-name {
+        color: #214330;
+        text-shadow: 0 8px 24px rgba(181,138,45,0.12);
+    }
+    [data-theme="light"] .winner-hero-subtitle {
+        color: #4f5f53;
+    }
+    [data-theme="light"] .lottery-result-title {
+        color: #0f6b3f;
+    }
+    [data-theme="light"] .lottery-result-winner {
+        color: #12442f;
+    }
+    [data-theme="light"] .lottery-result-meta {
+        color: #2a5b46;
+    }
+    [data-theme="light"] .lottery-result-icon {
+        background: rgba(34,197,94,0.14);
+        color: #0f6b3f;
+    }
+    @media (max-width: 1100px) {
+        .lottery-grid {
+            grid-template-columns: 1fr;
+        }
+        .lottery-panel {
+            position: static;
+        }
+        .wheel-stage {
+            min-height: 520px;
+        }
+    }
+</style>
 
-    {% if messages %}
-    <div class="alert alert-info">
-        {% for message in messages %}
-        {{ message }}
-        {% endfor %}
-    </div>
-    {% endif %}
+<div class="lottery-shell">
+    <div class="lottery-grid">
+        <aside class="lottery-panel">
+            <div class="mb-3 px-2 text-gold fw-bold">لوحة القرعة</div>
+            <a class="lottery-nav-link" href="{% url 'cases:review_section' case.id 'disputes' %}">العودة إلى صفحة النزاعات</a>
+            <a class="lottery-nav-link" href="{% url 'cases:review_section' case.id 'overview' %}">العودة إلى لوحة المراجعة</a>
 
-    <div class="row">
-        <div class="col-md-8">
-            <h4>النزاعات النشطة (بانتظار القرعة)</h4>
-            {% if active_disputes %}
-                {% for dispute in active_disputes %}
-                <div class="card mb-3 border-warning">
-                    <div class="card-header bg-warning text-dark fw-bold">
-                        نزاع على: {% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}
-                    </div>
-                    <div class="card-body">
-                        <p><strong>المتنافسون:</strong></p>
-                        <ul>
-                            {% for heir in dispute.contenders.all %}
-                            <li>{{ heir.name }} (رصيده المتبقي: {{ heir.remaining_share }} ريال)</li>
-                            {% endfor %}
-                        </ul>
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="dispute_id" value="{{ dispute.id }}">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-random"></i> إجراء القرعة العشوائية
-                            </button>
-                        </form>
-                    </div>
+            <div class="lottery-card lottery-list-card">
+                <div class="lottery-card-header">
+                    <h5 class="mb-0">النزاعات النشطة</h5>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="alert alert-success">لا توجد نزاعات نشطة حالياً.</div>
-                {% if case.status == 'PAYMENTS_PHASE' %}
-                <a href="{% url 'review_distribution' case.id %}" class="btn btn-success mt-3">الانتقال لمرحلة السداد والتخارج</a>
-                {% endif %}
-            {% endif %}
-
-            <h4 class="mt-5">النزاعات المحسومة</h4>
-            {% if resolved_disputes %}
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>الأصل/العينة</th>
-                                <th>الفائز</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for dispute in resolved_disputes %}
-                            <tr>
-                                <td>{% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}</td>
-                                <td><span class="badge bg-success">{{ dispute.winner.name }}</span></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-muted">لم يتم حسم أي نزاعات بعد.</p>
-            {% endif %}
-        </div>
-
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h5>كيف تعمل القرعة؟</h5>
-                    <ol>
-                        <li>يقوم النظام تلقائياً برصد جميع التعارضات في اختيارات الورثة.</li>
-                        <li>ينشئ نزاعاً لكل أصل وعينة عليها طلب مشترك.</li>
-                        <li>بضغطك على زر إجراء القرعة، يختار النظام فائزاً عشوائياً.</li>
-                        <li>في حال كان الأصل أغلى من نصيب الفائز، يتحول جزء منه إلى "تعهد سداد".</li>
-                    </ol>
-                    <hr>
-                    <a href="{% url 'review_distribution' case.id %}" class="btn btn-secondary w-100 mb-2">العودة للوحة القضية</a>
+                <div class="lottery-card-body">
+                    {% if active_disputes %}
+                        {% for dispute in active_disputes %}
+                            <a class="lottery-list-item {% if selected_dispute and dispute.id == selected_dispute.id %}is-active{% endif %}" href="{% url 'cases:start_lottery' case.id %}?dispute={{ dispute.id }}">
+                                <strong>{% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}</strong>
+                                <div class="text-muted small mt-2">{{ dispute.contenders.count }} متنازع / متنازعين</div>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="lottery-empty">لا توجد نزاعات نشطة.</div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
+        </aside>
+
+        <main>
+            {% if selected_dispute %}
+                <section class="lottery-card mb-4">
+                    <div class="lottery-card-body">
+                        <div class="lottery-asset-banner">
+                            <div class="text-muted small mb-2">الأصل أو الجزء المتنازع عليه</div>
+                            <h1 class="mb-2">{% if selected_dispute.asset %}{{ selected_dispute.asset.description }}{% else %}{{ selected_dispute.component.description }}{% endif %}</h1>
+                            {% if selected_dispute.component %}
+                                <div class="text-muted">جزء تابع للأصل: {{ selected_dispute.component.asset.description }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-muted small mb-3">المتنازعون على هذا العنصر</div>
+                        <div id="contendersGrid" class="lottery-contenders-grid">
+                            {% for contender in selected_dispute.contenders.all %}
+                                <article class="lottery-contender-card" data-heir-id="{{ contender.id }}" style="--contender-accent: {% cycle '#d4af37' '#f0c419' '#c98d28' '#8b5e00' '#2ecc71' '#3498db' '#e67e22' '#9b59b6' %};">
+                                    <div class="lottery-contender-index">{{ forloop.counter }}</div>
+                                    <div class="lottery-contender-name">{{ contender.name }}</div>
+                                    <div class="lottery-contender-role">{{ contender.get_relationship_display }}</div>
+                                    <div class="lottery-contender-share">المتبقي من نصيبه: {{ contender.remaining_share }}</div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="lottery-wheel-card">
+                    <div class="lottery-card-header">
+                        <h3 class="mb-1">عجلة القرعة التفاعلية</h3>
+                        <p class="mb-0 text-muted">السهم الأحمر ثابت، والعجلة تدور ثم تتوقف على الفائز الحقيقي القادم من النظام.</p>
+                    </div>
+                    <div class="lottery-card-body">
+                        <div class="wheel-stage">
+                            <div class="wheel-pointer" aria-hidden="true"></div>
+                            <div class="wheel-outer">
+                                <svg id="lottery-wheel" viewBox="0 0 100 100" aria-label="عجلة القرعة"></svg>
+                                <div class="wheel-center">قرعة</div>
+                            </div>
+                        </div>
+
+                        <div class="lottery-actions">
+                            <button id="spinButton" class="lottery-btn lottery-btn-primary" type="button">
+                                <i class="fas fa-play"></i>
+                                <span>إجراء القرعة</span>
+                            </button>
+                            <a class="lottery-btn lottery-btn-outline" href="{% url 'cases:review_section' case.id 'disputes' %}">
+                                <i class="fas fa-arrow-right"></i>
+                                <span>العودة للنزاعات</span>
+                            </a>
+                        </div>
+
+                        <div id="lotteryResult" class="lottery-result"></div>
+                    </div>
+                </section>
+            {% else %}
+                <section class="lottery-card">
+                    <div class="lottery-card-body lottery-empty">
+                        <i class="fas fa-check-circle fs-1 d-block mb-3 text-gold"></i>
+                        <h3 class="mb-2">لا توجد قرعة مطلوبة حاليًا</h3>
+                        <p class="mb-0">عند وجود أصل أو جزء متنازع عليه بين أكثر من وارث ستظهر هنا عجلة القرعة الديناميكية.</p>
+                    </div>
+                </section>
+            {% endif %}
+
+            <section class="lottery-card mt-4">
+                <div class="lottery-card-header">
+                    <h5 class="mb-0">القرعات المحسومة</h5>
+                </div>
+                <div class="lottery-card-body">
+                    {% if resolved_disputes %}
+                        {% for dispute in resolved_disputes %}
+                            <div class="lottery-list-item">
+                                <strong>{% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}</strong>
+                                <div class="text-muted small mt-2">الفائز: {{ dispute.winner.name }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="lottery-empty">لم تُحسم أي قرعة بعد.</div>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
     </div>
 </div>
+
+<div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+
+{% if wheel_payload %}
+    {{ wheel_payload|json_script:"wheel-payload" }}
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const payloadEl = document.getElementById('wheel-payload');
+    if (!payloadEl) return;
+
+    let payload;
+    try {
+        payload = JSON.parse(JSON.parse(payloadEl.textContent));
+    } catch (e) {
+        console.error("Payload parse error:", e);
+        try {
+            // Fallback for single-encoded JSON
+            payload = JSON.parse(payloadEl.textContent);
+        } catch (e2) {
+            console.error("Critical payload error:", e2);
+            return;
+        }
+    }
+
+    const wheel = document.getElementById('lottery-wheel');
+    const spinButton = document.getElementById('spinButton');
+    const resultBox = document.getElementById('lotteryResult');
+    const confettiLayer = document.getElementById('confettiLayer');
+    const contendersGrid = document.getElementById('contendersGrid');
+    const contenders = Array.isArray(payload.contenders) ? payload.contenders : [];
+    
+    if (!wheel || !spinButton || contenders.length < 2) {
+        console.warn("Raffle prerequisites not met. Button might be disabled.");
+        return;
+    }
+
+    const colors = ['#d4af37', '#f3d77b', '#875f00', '#5f4210', '#c98d28', '#ecd8a2', '#a67511', '#6a4a12'];
+    const segmentAngle = 360 / contenders.length;
+    let currentRotation = 0;
+    let isSpinning = false;
+
+    function polar(cx, cy, r, angleDeg) {
+        const angle = (angleDeg - 90) * Math.PI / 180;
+        return {
+            x: cx + r * Math.cos(angle),
+            y: cy + r * Math.sin(angle)
+        };
+    }
+
+    function arcPath(startAngle, endAngle) {
+        const start = polar(50, 50, 48, endAngle);
+        const end = polar(50, 50, 48, startAngle);
+        const large = endAngle - startAngle > 180 ? 1 : 0;
+        return `M 50 50 L ${start.x} ${start.y} A 48 48 0 ${large} 0 ${end.x} ${end.y} Z`;
+    }
+
+    function renderWheel() {
+        wheel.innerHTML = '';
+        contenders.forEach((contender, index) => {
+            const start = index * segmentAngle;
+            const end = start + segmentAngle;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', arcPath(start, end));
+            path.setAttribute('fill', colors[index % colors.length]);
+            path.setAttribute('stroke', 'rgba(255,255,255,0.18)');
+            path.setAttribute('stroke-width', '0.8');
+            wheel.appendChild(path);
+
+            const textAngle = start + (segmentAngle / 2);
+            const point = polar(50, 50, 31, textAngle);
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', point.x);
+            text.setAttribute('y', point.y);
+            text.setAttribute('fill', '#fff');
+            text.setAttribute('font-size', contenders.length > 6 ? '3.2' : '4');
+            text.setAttribute('font-weight', '700');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'middle');
+            text.setAttribute('transform', `rotate(${textAngle} ${point.x} ${point.y})`);
+            text.textContent = contender.name;
+            wheel.appendChild(text);
+        });
+    }
+
+    function csrfToken() {
+        const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (tokenInput) return tokenInput.value;
+        const match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? match[1] : '';
+    }
+
+    function showWinnerBanner(result) {
+        resultBox.classList.add('is-visible');
+        resultBox.innerHTML = `
+            <div class="lottery-result-layout">
+                <div class="lottery-result-icon"><i class="fas fa-award"></i></div>
+                <div>
+                    <div class="lottery-result-title">تم اختيار الفائز بالقرعة بنجاح</div>
+                    <div class="lottery-result-winner">${result.winnerName}</div>
+                    <div class="lottery-result-meta">تم اختيار الفائز بالقرعة: ${result.winnerName}</div>
+                    <div class="lottery-result-meta">العنصر محل القرعة: ${result.targetName}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function highlightWinnerCard(winnerId) {
+        if (!contendersGrid) return;
+        contendersGrid.querySelectorAll('.lottery-contender-card').forEach((card) => {
+            card.classList.toggle('is-winner', String(card.dataset.heirId) === String(winnerId));
+        });
+    }
+
+    function launchConfetti() {
+        if (!confettiLayer) return;
+        confettiLayer.innerHTML = '';
+        const palette = ['#d4af37', '#f0c419', '#e63946', '#2ecc71', '#3498db', '#ffffff'];
+        const totalPieces = 120;
+
+        for (let index = 0; index < totalPieces; index += 1) {
+            const piece = document.createElement('span');
+            piece.className = 'confetti-piece';
+            piece.style.left = `${Math.random() * 100}vw`;
+            piece.style.background = palette[index % palette.length];
+            piece.style.animationDuration = `${3 + Math.random() * 2.4}s`;
+            piece.style.animationDelay = `${Math.random() * 0.45}s`;
+            piece.style.setProperty('--confetti-x', `${(Math.random() - 0.5) * 220}px`);
+            piece.style.setProperty('--confetti-rotate', `${260 + Math.random() * 720}deg`);
+            if (Math.random() > 0.55) {
+                piece.style.borderRadius = '999px';
+                piece.style.width = '8px';
+                piece.style.height = '8px';
+            }
+            confettiLayer.appendChild(piece);
+        }
+
+        window.setTimeout(() => {
+            confettiLayer.innerHTML = '';
+        }, 5200);
+    }
+
+    async function runLottery() {
+        const body = new URLSearchParams();
+        body.append('dispute_id', payload.disputeId);
+        
+        try {
+            const response = await fetch("{% url 'cases:run_lottery' case.id %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken(),
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                },
+                body: body.toString()
+            });
+            if (!response.ok) {
+                return { ok: false, message: "فشل الاتصال بالخادم. يرجى المحاولة لاحقاً." };
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Lottery Fetch Error:", error);
+            return { ok: false, message: "حدث خطأ غير متوقع في الاتصال." };
+        }
+    }
+
+    spinButton.addEventListener('click', async () => {
+        if (isSpinning) return;
+        isSpinning = true;
+        spinButton.disabled = true;
+        resultBox.classList.remove('is-visible');
+        resultBox.innerHTML = '';
+
+        try {
+            const result = await runLottery();
+            if (!result.ok) {
+                resultBox.classList.add('is-visible');
+                resultBox.innerHTML = `<div class="p-3 text-danger"><i class="fas fa-exclamation-triangle"></i> ${result.message || 'تعذر إجراء القرعة.'}</div>`;
+                spinButton.disabled = false;
+                isSpinning = false;
+                return;
+            }
+
+            const winnerIndex = contenders.findIndex(item => String(item.id) === String(result.winnerId));
+            if (winnerIndex === -1) {
+                resultBox.classList.add('is-visible');
+                resultBox.textContent = 'تمت القرعة لكن تعذر تحديد الفائز على العجلة.';
+                spinButton.disabled = false;
+                isSpinning = false;
+                return;
+            }
+
+            const winnerCenter = (winnerIndex * segmentAngle) + (segmentAngle / 2);
+            const targetRotation = currentRotation + 360 * 7 + (360 - winnerCenter);
+            
+            // Apply rotation with a fallback for older browsers
+            wheel.style.transition = 'transform 6s cubic-bezier(0.12, 0.85, 0.18, 1)';
+            wheel.style.transform = `rotate(${targetRotation}deg)`;
+            currentRotation = targetRotation % 360;
+
+            window.setTimeout(() => {
+                highlightWinnerCard(result.winnerId);
+                showWinnerBanner(result);
+                launchConfetti();
+                spinButton.disabled = false;
+                isSpinning = false;
+                window.setTimeout(() => {
+                    if (result.redirectUrl) {
+                        window.location.href = result.redirectUrl;
+                    }
+                }, 2200);
+            }, 6200);
+        } catch (err) {
+            console.error("Critical Spin Error:", err);
+            isSpinning = false;
+            spinButton.disabled = false;
+            alert("حدث خطأ تقني غير متوقع أثناء تدوير العجلة.");
+        }
+    });
+
+    renderWheel();
+});
+</script>
 {% endblock %}

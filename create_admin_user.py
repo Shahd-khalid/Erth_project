@@ -1,6 +1,8 @@
 import os
 import django
+import dotenv
 
+dotenv.load_dotenv()
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mawareth_project.settings')
 django.setup()
 

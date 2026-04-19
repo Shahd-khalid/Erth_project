@@ -1,8 +1,16 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
-from .forms import GeneralUserRegistrationForm, JudgeRegistrationForm, HeirRegistrationForm, ClerkRegistrationForm
+from .forms import GeneralUserRegistrationForm, JudgeRegistrationForm, HeirRegistrationForm, ClerkRegistrationForm, FeedbackForm
 from django.contrib.auth.decorators import login_required
 from administration.models import AdminNotification
+from cases.models import PublicAssetListing, Case, Asset
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.db.models import Avg, Count
+from .models import Feedback, User
 
 def register_selection(request):
     return render(request, 'registration/register_selection.html')
@@ -17,9 +25,6 @@ def register_public(request):
     else:
         form = GeneralUserRegistrationForm()
     return render(request, 'registration/register_form.html', {'form': form, 'title': 'تسجيل مستخدم عام'})
-
-from django.core.mail import send_mail
-from django.conf import settings
 
 def register_judge(request):
     if request.method == 'POST':
@@ -72,11 +77,21 @@ def register_clerk(request):
         form = ClerkRegistrationForm()
     return render(request, 'registration/register_form.html', {'form': form, 'title': 'تسجيل كاتب مساعد'})
 
-from cases.models import PublicAssetListing
-
 def home(request):
-    public_listings = PublicAssetListing.objects.filter(is_active=True).select_related('component', 'component__asset').order_by('-created_at')
-    return render(request, 'landing.html', {'public_listings': public_listings})
+    public_listings = PublicAssetListing.objects.filter(is_active=True).select_related('component', 'component__asset', 'component__asset__case').order_by('-created_at')
+    latest_listings = public_listings[:5]
+    
+    # Calculate stats for the hero section
+    total_assets_count = Asset.objects.count()
+    total_cases_count = Case.objects.count()
+    
+    context = {
+        'public_listings': public_listings,
+        'latest_listings': latest_listings,
+        'total_assets_count': total_assets_count,
+        'total_cases_count': total_cases_count,
+    }
+    return render(request, 'landing.html', context)
 
 def portal(request):
     return render(request, 'home.html')
@@ -100,13 +115,22 @@ def dashboard(request):
     else:
         return render(request, 'dashboard/public_dashboard.html')
 
-from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.forms import PasswordChangeForm
-from cases.models import Case # Import Case model to calculate stats
-
 @login_required
 def profile_view(request):
+    return _render_profile(request, initial_tab='info')
+
+
+@login_required
+def profile_security_view(request):
+    return _render_profile(request, initial_tab='security')
+
+
+@login_required
+def profile_activity_view(request):
+    return _render_profile(request, initial_tab='activity')
+
+
+def _render_profile(request, initial_tab='info'):
     user = request.user
     stats = {}
 
@@ -160,7 +184,7 @@ def profile_view(request):
         if password_form.is_valid():
             user = password_form.save()
             update_session_auth_hash(request, user)  # Keep user logged in
-            messages.success(request, 'تم تغيير كلمة المرور بنجاح')
+            messages.success(request, 'تم تغيير كلمة مورور بنجاح')
             return redirect('users:profile')
         else:
             for error in password_form.errors.values():
@@ -168,8 +192,72 @@ def profile_view(request):
     else:
         password_form = PasswordChangeForm(user)
 
+    if initial_tab == 'activity' and not stats:
+        initial_tab = 'info'
+
     context = {
         'stats': stats,
         'password_form': password_form,
+        'initial_tab': initial_tab,
     }
     return render(request, 'users/profile.html', context)
+
+
+@login_required
+def feedback_view(request):
+    rating_summary = Feedback.objects.exclude(rating__isnull=True).aggregate(
+        average_rating=Avg('rating'),
+        rating_count=Count('id'),
+    )
+    average_rating = rating_summary['average_rating'] or 0
+    rating_count = rating_summary['rating_count'] or 0
+    average_rating_percent = round((average_rating / 5) * 100, 1) if rating_count else 0
+    average_rating_rounded = round(average_rating)
+
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.user = request.user
+            feedback.save()
+
+            AdminNotification.objects.create(
+                title='تقييم جديد من مستخدم',
+                message=f'أرسل {request.user.username} تقييمًا جديدًا عبر صفحة التقييمات والملاحظات.',
+                notification_type=AdminNotification.NotificationType.SYSTEM,
+                related_user=request.user,
+            )
+
+            admin_emails = list(
+                User.objects.filter(role=User.Role.ADMIN)
+                .exclude(email='')
+                .values_list('email', flat=True)
+                .distinct()
+            )
+            if admin_emails:
+                send_mail(
+                    subject='تقييم جديد في منصة إرث',
+                    message=(
+                        f'قام المستخدم {request.user.username} بإرسال تقييم جديد.\n\n'
+                        f'التقييم: {feedback.rating or "بدون تقييم"}\n'
+                        f'الرسالة:\n{feedback.message}'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL or 'webmaster@localhost',
+                    recipient_list=admin_emails,
+                    fail_silently=True,
+                )
+
+            messages.success(request, 'تم إرسال التقييم بنجاح')
+            return redirect('users:feedback')
+
+        messages.error(request, 'يرجى مراجعة الحقول وإصلاح الأخطاء الظاهرة.')
+    else:
+        form = FeedbackForm()
+
+    return render(request, 'users/feedback.html', {
+        'form': form,
+        'average_rating': average_rating,
+        'average_rating_percent': average_rating_percent,
+        'average_rating_rounded': average_rating_rounded,
+        'rating_count': rating_count,
+    })

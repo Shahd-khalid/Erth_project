@@ -1,0 +1,35 @@
+{% extends 'administration/admin_base.html' %}
+
+{% block admin_header_title %}
+    <h1 style="font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 8px;">محطة التحقق</h1>
+    <p style="color: rgba(255,255,255,0.58); font-weight: 600;">صفحة مستقلة لمراجعة طلبات القضاة والكتبة واعتمادها أو رفضها.</p>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card" style="padding: 28px;">
+    {% if pending_users %}
+    <div style="display: grid; gap: 18px;">
+        {% for p_user in pending_users %}
+        <div style="border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 18px;">
+            <div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: #fff;">{{ p_user.full_name|default:p_user.username }}</div>
+                <div style="color: rgba(255,255,255,0.58); margin-top: 8px;">{{ p_user.get_role_display }}{% if p_user.judge_license %} - {{ p_user.judge_license }}{% endif %}</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <form action="{% url 'administration:approve_user' p_user.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary">اعتماد</button>
+                </form>
+                <form action="{% url 'administration:reject_user' p_user.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-outline">رفض</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: rgba(255,255,255,0.65); margin: 0;">لا توجد طلبات تحقق حالية.</p>
+    {% endif %}
+</div>
+{% endblock %}

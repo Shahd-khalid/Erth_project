@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User
+from .models import Feedback, User
 
 class GeneralUserRegistrationForm(UserCreationForm):
     class Meta:
@@ -87,3 +87,26 @@ class ClerkRegistrationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ('message', 'rating')
+        widgets = {
+            'message': forms.Textarea(attrs={
+                'class': 'feedback-textarea',
+                'rows': 6,
+                'placeholder': 'اكتب ملاحظتك أو تقييمك هنا...',
+            }),
+            'rating': forms.Select(attrs={'class': 'feedback-select'}),
+        }
+        labels = {
+            'message': 'الرسالة / الملاحظة',
+            'rating': 'التقييم بالنجوم',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['rating'].required = False
+        self.fields['rating'].empty_label = 'بدون تقييم'

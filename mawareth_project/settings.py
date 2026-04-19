@@ -22,10 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'False'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-render-fallback-for-startup-only')
+
 if SECRET_KEY == 'django-insecure-render-fallback-for-startup-only' and not DEBUG:
     import warnings
     warnings.warn("SECRET_KEY is not set in environment variables! Using insecure fallback.")
@@ -38,10 +39,19 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
     CSRF_TRUSTED_ORIGINS.append(f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}")
 
+# Security Settings for Production (Render)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,6 +67,7 @@ INSTALLED_APPS = [
     'heirs',
     'administration',
     'chat_bot',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -91,6 +102,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mawareth_project.wsgi.application'
+ASGI_APPLICATION = 'mawareth_project.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 
 # Database
@@ -99,20 +117,34 @@ WSGI_APPLICATION = 'mawareth_project.wsgi.application'
 
 # Database Configuration
 
-if os.environ.get('DATABASE_URL'):
+database_url = os.environ.get('DATABASE_URL')
+db_name = os.environ.get('DB_NAME')
+db_user = os.environ.get('DB_USER')
+db_password = os.environ.get('DB_PASSWORD')
+db_host = os.environ.get('DB_HOST', 'localhost')
+db_port = os.environ.get('DB_PORT', '5432')
+
+if database_url:
     DATABASES = {
         'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
     }
-else:
-    # Use local settings only if no DATABASE_URL is provided (typical for local dev)
+elif all([db_name, db_user, db_password]):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME', 'mawareth_db'),
-            'USER': os.environ.get('DB_USER', 'postgres'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
+            'NAME': db_name,
+            'USER': db_user,
+            'PASSWORD': db_password,
+            'HOST': db_host,
+            'PORT': db_port,
+        }
+    }
+else:
+    # Local fallback for development when PostgreSQL credentials are not configured.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -173,5 +205,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Removed duplicate/conflicting settings
 
-# Email Backend for Development (Console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Configuration
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)

@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.forms import modelformset_factory
+from decimal import Decimal
 from cases.models import Case, Heir, Deceased, Asset, Debt, Will
 from cases.forms import DeceasedForm, AssetForm, DebtForm, WillForm
 
@@ -90,11 +92,25 @@ def enter_case_data(request, case_id):
             return redirect('clerks:enter_case_data', case_id=case.id)
             
         elif action == 'add_will':
-            form = WillForm(request.POST)
-            if form.is_valid():
-                will = form.save(commit=False)
-                will.case = case
-                will.save()
+            total_assets = sum(a.value for a in case.assets.all())
+            total_debts = sum(d.amount for d in case.debts.all())
+            
+            if total_debts >= total_assets:
+                messages.error(request, "التركة مستغرقة بالدين، لا يمكن إضافة وصية. رصيد الوصية المتاح هو 0.")
+            else:
+                form = WillForm(request.POST)
+                if form.is_valid():
+                    net_estate = total_assets - total_debts
+                    one_third = net_estate / Decimal('3.0')
+                    existing_wills = sum(w.amount for w in case.wills.all())
+                    new_will_amount = form.cleaned_data['amount']
+                    
+                    if existing_wills + new_will_amount > one_third:
+                        messages.error(request, f"لا يمكن إضافة هذه الوصية لأن الإجمالي سيتجاوز الثلث الشرعي المسموح به للمتبقي ({one_third:.2f}).")
+                    else:
+                        will = form.save(commit=False)
+                        will.case = case
+                        will.save()
             return redirect('clerks:enter_case_data', case_id=case.id)
 
         elif action == 'save_basic':
@@ -230,6 +246,13 @@ def enter_case_data(request, case_id):
         # For now, let's keep it empty until name is saved.
         pass
 
+    total_assets = sum(a.value for a in case.assets.all())
+    total_debts = sum(d.amount for d in case.debts.all())
+    total_wills = sum(w.amount for w in case.wills.all())
+    net_estate = max(0, total_assets - total_debts)
+    wasiyya_limit = (net_estate / Decimal('3.0')).quantize(Decimal("0.01"))
+    wasiyya_remaining = max(0, wasiyya_limit - total_wills)
+
     return render(request, 'clerks/enter_case_data.html', {
         'case': case,
         'deceased_form': deceased_form,
@@ -237,5 +260,11 @@ def enter_case_data(request, case_id):
         'asset_form': AssetForm(),
         'debt_form': DebtForm(),
         'will_form': WillForm(),
-        'pending_heirs': pending_heirs
+        'pending_heirs': pending_heirs,
+        'total_assets': total_assets,
+        'total_debts': total_debts,
+        'total_wills': total_wills,
+        'net_estate': net_estate,
+        'wasiyya_limit': wasiyya_limit,
+        'wasiyya_remaining': wasiyya_remaining,
     })

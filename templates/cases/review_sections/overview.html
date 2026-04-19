@@ -1,0 +1,178 @@
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">نظرة عامة على القضية</h3>
+        <p class="mb-0 text-muted">ملخص سريع لحالة التوزيع والتعهدات والنزاعات الحالية.</p>
+    </div>
+    <div class="review-card-body">
+        <div class="review-stat-grid">
+            <div class="review-stat">
+                <div class="text-muted small mb-2">الورثة</div>
+                <div class="fs-2 fw-bold">{{ heirs|length }}</div>
+            </div>
+            <div class="review-stat">
+                <div class="text-muted small mb-2">النزاعات النشطة</div>
+                <div class="fs-2 fw-bold">{{ active_disputes_count }}</div>
+            </div>
+            <div class="review-stat">
+                <div class="text-muted small mb-2">التسويات المعلقة</div>
+                <div class="fs-2 fw-bold">{{ pending_payments|length }}</div>
+            </div>
+            <div class="review-stat">
+                <div class="text-muted small mb-2">الورثة بالتخصيص اليدوي</div>
+                <div class="fs-2 fw-bold">{{ manual_allocation_heirs|length }}</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if False %}
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">بوابة اختيار الورثة</h3>
+        <p class="mb-0 text-muted">هذا القسم أصبح صفحة مستقلة للتحكم بفتح وإغلاق مرحلة الاختيار.</p>
+    </div>
+    <div class="review-card-body">
+        <div class="review-note mb-3">
+            {% if case.allow_heir_selection %}
+                <strong class="text-success">البوابة مفتوحة حاليًا</strong>
+                <div class="text-muted mt-2">يمكن للورثة الدخول إلى حساباتهم واختيار الأصول والعينات.</div>
+            {% else %}
+                <strong class="text-warning">البوابة مغلقة حاليًا</strong>
+                <div class="text-muted mt-2">لن يستطيع الورثة إجراء اختيارات جديدة حتى يعاد فتحها.</div>
+            {% endif %}
+        </div>
+        <form method="post" action="{% url 'cases:toggle_heir_selection' case.id %}">
+            {% csrf_token %}
+            <button type="submit" class="review-btn {% if case.allow_heir_selection %}review-btn-outline{% else %}review-btn-primary{% endif %}">
+                <i class="fas {% if case.allow_heir_selection %}fa-lock{% else %}fa-lock-open{% endif %}"></i>
+                <span>{% if case.allow_heir_selection %}إغلاق بوابة الاختيار{% else %}فتح بوابة الاختيار{% endif %}</span>
+            </button>
+        </form>
+    </div>
+</section>
+{% endif %}
+
+<!-- قسم الرسوم البيانية الجديدة -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<section class="review-card">
+    <div class="review-card-header">
+        <h3 class="mb-1">تحليل إنجاز توزيع الورثة</h3>
+        <p class="mb-0 text-muted">مقارنة بصرية بين النصيب المستحق وما تم تخصيصه فعلياً لكل وريث.</p>
+    </div>
+    <div class="review-card-body" style="min-height: 400px;">
+        <canvas id="heirProgressChart"></canvas>
+    </div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+    <section class="review-card">
+        <div class="review-card-header">
+            <h3 class="mb-1">حالة قيمة التركة</h3>
+        </div>
+        <div class="review-card-body" style="height: 350px; display: flex; justify-content: center; align-items: center;">
+            <canvas id="estateDistChart"></canvas>
+        </div>
+    </section>
+
+    <section class="review-card">
+        <div class="review-card-header">
+            <h3 class="mb-1">توزيع أنواع الأصول</h3>
+        </div>
+        <div class="review-card-body" style="height: 350px; display: flex; justify-content: center; align-items: center;">
+            <canvas id="assetTypeChart"></canvas>
+        </div>
+    </section>
+</div>
+
+{{ chart_data|json_script:"chart-data-json" }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const rawData = JSON.parse(document.getElementById('chart-data-json').textContent);
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#e9dfc7' : '#2f2a22';
+        const gridColor = isDark ? 'rgba(212, 175, 55, 0.1)' : 'rgba(143, 109, 39, 0.1)';
+
+        Chart.defaults.color = textColor;
+        Chart.defaults.font.family = "'Amiri Quran', 'IBM Plex Sans Arabic', sans-serif";
+
+        // 1. Heir Progress Chart (Large)
+        new Chart(document.getElementById('heirProgressChart'), {
+            type: 'bar',
+            data: {
+                labels: rawData.heir_progress.labels,
+                datasets: [
+                    {
+                        label: 'المستهدف (النصيب)',
+                        data: rawData.heir_progress.goals,
+                        backgroundColor: isDark ? 'rgba(212, 175, 55, 0.2)' : 'rgba(181, 138, 45, 0.15)',
+                        borderColor: '#d4af37',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    },
+                    {
+                        label: 'المخصص حالياً',
+                        data: rawData.heir_progress.currents,
+                        backgroundColor: '#d4af37',
+                        borderRadius: 8
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', rtl: true }
+                },
+                scales: {
+                    x: { grid: { color: gridColor }, beginAtZero: true },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Estate Distribution Chart
+        new Chart(document.getElementById('estateDistChart'), {
+            type: 'doughnut',
+            data: {
+                labels: rawData.estate_distribution.labels,
+                datasets: [{
+                    data: rawData.estate_distribution.data,
+                    backgroundColor: ['#d4af37', isDark ? 'rgba(255,255,255,0.05)' : '#f0f0f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', rtl: true }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // 3. Asset Type Chart
+        new Chart(document.getElementById('assetTypeChart'), {
+            type: 'pie',
+            data: {
+                labels: rawData.asset_types.labels,
+                datasets: [{
+                    data: rawData.asset_types.data,
+                    backgroundColor: [
+                        '#d4af37', '#b8962d', '#9b7e24', '#7f661a', '#624e11'
+                    ].slice(0, rawData.asset_types.labels.length),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', rtl: true }
+                }
+            }
+        });
+    });
+</script>
+

@@ -1,0 +1,62 @@
+{% extends 'administration/admin_base.html' %}
+
+{% block admin_header_title %}
+    <h1 style="font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 8px;">خريطة القضايا</h1>
+    <p style="color: rgba(255,255,255,0.58); font-weight: 600;">متابعة منفصلة لحالة كل قضية والقاضي المرتبط بها.</p>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card" style="padding: 0; overflow: hidden;">
+    <table style="width: 100%;">
+        <thead>
+            <tr style="background: rgba(255,255,255,0.03);">
+                <th style="padding: 18px;">رقم القضية</th>
+                <th style="padding: 18px;">القاضي</th>
+                <th style="padding: 18px;">حالة القبول</th>
+                <th style="padding: 18px;">الحالة</th>
+                <th style="padding: 18px;">التقدم</th>
+                <th style="padding: 18px;">سبب الرفض</th>
+                <th style="padding: 18px;">التاريخ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for case in cases %}
+            <tr>
+                <td style="padding: 18px; color: var(--primary-color); font-weight: 800;">{{ case.case_number }}</td>
+                <td style="padding: 18px; color: #fff;">{% if case.judge %}{{ case.judge.full_name|default:case.judge.username }}{% else %}<span style="color: rgba(255,255,255,0.3);">غير معين</span>{% endif %}</td>
+                <td style="padding: 18px;">
+                    {% if case.judge_acceptance_status == 'ACCEPTED' %}
+                        <span style="color: #2ecc71; font-weight: 700;">مقبولة</span>
+                    {% elif case.judge_acceptance_status == 'REJECTED' %}
+                        <span style="color: #e74c3c; font-weight: 700;">مرفوضة</span>
+                    {% else %}
+                        <span style="color: rgba(255,255,255,0.5);">بانتظار القبول</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 18px; color: rgba(255,255,255,0.7);">{{ case.get_status_display }}</td>
+                <td style="padding: 18px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="flex: 1; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden;">
+                            <div style="width: {{ case.progress_percent }}%; height: 100%; background: linear-gradient(90deg, #d4af37, #2ecc71);"></div>
+                        </div>
+                        <span style="color: #fff; font-weight: 700; min-width: 48px;">{{ case.progress_percent }}%</span>
+                    </div>
+                </td>
+                <td style="padding: 18px;">
+                    {% if case.rejection_reason %}
+                        <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.2); padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; color: #ff9f89; max-width: 250px;">
+                            {{ case.rejection_reason }}
+                        </div>
+                    {% else %}
+                        <span style="color: rgba(255,255,255,0.2);">-</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 18px; color: rgba(255,255,255,0.55);">{{ case.created_at|date:"Y-m-d" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="padding: 24px; color: rgba(255,255,255,0.6);">لا توجد قضايا حالية.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

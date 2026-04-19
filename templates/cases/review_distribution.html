@@ -1,169 +1,1398 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>لوحة تحكم القاضي - مراجعة التوزيع ({{ case.case_number }})</h2>
+<style>
+    body {
+        /* Ensuring body keeps its dark appearance */
+        background-color: #030508 !important;
+        color: #e0e0e0;
+    }
+    .premium-card {
+        background: rgba(10, 15, 20, 0.8) !important;
+        border: 1px solid rgba(212, 175, 55, 0.15) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+        backdrop-filter: blur(10px);
+        margin-bottom: 2rem;
+    }
+    .premium-card-header {
+        background: rgba(3, 5, 8, 0.6) !important;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.15) !important;
+        border-radius: 16px 16px 0 0 !important;
+        padding: 1.5rem;
+    }
+    .premium-table {
+        color: #e0e0e0 !important;
+        border-color: rgba(212, 175, 55, 0.1) !important;
+        margin-bottom: 0 !important;
+    }
+    .premium-table thead th {
+        background-color: rgba(212, 175, 55, 0.05) !important;
+        color: #d4af37 !important;
+        border-bottom: 2px solid rgba(212, 175, 55, 0.2) !important;
+        font-weight: 700;
+        padding: 1rem;
+    }
+    .premium-table tbody td {
+        border-color: rgba(212, 175, 55, 0.1) !important;
+        padding: 1rem;
+        vertical-align: middle;
+        background-color: transparent !important;
+    }
+    .premium-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+    .premium-table tbody tr:hover {
+        background-color: rgba(212, 175, 55, 0.03) !important;
+    }
+    .text-gold {
+        color: #d4af37 !important;
+    }
+    .gold-btn {
+        background: linear-gradient(135deg, #d4af37, #f1c40f) !important;
+        color: #000 !important;
+        font-weight: 700 !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2) !important;
+    }
+    .gold-btn:hover {
+        background: linear-gradient(135deg, #f1c40f, #d4af37) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3) !important;
+    }
+    .gold-btn-outline {
+        background: transparent !important;
+        color: #d4af37 !important;
+        border: 1px solid #d4af37 !important;
+        font-weight: 700 !important;
+    }
+    .gold-btn-outline:hover {
+        background: rgba(212, 175, 55, 0.1) !important;
+        color: #f1c40f !important;
+    }
+    .badge-premium-success {
+        background: rgba(46, 204, 113, 0.15) !important;
+        color: #2ecc71 !important;
+        border: 1px solid rgba(46, 204, 113, 0.3) !important;
+    }
+    .badge-premium-warning {
+        background: rgba(241, 196, 15, 0.15) !important;
+        color: #f1c40f !important;
+        border: 1px solid rgba(241, 196, 15, 0.3) !important;
+    }
+    .badge-premium-danger {
+        background: rgba(231, 76, 60, 0.15) !important;
+        color: #e74c3c !important;
+        border: 1px solid rgba(231, 76, 60, 0.3) !important;
+    }
+    .badge-premium-info {
+        background: rgba(52, 152, 219, 0.15) !important;
+        color: #3498db !important;
+        border: 1px solid rgba(52, 152, 219, 0.3) !important;
+    }
+    .badge-premium-secondary {
+        background: rgba(149, 165, 166, 0.15) !important;
+        color: #95a5a6 !important;
+        border: 1px solid rgba(149, 165, 166, 0.3) !important;
+    }
+    .premium-nav-link {
+        color: #e0e0e0 !important;
+        border-radius: 10px !important;
+        padding: 12px 15px !important;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    .premium-nav-link:hover {
+        background: rgba(212, 175, 55, 0.1) !important;
+        color: #d4af37 !important;
+        transform: translateX(-5px);
+    }
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    @keyframes shine {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    /* Layout */
+    .dashboard-layout {
+        display: flex;
+        flex-direction: row;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+    .dashboard-sidebar {
+        flex: 0 0 280px;
+        position: sticky;
+        top: 100px;
+        z-index: 10;
+    }
+    .dashboard-content {
+        flex: 1 1 0%;
+        min-width: 0;
+    }
 
-    <div class="card mb-4">
-        <div class="card-header bg-dark text-white">
-            ملخص اختيارات الورثة
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>الوارث</th>
-                        <th>النصيب الشرعي</th>
-                        <th>قيمة المختار</th>
-                        <th>الفرق</th>
-                        <th>الحالة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for stat in heir_stats %}
-                    <tr class="{% if 'تعارض' in stat.status %}table-danger{% endif %}">
-                        <td>
-                            <strong>{{ stat.name }}</strong>
-                            <div class="small text-muted">
-                                المختار:
-                                {% for intent in stat.intents.all %}
-                                <span class="badge bg-info">
-                                    {% if intent.asset %}{{ intent.asset.description }}{% else %}{{ intent.component.description }}{% endif %}
-                                </span>
-                                {% empty %}
-                                <span class="text-muted">نفس المخصص مسبقاً من القاضي</span>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td>{{ stat.share_value }}</td>
-                        <td>{{ stat.selected_value }}</td>
-                        <td
-                            class="{% if stat.diff > 0 %}text-danger{% elif stat.diff < 0 %}text-warning{% else %}text-success{% endif %}">
-                            {{ stat.diff|floatformat:2 }}
-                        </td>
-                        <td>
-                            <span
-                                class="badge {% if 'تعارض' in stat.status %}bg-danger animate-pulse{% elif 'لم يختر' in stat.status %}bg-secondary{% elif 'متطابق' in stat.status %}bg-success{% else %}bg-warning{% endif %}">
-                                {{ stat.status }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    [data-theme="light"] body {
+        background: #f7f2e8 !important;
+        color: #2f2a22 !important;
+    }
+
+    [data-theme="light"] .container.mt-5 {
+        max-width: 1380px !important;
+    }
+
+    [data-theme="light"] .text-gold {
+        color: #8f6d27 !important;
+    }
+
+    [data-theme="light"] .text-muted {
+        color: #6f6452 !important;
+    }
+
+    [data-theme="light"] .dashboard-layout {
+        gap: 1.4rem;
+    }
+
+    [data-theme="light"] .dashboard-sidebar {
+        flex-basis: 270px;
+    }
+
+    [data-theme="light"] .dashboard-sidebar .premium-card {
+        min-height: 620px;
+        border-radius: 24px !important;
+        overflow: hidden;
+    }
+
+    [data-theme="light"] .dashboard-sidebar .premium-card-header {
+        padding: 1.1rem 1.2rem !important;
+    }
+
+    [data-theme="light"] .dashboard-sidebar .nav.flex-column {
+        padding: 1rem 0.85rem 1.15rem !important;
+        gap: 0.45rem;
+    }
+
+    [data-theme="light"] .premium-card {
+        background: #fffdf8 !important;
+        border: 1px solid rgba(143, 109, 39, 0.16) !important;
+        border-radius: 22px !important;
+        box-shadow: 0 18px 40px rgba(96, 67, 24, 0.12) !important;
+        backdrop-filter: none;
+    }
+
+    [data-theme="light"] .premium-card-header {
+        background: linear-gradient(180deg, rgba(247, 242, 232, 0.85) 0%, rgba(255, 253, 248, 0.98) 100%) !important;
+        border-bottom: 1px solid rgba(143, 109, 39, 0.14) !important;
+        padding: 1.35rem 1.4rem;
+    }
+
+    [data-theme="light"] .premium-table {
+        color: #2f2a22 !important;
+        border-color: rgba(143, 109, 39, 0.12) !important;
+    }
+
+    [data-theme="light"] .premium-table thead th {
+        background: #f6efe1 !important;
+        color: #8f6d27 !important;
+        border-bottom: 2px solid rgba(143, 109, 39, 0.18) !important;
+        font-size: 0.98rem;
+        padding: 1rem 1.1rem;
+    }
+
+    [data-theme="light"] .premium-table tbody td {
+        background: transparent !important;
+        border-color: rgba(143, 109, 39, 0.1) !important;
+        color: #2f2a22 !important;
+        font-size: 1rem;
+    }
+
+    [data-theme="light"] .premium-table tbody tr:nth-child(even) {
+        background: rgba(247, 242, 232, 0.55) !important;
+    }
+
+    [data-theme="light"] .premium-table tbody tr:hover {
+        background: rgba(181, 138, 45, 0.07) !important;
+    }
+
+    [data-theme="light"] .premium-nav-link {
+        color: #615846 !important;
+        border-radius: 14px !important;
+        font-size: 1.02rem;
+        font-weight: 700;
+        min-height: 52px;
+        padding: 0.95rem 1rem !important;
+        margin-bottom: 0 !important;
+        justify-content: flex-start;
+        gap: 0.4rem;
+    }
+
+    [data-theme="light"] .premium-nav-link:hover,
+    [data-theme="light"] .premium-nav-link:focus {
+        background: rgba(181, 138, 45, 0.12) !important;
+        color: #8f6d27 !important;
+        transform: translateX(-3px);
+    }
+
+    [data-theme="light"] .gold-btn {
+        background: linear-gradient(135deg, #d2a63d 0%, #b58a2d 100%) !important;
+        color: #fff !important;
+        box-shadow: 0 12px 26px rgba(143, 109, 39, 0.28) !important;
+    }
+
+    [data-theme="light"] .gold-btn:hover {
+        box-shadow: 0 14px 28px rgba(143, 109, 39, 0.34) !important;
+    }
+
+    [data-theme="light"] .gold-btn-outline {
+        background: #fffaf1 !important;
+        color: #8f6d27 !important;
+        border-color: rgba(143, 109, 39, 0.24) !important;
+    }
+
+    [data-theme="light"] .gold-btn-outline:hover {
+        background: rgba(181, 138, 45, 0.12) !important;
+        color: #8f6d27 !important;
+    }
+
+    [data-theme="light"] .badge-premium-success {
+        background: rgba(46,160,103,0.15) !important;
+        color: #1f7a4d !important;
+        border-color: rgba(46,160,103,0.2) !important;
+    }
+
+    [data-theme="light"] .badge-premium-warning {
+        background: rgba(185,128,30,0.16) !important;
+        color: #8f6111 !important;
+        border-color: rgba(185,128,30,0.22) !important;
+    }
+
+    [data-theme="light"] .badge-premium-danger {
+        background: rgba(198,74,62,0.14) !important;
+        color: #a23b31 !important;
+        border-color: rgba(198,74,62,0.22) !important;
+    }
+
+    [data-theme="light"] .badge-premium-info {
+        background: rgba(60,123,187,0.14) !important;
+        color: #2f6699 !important;
+        border-color: rgba(60,123,187,0.22) !important;
+    }
+
+    [data-theme="light"] .badge-premium-secondary {
+        background: rgba(116,108,93,0.14) !important;
+        color: #615846 !important;
+        border-color: rgba(116,108,93,0.2) !important;
+    }
+
+    [data-theme="light"] .btn-outline-success,
+    [data-theme="light"] .btn-outline-danger,
+    [data-theme="light"] .btn-outline-secondary {
+        background: #fffaf1;
+        font-weight: 700;
+    }
+
+    [data-theme="light"] .text-white,
+    [data-theme="light"] strong.text-white,
+    [data-theme="light"] .premium-card .text-white {
+        color: #2f2a22 !important;
+    }
+
+    [data-theme="light"] .text-secondary {
+        color: #766b58 !important;
+    }
+
+    [data-theme="light"] .text-danger {
+        color: #a23b31 !important;
+    }
+
+    [data-theme="light"] .text-warning {
+        color: #8f6111 !important;
+    }
+
+    [data-theme="light"] .text-success {
+        color: #1f7a4d !important;
+    }
+
+    [data-theme="light"] .text-info {
+        color: #2f6699 !important;
+    }
+
+    [data-theme="light"] #control-panel {
+        background: linear-gradient(180deg, #fffdf8 0%, #f8f2e7 100%) !important;
+        border-bottom: 4px solid #b58a2d !important;
+        padding: 2rem 1.2rem !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    [data-theme="light"] #control-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at top right, rgba(181, 138, 45, 0.12), transparent 32%),
+            radial-gradient(circle at bottom left, rgba(143, 109, 39, 0.08), transparent 28%);
+        pointer-events: none;
+    }
+
+    [data-theme="light"] #control-panel > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    [data-theme="light"] #control-panel h2 {
+        font-size: clamp(1.8rem, 2.3vw, 2.5rem) !important;
+        color: #8f6111 !important;
+    }
+
+    [data-theme="light"] #control-panel p {
+        color: #6f6452 !important;
+        font-size: 1.08rem !important;
+        line-height: 1.9;
+    }
+
+    [data-theme="light"] #video-call-panel {
+        background: linear-gradient(180deg, #fffdf8 0%, #f3f7fb 100%) !important;
+        border-top: 4px solid #3c7bbb !important;
+    }
+
+    [data-theme="light"] #approved-distribution {
+        border-right-color: #2ea067 !important;
+    }
+
+    [data-theme="light"] #approved-distribution .premium-card-header {
+        background: linear-gradient(180deg, rgba(46,160,103,0.07) 0%, rgba(255,253,248,1) 100%) !important;
+    }
+
+    [data-theme="light"] #contested-assets .premium-card-header,
+    [data-theme="light"] #financial-settlements .premium-card-header,
+    [data-theme="light"] #system-warnings .premium-card-header,
+    [data-theme="light"] #manual-allocations .premium-card-header {
+        background: #fffaf1 !important;
+    }
+
+    [data-theme="light"] #final-decision {
+        background: linear-gradient(180deg, #fffdf8 0%, #f8f2e7 100%) !important;
+        border: 1px solid rgba(181, 138, 45, 0.22) !important;
+        box-shadow: 0 22px 42px rgba(96, 67, 24, 0.12) !important;
+    }
+
+    [data-theme="light"] .premium-card#final-decision,
+    [data-theme="light"] #final-decision .card-body {
+        background: linear-gradient(180deg, #fffdf8 0%, #f8f2e7 100%) !important;
+    }
+
+    [data-theme="light"] #final-decision .card-body {
+        border-radius: 22px !important;
+    }
+
+    [data-theme="light"] #final-decision h3 {
+        color: #8f6111 !important;
+    }
+
+    [data-theme="light"] #final-decision p {
+        color: #6f6452 !important;
+        font-size: 1.05rem;
+        line-height: 1.9;
+    }
+
+    [data-theme="light"] #final-decision .alert {
+        box-shadow: none !important;
+    }
+
+    [data-theme="light"] #final-decision [style*="rgba(3, 5, 8"],
+    [data-theme="light"] #final-decision [style*="rgba(0,0,0"] {
+        background: transparent !important;
+    }
+
+    [data-theme="light"] #final-decision .text-white,
+    [data-theme="light"] #final-decision .opacity-75 {
+        color: #6f6452 !important;
+        opacity: 1 !important;
+    }
+
+    [data-theme="light"] .table.table-hover {
+        color: #2f2a22 !important;
+    }
+
+    [data-theme="light"] .table.table-hover thead {
+        background: #f6efe1 !important;
+        color: #8f6d27 !important;
+        border-bottom: 2px solid rgba(143,109,39,0.18) !important;
+    }
+
+    [data-theme="light"] .table.table-hover tbody tr {
+        border-bottom: 1px solid rgba(143,109,39,0.1) !important;
+    }
+
+    [data-theme="light"] .table.table-hover tbody tr:hover {
+        background: rgba(181, 138, 45, 0.07) !important;
+    }
+
+    [data-theme="light"] .timeline-cta-wrap {
+        margin-top: 1rem !important;
+        margin-bottom: 1.9rem !important;
+    }
+
+    [data-theme="light"] .timeline-cta-btn {
+        min-height: 50px;
+        padding: 0.82rem 1.5rem !important;
+        border-radius: 16px !important;
+        font-size: 1rem !important;
+        font-weight: 800 !important;
+    }
+
+    [data-theme="light"] .gate-close-btn {
+        background: linear-gradient(135deg, rgba(198, 74, 62, 0.12) 0%, rgba(198, 74, 62, 0.08) 100%) !important;
+        border: 1px solid rgba(198, 74, 62, 0.28) !important;
+        color: #a23b31 !important;
+        box-shadow: 0 10px 24px rgba(162, 59, 49, 0.12) !important;
+        min-height: 66px;
+        border-radius: 18px !important;
+        padding: 1rem 1.5rem !important;
+        font-size: 1.12rem !important;
+        font-weight: 900 !important;
+    }
+
+    [data-theme="light"] .gate-close-btn:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #c64a3e 0%, #a23b31 100%) !important;
+        color: #fff !important;
+        box-shadow: 0 14px 28px rgba(162, 59, 49, 0.2) !important;
+    }
+
+    [data-theme="light"] .gate-close-btn:hover * {
+        color: #fff !important;
+    }
+
+    [data-theme="light"] .gate-close-btn i {
+        font-size: 1.3rem !important;
+    }
+
+    @media (max-width: 767.98px) {
+        .container.mt-5 {
+            margin-top: 1.2rem !important;
+            margin-bottom: 70px !important;
+            padding-right: 12px !important;
+            padding-left: 12px !important;
+        }
+
+        .container.mt-5 > .text-center.mb-5.mt-4 {
+            margin-top: 0.5rem !important;
+            margin-bottom: 1.4rem !important;
+        }
+
+        .container.mt-5 > .text-center.mb-5.mt-4 h2 {
+            font-size: 1.55rem !important;
+            line-height: 1.45;
+        }
+
+        .container.mt-5 > .text-center.mb-5.mt-4 p {
+            font-size: 0.96rem !important;
+            line-height: 1.8;
+            padding: 0 6px;
+        }
+
+        .timeline-cta-wrap {
+            margin-top: 0.8rem !important;
+            margin-bottom: 1.3rem !important;
+        }
+
+        .timeline-cta-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        #control-panel {
+            padding: 1.35rem 0.9rem !important;
+        }
+
+        #control-panel h2 {
+            font-size: 1.38rem !important;
+            line-height: 1.5;
+            margin-bottom: 0.85rem !important;
+        }
+
+        #control-panel p {
+            font-size: 0.95rem !important;
+            line-height: 1.85;
+            margin-bottom: 1rem !important;
+        }
+
+        #control-panel .btn,
+        .gate-close-btn {
+            min-height: 58px !important;
+            font-size: 0.98rem !important;
+            padding: 0.9rem 1rem !important;
+            gap: 10px !important;
+            line-height: 1.45;
+        }
+
+        #control-panel .badge-premium-success,
+        #control-panel .badge-premium-warning {
+            width: 100%;
+            border-radius: 16px !important;
+            white-space: normal;
+            line-height: 1.7;
+            padding: 0.9rem 1rem !important;
+        }
+
+        #video-call-panel .d-flex.justify-content-between {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 12px;
+        }
+
+        #video-call-panel .d-flex.justify-content-between > div:last-child {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        #video-call-panel .btn {
+            width: 100%;
+        }
+
+        .premium-card {
+            border-radius: 18px !important;
+        }
+
+        .premium-card-header {
+            padding: 1rem 1rem !important;
+        }
+
+        .premium-table thead th,
+        .premium-table tbody td,
+        .table.table-hover thead th,
+        .table.table-hover tbody td {
+            font-size: 0.92rem !important;
+            padding: 0.85rem 0.75rem !important;
+        }
+
+        #final-decision .card-body {
+            padding: 1.35rem 1rem !important;
+        }
+
+        #final-decision h3 {
+            font-size: 1.35rem !important;
+            line-height: 1.5;
+        }
+
+        #final-decision p {
+            font-size: 0.96rem !important;
+            line-height: 1.85;
+        }
+
+        #final-decision .alert .d-flex {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px;
+        }
+
+        #final-decision .btn-lg,
+        #final-decision .btn-outline-danger,
+        #final-decision .btn-outline-secondary {
+            width: 100%;
+            justify-content: center;
+            padding-right: 1rem !important;
+            padding-left: 1rem !important;
+            line-height: 1.45;
+        }
+    }
+    
+    @media (max-width: 991.98px) {
+        .dashboard-layout {
+            flex-direction: column;
+        }
+        .dashboard-sidebar {
+            display: none;
+        }
+
+        [data-theme="light"] #control-panel h2 {
+            font-size: 1.8rem !important;
+        }
+    }
+
+    /* Notification Dot Styles */
+    .notify-btn-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    .notification-dot {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 14px;
+        height: 14px;
+        background-color: #ff4d4d;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px rgba(255, 77, 77, 0.6);
+        z-index: 100;
+        animation: pulse-red-dashboard 1.5s infinite;
+    }
+    @keyframes pulse-red-dashboard {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+    }
+</style>
+
+<div class="container mt-5" style="max-width: 1400px; margin-bottom: 100px;">
+
+    <!-- HEADER TITLE -->
+    <div class="text-center mb-5 mt-4">
+        <h2 class="text-gold fw-bold" style="font-size: 2.2rem; text-shadow: 0 2px 10px rgba(212,175,55,0.2);">
+            <i class="fas fa-balance-scale"></i> الموازنة بالتراضي (التحكم الشامل)
+        </h2>
+        <p class="text-muted mt-2" style="font-size: 1.1rem;">القضية رقم: <span class="text-gold">{{ case.case_number }}</span> | إدارة ومراجعة التوزيع والموازنة بين الورثة.</p>
+        <div class="mt-3 timeline-cta-wrap">
+            <a href="{% url 'cases:case_timeline' case.id %}" class="btn gold-btn px-4 shadow-sm timeline-cta-btn" style="border-radius: 20px;">
+                <i class="fas fa-history me-1"></i> السجل الزمني والأحداث
+            </a>
         </div>
     </div>
-</div>
 
-{% if pending_payments %}
-<div class="container mt-4">
-    <div class="card border-danger">
-        <div class="card-header bg-danger text-white mt-1">
-            <i class="fas fa-money-bill-wave"></i> تسويات مالية معلقة (يجب تحصيلها قبل الاعتماد)
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>الدافع (تجاوز النصيب)</th>
-                        <th>المبلغ المطلوب سداده للقاضي</th>
-                        <th>السبب</th>
-                        <th>إجراء</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for payment in pending_payments %}
-                    <tr>
-                        <td>{{ payment.payer.name }}</td>
-                        <td class="text-danger fw-bold">
-                            {{ payment.amount }} ريال
-                            {% if payment.heir_confirmed_payment %}
-                                <div class="badge bg-success mt-1 d-block" style="font-size: 0.7rem;">
-                                    <i class="fas fa-check-double"></i> أفاد بالسداد
-                                </div>
-                            {% else %}
-                                <div class="badge bg-secondary mt-1 d-block" style="font-size: 0.7rem; opacity: 0.7;">
-                                    بانتظار التحويل
-                                </div>
-                            {% endif %}
-                        </td>
-                        <td>{{ payment.reason }}</td>
-                        <td>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="payment_id" value="{{ payment.id }}">
-                                <button type="submit" name="action" value="mark_paid" class="btn btn-sm btn-success">
-                                    <i class="fas fa-check"></i> تأكيد استلام المبلغ
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<div class="container mt-4">
-{% if system_warnings %}
-<div class="card mb-4 border-warning">
-    <div class="card-header bg-warning text-dark">
-        <i class="fas fa-exclamation-triangle"></i> تنبيهات النظام للقاضي
-    </div>
-    <div class="card-body">
-        <ul class="list-group list-group-flush">
-            {% for warning in system_warnings %}
-            <li class="list-group-item">
-                {{ warning.message }}
-                {% if warning.type == 'over_selection' %}
-                <span class="badge bg-danger">يتطلب دفع فرق</span>
-                {% elif warning.type == 'no_selection' %}
-                <span class="badge bg-secondary">لم يختار بعد</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-        <div class="mt-3 small text-muted">
-            * في حال تم الاعتماد، سيقوم النظام بتوزيع الأصول المتبقية (أو قيمتها) تلقائياً على الورثة الذين لم يكملوا
-            نصيبهم.
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<div class="card">
-    <div class="card-header">
-        القرارات القضائية
-    </div>
-    <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-
-            {% if all_selected and all_balanced %}
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> جميع الورثة قاموا بالاختيار والتراضي. النظام جاهز للاعتماد النهائي.
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <div class="dashboard-sidebar">
+            <div class="premium-card p-0 overflow-hidden">
+                <div class="premium-card-header p-3 border-bottom" style="border-color: rgba(212,175,55,0.2) !important;">
+                    <h6 class="mb-0 text-gold fw-bold text-center"><i class="fas fa-list-ul ms-2"></i> الوصول السريع</h6>
+                </div>
+                <div class="nav flex-column p-3">
+                    <a class="nav-link premium-nav-link mb-2 d-flex align-items-center" href="#control-panel" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-door-open text-gold fs-5"></i></div> 
+                        <span>بوابة الاختيار</span>
+                    </a>
+                    <a class="nav-link premium-nav-link mb-2 d-flex align-items-center" href="#heir-selection" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-users text-gold fs-5"></i></div> 
+                        <span>طلبات التوزيع</span>
+                    </a>
+                    <a class="nav-link premium-nav-link mb-2 d-flex align-items-center" href="#approved-distribution" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-box-open text-gold fs-5"></i></div> 
+                        <span>التوزيع المعتمد</span>
+                    </a>
+                    {% if pending_payments or relevant_proposals %}
+                    <a class="nav-link premium-nav-link mb-2 d-flex align-items-center" href="#financial-settlements" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-money-bill-wave text-gold fs-5"></i></div> 
+                        <span>تسويات مالية</span>
+                    </a>
+                    {% endif %}
+                    {% if system_warnings %}
+                    <a class="nav-link premium-nav-link mb-2 d-flex align-items-center" href="#system-warnings" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-exclamation-triangle text-gold fs-5"></i></div> 
+                        <span>تنبيهات النظام</span>
+                    </a>
+                    {% endif %}
+                    
+                    <a class="nav-link premium-nav-link mb-2 d-flex align-items-center" href="#contested-assets" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-handshake-slash text-gold fs-5"></i></div> 
+                        <span>الأصول والعينات المتنازع عليها</span>
+                        {% if active_disputes %}<span class="badge rounded-pill bg-danger ms-auto">{{ active_disputes|length }}</span>{% endif %}
+                    </a>
+                    {% if manual_allocation_heirs %}
+                    <a class="nav-link premium-nav-link mb-2 d-flex align-items-center" href="#manual-allocations" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-hand-holding-usd text-gold fs-5"></i></div> 
+                        <span>التخصيص الجبري</span>
+                    </a>
+                    {% endif %}
+                    <a class="nav-link premium-nav-link d-flex align-items-center mb-2" href="#final-decision" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-gavel text-gold fs-5"></i></div> 
+                        <span>القرار النهائي</span>
+                    </a>
+                    <a class="nav-link premium-nav-link d-flex align-items-center" href="{% url 'cases:case_timeline' case.id %}" style="text-align: right;">
+                        <div style="width: 30px;" class="text-center ms-2"><i class="fas fa-history text-gold fs-5"></i></div> 
+                        <span>السجل الزمني</span>
+                    </a>
+                </div>
             </div>
-            {% elif system_warnings %}
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> ملاحظة: يوجد ورثة لم يختاروا أو لديهم فروقات. سيقوم النظام بمعالجة
-                ذلك تلقائياً عند الضغط على "اعتماد".
+        </div>
+
+        <!-- Main Content Column -->
+        <div class="dashboard-content">
+
+            <!-- MAIN CONTROL PANEL (THE TOGGLE) -->
+            <div id="control-panel" class="premium-card p-5 border-0 text-center" style="background: rgba(212,175,55,0.03) !important; border-bottom: 4px solid #d4af37 !important;">
+                <div class="d-flex flex-column align-items-center">
+                    <div style="background: rgba(212,175,55,0.1); width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(212,175,55,0.5);" class="mb-4 shadow-sm">
+                        <i class="fas fa-door-open fs-1 text-gold"></i>
+                    </div>
+                    <h2 class="text-gold mb-3 fw-bolder" style="font-size: 2rem;">بوابة اختيار الأصول للمستفيدين (الورثة)</h2>
+                    <p class="text-muted mb-4 opacity-75" style="font-size: 1.2rem; max-width: 700px;">هذا الزر هو مفتاح التحكم الشامل. يتيح لك فتح النظام بالكامل أمام الورثة ليدخلوا إلى حساباتهم ويختاروا الأصول والممتلكات التي يرغبونها.</p>
+                    
+                    <form method="post" action="{% url 'cases:toggle_heir_selection' case.id %}" class="w-100" style="max-width: 650px; margin: 0 auto;">
+                        {% csrf_token %}
+                        {% if case.allow_heir_selection %}
+                            <button type="submit" class="btn w-100 py-3 rounded-pill shadow-sm d-flex justify-content-center align-items-center gap-3 gate-close-btn" style="background: rgba(231,76,60,0.1); border: 2px solid #e74c3c; color: #e74c3c; font-size: 1.3rem; font-weight: 800; transition: all 0.3s ease;">
+                                <i class="fas fa-lock fs-3"></i> <span>إغلاق البوابة الآن (إيقاف الاختيار)</span>
+                            </button>
+                            <div class="mt-3 badge-premium-success py-2 rounded-pill d-inline-block border-0 px-4 fs-6 shadow-sm">
+                                <i class="fas fa-check-circle me-2 animate-pulse"></i> <strong>حالة البوابة:</strong> مفتوحة والنظام متاح لجميع الورثة للتفاعل
+                            </div>
+                        {% else %}
+                            <button type="submit" class="btn w-100 py-3 rounded-pill shadow-lg d-flex justify-content-center align-items-center gap-3" style="background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); background-size: 200% auto; color: #000; font-size: 1.5rem; font-weight: 800; border: 3px solid rgba(255,255,255,0.4); text-shadow: 0px 1px 2px rgba(255,255,255,0.5); animation: shine 3s infinite linear; transition: transform 0.2s;">
+                                <i class="fas fa-lock-open fs-2 text-dark"></i> <span style="letter-spacing: -0.5px;">تفعيل وفتح بوابة الاختيار للورثة</span>
+                            </button>
+                            <div class="mt-3 badge-premium-warning py-2 rounded-pill d-inline-block border-0 px-4 fs-6 shadow-sm text-dark">
+                                <i class="fas fa-exclamation-triangle me-2 text-dark"></i> <strong>حالة البوابة:</strong> النظام مغلق حالياً (لا يُمكّن الورثة من التعديل والأختيار)
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- VIDEO CALL PANEL (JUDGE CONTROLS) -->
+            <div id="video-call-panel" class="premium-card p-4 border-0 mb-4" style="background: rgba(52, 152, 219, 0.05) !important; border-top: 4px solid #3498db !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-info fw-bold mb-0"><i class="fas fa-video me-2"></i> الاتصال المرئي الجماعي</h4>
+                    <div>
+                        <button id="startCallBtn" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm" style="font-weight: 700;">
+                            <i class="fas fa-phone-alt me-2"></i> بدء الاتصال وإرنان الورثة
+                        </button>
+                        <button id="endCallBtn" class="btn btn-danger px-4 py-2 rounded-pill shadow-sm d-none" style="font-weight: 700;">
+                            <i class="fas fa-phone-slash me-2"></i> إنهاء المكالمة للجميع
+                        </button>
+                    </div>
+                </div>
+                <!-- Jitsi Container -->
+                <div id="jitsi-container" style="width: 100%; height: 0px; overflow: hidden; border-radius: 15px; transition: height 0.5s ease;"></div>
+            </div>
+
+    <!-- HEIR SELECTION SUMMARY -->
+    <div id="heir-selection" class="premium-card">
+        <div class="premium-card-header d-flex align-items-center">
+            <h5 class="mb-0 text-gold"><i class="fas fa-users me-2"></i> ملخص طلبات التوزيع واختيارات الورثة</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table premium-table align-middle text-start">
+                    <thead>
+                        <tr>
+                            <th class="pe-4">الوارث</th>
+                            <th class="text-center w-15">النصيب الشرعي</th>
+                            <th class="text-center w-15">قيمة المختار</th>
+                            <th class="text-center w-15">الفرق (متبقي / زيادة)</th>
+                            <th class="text-center w-20">قبول / رفض القاضي</th>
+                            <th class="text-center w-15">الحالة الشاملة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in heir_stats %}
+                        <tr style="{% if 'تعارض' in stat.status %}background: rgba(231,76,60,0.05);{% endif %}">
+                            <td class="pe-4">
+                                <strong class="text-white d-block mb-2" style="font-size: 1.1rem;">{{ stat.name }} <span class="text-muted fw-normal ms-2" style="font-size: 0.85rem;">({{ stat.obj.get_relationship_display }})</span></strong>
+                                <div class="small">
+                                    <span class="text-gold me-1"><i class="fas fa-archive me-1"></i>الأصول التي اختارها:</span>
+                                    {% for item in stat.intent_items %}
+                                    <span class="badge {% if item.won_raffle %}bg-warning text-dark{% else %}badge-premium-info{% endif %} me-1 py-1 px-2 border-0 fw-normal">
+                                        {% if item.won_raffle %}<i class="fas fa-trophy me-1"></i>{% endif %}
+                                        {{ item.name }}
+                                        {% if item.won_raffle %} (فوز بالقرعة){% endif %}
+                                    </span>
+                                    {% empty %}
+                                    <span class="text-muted fw-light">لا توجد اختيارات حالياً</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="text-center font-monospace">{{ stat.share_value|floatformat:2 }}</td>
+                            <td class="text-center font-monospace">{{ stat.selected_value|floatformat:2 }}</td>
+                            <td class="text-center">
+                                <div class="font-monospace fw-bold {% if stat.diff > 0 %}text-danger{% elif stat.diff < 0 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ stat.diff|abs|floatformat:2 }}
+                                </div>
+                                {% if stat.diff > 0 %}
+                                <div class="text-danger" style="font-size: 0.7rem;">(تجاوز النصيب)</div>
+                                {% elif stat.diff < 0 %}
+                                <div class="text-warning" style="font-size: 0.7rem;">(له متبقي)</div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <form method="POST" style="display:inline;" class="me-1">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="heir_id" value="{{ stat.obj.id }}">
+                                        <input type="hidden" name="action" value="accept_heir">
+                                        <button type="submit" 
+                                                class="btn btn-outline-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1" title="تصديق وقبول اختيار الوريث"
+                                                onclick="this.disabled=true; this.closest('.btn-group').querySelectorAll('button').forEach(b => b.disabled=true); this.form.submit();"
+                                                {% if stat.has_active_dispute or stat.obj.is_judge_confirmed %}disabled{% endif %}>
+                                            <i class="fas fa-check"></i> <span class="d-none d-lg-block">قبول</span>
+                                        </button>
+                                    </form>
+                                    <form method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="heir_id" value="{{ stat.obj.id }}">
+                                        <input type="hidden" name="action" value="reject_heir">
+                                        <button type="submit" 
+                                        class="btn btn-outline-danger btn-sm rounded-pill px-3 d-flex align-items-center gap-1" style="color: #000 !important;" title="إلغاء ورفض التخصيص وإفراغ العهد المالية"
+                                                onclick="this.disabled=true; this.closest('.btn-group').querySelectorAll('button').forEach(b => b.disabled=true); this.form.submit();"
+                                                {% if stat.has_active_dispute or stat.obj.acceptance_status == 'REJECTED' %}disabled{% endif %}>
+                                            <i class="fas fa-times"></i> <span class="d-none d-lg-block">رفض</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill px-3 py-2 w-100
+                                    {% if stat.status_class == 'warning' %}badge-premium-warning
+                                    {% elif stat.status_class == 'success' %}badge-premium-success
+                                    {% elif stat.status_class == 'danger' %}badge-premium-danger
+                                    {% elif stat.obj.acceptance_status == 'SUBMITTED' %}badge-premium-info
+                                    {% else %}badge-premium-secondary{% endif %}">
+                                    <i class="fas {% if stat.status_class == 'warning' %}fa-hourglass-start{% elif stat.status_class == 'success' %}fa-check-circle{% elif stat.obj.acceptance_status == 'SUBMITTED' %}fa-hourglass-half{% else %}fa-times-circle{% endif %} me-1"></i>
+                                    {{ stat.display_status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPROVED DISTRIBUTION (GREEN/GOLD ACCENT) -->
+    <div id="approved-distribution" class="premium-card" style="border-right: 4px solid #2ecc71 !important;">
+        <div class="premium-card-header" style="background: rgba(46, 204, 113, 0.05) !important;">
+            <h5 class="mb-1" style="color: #2ecc71;"><i class="fas fa-box-open me-2"></i> كشف التوزيع المعتمد والتخصيصات (الصندوق المعلق)</h5>
+            <small class="text-muted d-block mt-1">يحتوي على قائمة الورثة الذين تم اعتماد حصصهم أو تم تعيينهم يدوياً من طرف القاضي</small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table premium-table align-middle text-start">
+                    <thead>
+                        <tr>
+                            <th class="pe-4">الوارث</th>
+                            <th>الأصول (الممتلكات المعينة)</th>
+                            <th class="text-center">القيمة الإجمالية</th>
+                            <th class="text-center">الحالة</th>
+                            <th class="text-center">الالتزام المالي / الفروق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in heir_stats %}
+                            {% if stat.obj.is_judge_confirmed %}
+                            <tr>
+                                <td class="pe-4">
+                                    <strong class="text-white d-block">{{ stat.name }}</strong>
+                                    <div class="text-muted small">النصيب الشرعي <span class="font-monospace ms-1">{{ stat.share_value|floatformat:2 }}</span></div>
+                                </td>
+                                <td>
+                                    {% for item in stat.allocated_items_list %}
+                                        <span class="badge badge-premium-info me-1 py-1 px-2 border-0 fw-normal fw-bold">{{ item.name }} ({{ item.val }})</span>
+                                    {% empty %}
+                                        <span class="text-muted small px-2"><i class="fas fa-info-circle me-1"></i> سيأخذ نصيبه مالياً تلقائياً من الباقي</span>
+                                    {% endfor %}
+                                </td>
+                                <td class="text-center font-monospace text-gold">{{ stat.selected_value|floatformat:2 }}</td>
+                                <td class="text-center">
+                                    {% if stat.obj.acceptance_status == 'ACCEPTED' %}
+                                        <span class="badge badge-premium-success rounded-pill px-3"><i class="fas fa-check me-1"></i> مقبول ومراضي</span>
+                                    {% else %}
+                                        <span class="badge badge-premium-warning rounded-pill px-3"><i class="fas fa-gavel me-1"></i> تخصيص القاضي</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if stat.prop_info.status %}
+                                        <div class="badge badge-premium-info px-3">
+                                            <span class="font-monospace">{{ stat.prop_info.amount|floatformat:2 }}</span>
+                                            ({{ stat.prop_info.status }})
+                                        </div>
+                                    {% elif stat.diff != 0 %}
+                                        <div class="{% if stat.diff > 0 %}text-danger{% else %}text-warning{% endif %} font-monospace fw-bold">
+                                            {{ stat.diff|abs|floatformat:2 }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-secondary">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTESTED ASSETS SECTION -->
+    <div id="contested-assets" class="premium-card mb-5" style="border-right: 4px solid #d4af37 !important;">
+        <div class="premium-card-header p-4 d-flex justify-content-between align-items-center border-bottom" style="border-color: rgba(212,175,55,0.2) !important;">
+            <div>
+                <h4 class="mb-0 text-gold fw-bold"><i class="fas fa-handshake-slash ms-2"></i> الأصول والعينات المتنازع عليها</h4>
+                <p class="text-muted small mb-0 mt-1">قائمة بالعناصر التي اختارها أكثر من وريث في نفس الوقت.</p>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" style="color: #e0e0e0; vertical-align: middle;">
+                    <thead style="background: rgba(212,175,55,0.05); color: #d4af37; border-bottom: 2px solid rgba(212,175,55,0.2);">
+                        <tr>
+                            <th class="px-4 py-3">العنصر المتنازع عليه</th>
+                            <th class="px-4 py-3">القيمة</th>
+                            <th class="px-4 py-3">الورثة المتنافسون</th>
+                            <th class="px-4 py-3 text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dispute in active_disputes %}
+                            {% if dispute.contenders.count > 1 %}
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td class="px-4 py-3">
+                                    <span class="fw-bold text-white">{% if dispute.asset %}{{ dispute.asset.description }}{% else %}{{ dispute.component.description }}{% endif %}</span>
+                                    <br><small class="text-muted">{% if dispute.asset %}أصل كامل{% else %}عينة من أصل: {{ dispute.component.asset.description }}{% endif %}</small>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="badge-premium-info px-3 py-1 rounded-pill">
+                                        {% if dispute.asset %}{{ dispute.asset.value }}{% else %}{{ dispute.component.value }}{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% for contender in dispute.contenders.all %}
+                                        <span class="badge bg-secondary me-1">{{ contender.name }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <a href="{% url 'cases:start_lottery' case.id %}" class="btn gold-btn btn-sm px-4 rounded-pill">
+                                        <i class="fas fa-random me-1"></i> الدخول إلى القرعة
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="opacity-50">
+                                    <i class="fas fa-check-circle fs-1 text-gold mb-3"></i>
+                                    <p class="mb-0">لا توجد أي نزاعات نشطة حالياً. جميع الاختيارات حتى الآن متزنة ووحيدة.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- FINANCIAL SETTLEMENTS -->
+    <div id="financial-settlements" class="premium-card" style="border-right: 4px solid #e74c3c !important;">
+        <div class="premium-card-header" style="background: rgba(231, 76, 60, 0.05) !important;">
+            <h5 class="mb-0" style="color: #e74c3c;"><i class="fas fa-money-bill-wave me-2"></i> تسويات مالية ومقترحات معلقة (تتطلب الحسم قبل الاعتماد)</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if pending_payments or relevant_proposals %}
+            <div class="table-responsive">
+                <table class="table premium-table align-middle text-start">
+                    <thead>
+                        <tr>
+                            <th class="pe-4">الوارث صاحب الالتزام / المقترح</th>
+                            <th>المبلغ المطلوب / التعويض</th>
+                            <th>السبب</th>
+                            <th class="text-center">إجراء (للقاضي)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in pending_payments %}
+                        <tr style="{% if payment.is_draft %}background: rgba(241, 196, 15, 0.05);{% else %}background: rgba(231, 76, 60, 0.02);{% endif %}">
+                            <td class="pe-4 text-white fw-bold">
+                                {{ payment.payer.name }} 
+                                {% if payment.is_draft %}
+                                    <span class="badge badge-premium-warning ms-2 fw-normal">مسودة تعهد</span>
+                                {% else %}
+                                    <span class="badge badge-premium-danger ms-2 fw-normal">إلزام سداد</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong class="{% if payment.is_draft %}text-warning{% else %}text-danger{% endif %} font-monospace fs-5">{{ payment.amount }} ريال</strong>
+                                {% if not payment.is_draft %}
+                                    {% if payment.heir_confirmed_payment %}
+                                        <div class="text-success mt-1 small"><i class="fas fa-check-double me-1"></i> أفاد بتحويل المبلغ</div>
+                                    {% else %}
+                                        <div class="text-muted mt-1 small"><i class="fas fa-clock me-1"></i> بانتظار التحويل والإفادة</div>
+                                    {% endif %}
+                                    {% if payment.receiver_confirmed_payment %}
+                                        <div class="text-primary mt-1 small"><i class="fas fa-handshake me-1"></i> أفاد المستلم بالاستلام</div>
+                                    {% else %}
+                                        <div class="text-muted mt-1 small"><i class="fas fa-clock me-1"></i> بانتظار إقرار المستلم</div>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="text-muted">{{ payment.reason }}</td>
+                            <td class="text-center">
+                                {% if not payment.is_draft %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="payment_id" value="{{ payment.id }}">
+                                    <button type="submit" name="action" value="mark_paid" 
+                                            class="btn badge-premium-success rounded-pill px-4" 
+                                            style="border:none;"
+                                            {% if not payment.heir_confirmed_payment or not payment.receiver_confirmed_payment %}disabled title="بانتظار إقرار الدافع ثم إقرار المستلم أولاً"{% endif %}>
+                                        <i class="fas fa-check-circle me-1"></i> سجل كمدفوع (تأكيد استلام)
+                                    </button>
+                                </form>
+                                {% else %}
+                                <div class="d-flex flex-column align-items-center">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 disabled" 
+                                            style="opacity: 0.5; border-style: dashed;" 
+                                            title="يجب قبول حصة الوريث أولاً ليصبح التعهد رسمياً">
+                                        <i class="fas fa-lock me-1"></i> سجل كمدفوع
+                                    </button>
+                                    <span class="text-muted extra-small mt-1" style="font-size: 0.7rem;">يُنشأ عند القبول بالجدول العلوي</span>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for proposal in relevant_proposals %}
+                        {% if proposal.status == 'PENDING' %}
+                        <tr style="background: rgba(52, 152, 219, 0.02);">
+                            <td class="pe-4 text-white fw-bold">{{ proposal.heir.name }} <span class="badge badge-premium-info ms-2 fw-normal">مقترح مقايضة</span></td>
+                            <td>
+                                <strong class="text-warning font-monospace fs-5">{{ proposal.difference_amount }} ريال</strong>
+                            </td>
+                            <td class="text-muted">
+                                <i class="fas fa-hourglass-half text-warning me-1"></i> بانتظار موافقة الوريث في حسابه
+                            </td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill px-3 py-2 w-100 badge-premium-warning">
+                                    قيد الانتظار لم يرُد
+                                </span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-5 text-center text-muted">
+                <i class="fas fa-check-circle fa-2x mb-3 d-block opacity-50"></i>
+                <p class="mb-0 fs-5">لا توجد تسويات مالية أو التزامات معلقة حالياً.</p>
             </div>
             {% endif %}
-
-            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                <button type="submit" name="action" value="approve" class="btn btn-success btn-lg">
-                    <i class="fas fa-check-double"></i> موافقة على الاختيار واعتماد التوزيع (وتقسيم الباقي)
-                </button>
-
-                <button type="submit" name="action" value="escalate" class="btn btn-primary">
-                    <i class="fas fa-random"></i> فتح باب القرعة
-                </button>
-
-            </div>
-        </form>
+        </div>
     </div>
+
+    <!-- SYSTEM WARNINGS -->
+    {% if system_warnings %}
+    <div id="system-warnings" class="premium-card" style="border-right: 4px solid #f1c40f !important;">
+        <div class="premium-card-header p-3" style="background: rgba(241, 196, 15, 0.05) !important;">
+            <h6 class="mb-0 text-warning fw-bold"><i class="fas fa-exclamation-triangle me-2"></i> تنبيهات وملاحظات النظام التلقائية</h6>
+        </div>
+        <div class="card-body px-4 py-3">
+            <ul class="list-unstyled mb-0">
+                {% for warning in system_warnings %}
+                <li class="mb-3 border-bottom border-light pb-3 last-child-no-border d-flex align-items-center" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <i class="fas fa-circle text-warning me-3" style="font-size: 0.4rem;"></i>
+                    <span class="flex-grow-1" style="font-size: 0.95rem;">{{ warning.message }}</span>
+                    {% if warning.type == 'over_selection' %}
+                    <span class="badge badge-premium-danger ms-3 px-3">يجب دفع الفرق</span>
+                    {% elif warning.type == 'no_selection' %}
+                    <span class="badge badge-premium-secondary ms-3 px-3">تسوية تلقائية لاحقاً</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- MANUAL ALLOCATIONS -->
+    {% if manual_allocation_heirs %}
+    <div id="manual-allocations" class="premium-card" style="border-right: 4px solid #3498db !important;">
+        <div class="premium-card-header p-3 d-flex justify-content-between align-items-center" style="background: rgba(52, 152, 219, 0.05) !important;">
+            <h5 class="mb-0" style="color: #3498db;"><i class="fas fa-hand-holding-usd me-2"></i> التعيين الجبري (تخصيص القاضي يدوياً)</h5>
+            <span class="badge badge-premium-info">يجب تخصيص حصصهم قبل الاعتماد</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table premium-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="pe-4 w-50">الورثة المستدعين للتخصيص اليدوي (ورثة تم رفض اختياراتهم)</th>
+                            <th class="text-end pe-4">الإجراء والأدوات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loser in manual_allocation_heirs %}
+                        {% with heir_stat=None %}
+                            {% for s in heir_stats %}
+                                {% if s.obj.id == loser.id %}
+                                    <tr>
+                                        <td class="pe-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user-circle fs-3 text-secondary me-3"></i>
+                                                <div>
+                                                    <strong class="text-white d-block fs-6 mb-1">{{ loser.name }}</strong>
+                                                    <span class="text-muted small">النصيب الشرعي: <span class="text-gold font-monospace">{{ s.share_value|floatformat:2 }}</span></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="notify-btn-wrapper">
+                                                {% if loser.id in accepted_proposal_heir_ids %}
+                                                    <span class="notification-dot" title="الوريث وافق على التخصيص"></span>
+                                                {% endif %}
+                                                <a href="{% url 'cases:allocate_share' case.id loser.id %}?process_type=heir" class="btn badge-premium-info rounded-pill px-4 py-2 me-2 border-0 fw-bold shadow-sm" style="text-decoration: none;">
+                                                    <i class="fas fa-pen-square me-2"></i> تخصيص تركة
+                                                </a>
+                                            </div>
+                                            {% if s.has_allocations %}
+                                            <form method="POST" style="display:inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="heir_id" value="{{ loser.id }}">
+                                                <button type="submit" name="action" value="reset_heir_allocation" 
+                                                        class="btn badge-premium-danger rounded-pill px-3 py-2 border-0 shadow-sm" 
+                                                        onclick="return confirm('تأكيد التراجع ومسح كافة المخصصات لهذا الوريث؟')">
+                                                    <i class="fas fa-undo me-1"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- FINAL DECISION (BOTTOM BANNER) -->
+    <div id="final-decision" class="premium-card mb-5" style="border: 2px solid rgba(212, 175, 55, 0.4) !important; background: rgba(3, 5, 8, 0.9) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 100px rgba(212,175,55,0.02) !important;">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <div style="background: rgba(212,175,55,0.1); width: 80px; height: 80px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 2px solid rgba(212,175,55,0.4);" class="mb-3 mx-auto">
+                    <i class="fas fa-gavel fs-1 text-gold"></i>
+                </div>
+                <h3 class="text-gold fw-bolder">إنهاء القضية واعتماد الملكية النهائية</h3>
+                <p class="text-muted mt-2 mx-auto" style="max-width: 600px;">هذا الإجراء هو الخطوة الأخيرة والقاطعة. سيقوم النظام بإغلاق القضية رسمياً، ونقل الأصول لملكية الورثة النهائية، وتصفية أي أرصدة متبقية وتوزيعها آلياً، كما سيفتح إمكانية العرض في متجر التركة للملاك الجدد.</p>
+            </div>
+            
+            <form method="post" class="text-center">
+                {% csrf_token %}
+
+                {% if active_disputes_count > 0 %}
+                    <div class="alert badge-premium-danger p-4 mb-4 rounded-4 d-inline-block text-start w-100 border-0" style="max-width: 800px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-circle fs-3 me-3 text-danger"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">تعذر الاعتماد لوجود تعارض واحتكاك!</h6>
+                                <span style="font-size: 0.95rem;" class="text-white opacity-75">زر الاعتماد معطل لوجود <strong>{{ active_disputes_count }}</strong> نزاع أو قرعة لم يتم حسمها. يرجى عمل التصفية وإعلان القرعة لفتح الاعتماد الشامل.</span>
+                            </div>
+                        </div>
+                    </div>
+                {% elif pending_payments %}
+                    <div class="alert badge-premium-warning p-4 mb-4 rounded-4 d-inline-block text-start w-100 border-0" style="max-width: 800px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-money-check-alt fs-3 me-3 text-warning"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">تعذر الاعتماد لالتزامات مالية!</h6>
+                                <span style="font-size: 0.95rem;" class="text-dark opacity-75">زر الاعتماد معطل لوجود التزامات وتسويات مالية لم تُحصَّل بعد، راجع جدول التسويات الجارية.</span>
+                            </div>
+                        </div>
+                    </div>
+                {% elif not all_balanced %}
+                    <div class="alert badge-premium-info p-4 mb-4 rounded-4 d-inline-block text-start w-100 border-0" style="max-width: 800px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle fs-3 me-3 text-info"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">الاعتماد معلق لتخصيص الأنصبة!</h6>
+                                <span style="font-size: 0.95rem; color: #aaddff;">يجب نقل جميع الورثة إلى <strong>جدول كشف التوزيع المعتمد</strong> (عبر قبول اختياراتهم أو التخصيص اليدوي لهم) ليتم تفعيل زر الاعتماد النهائي.</span>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="d-flex justify-content-center py-3">
+                        <button type="submit" name="action" value="approve" class="btn gold-btn btn-lg px-5 py-3 rounded-pill shadow-lg d-flex align-items-center gap-3" style="font-size: 1.3rem; border: 2px solid #fff !important; animation: glow 2s infinite alternate;">
+                            <i class="fas fa-gavel fs-4"></i> <span>إنهاء القضية واعتماد الملكية النهائية للورثة</span>
+                        </button>
+                    </div>
+                {% endif %}
+
+                <!-- RAFLE BUTTON -->
+                <div class="mt-5 pt-4 border-top mx-auto d-flex justify-content-center" style="max-width: 700px; border-color: rgba(212,175,55,0.1) !important;">
+                    {% if active_disputes_count > 0 %}
+                        <button type="submit" name="action" value="escalate" class="btn btn-outline-danger btn-lg rounded-pill px-5 d-flex align-items-center gap-2" style="border-width: 2px;">
+                            <i class="fas fa-random"></i> 
+                            <span>{% if case_has_resolved_disputes %}إعادة إطلاق القرعات{% else %}تصفية المعلق وإجراء قرعة النظام{% endif %}</span>
+                        </button>
+                    {% else %}
+                        <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill px-5 d-flex align-items-center gap-2 disabled text-muted border-secondary opacity-50" style="border-width: 2px;">
+                            <i class="fas fa-random"></i> <span>لا توجد قرعات أو أصول متنازع عليها حالياً للبت فيها</span>
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+        </div> <!-- End Main Content Column -->
+    </div> <!-- End Dashboard Layout -->
+
 </div>
-</div>
+
+<!-- Jitsi Meet API -->
+<script src="https://meet.jit.si/external_api.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const sessionLink = "{{ case.session_link }}";
+        const roomName = "mawareth_session_" + sessionLink.replace(/-/g, ""); // Remove hyphens for standard Jitsi room names
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const callSocket = new WebSocket(
+            wsScheme + '://' + window.location.host + '/ws/session/' + sessionLink + '/'
+        );
+
+        let jitsiApi = null;
+        const startBtn = document.getElementById('startCallBtn');
+        const endBtn = document.getElementById('endCallBtn');
+        const container = document.getElementById('jitsi-container');
+
+        callSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'end_call') {
+                closeJitsi();
+            }
+        };
+
+        callSocket.onclose = function(e) {
+            console.error('Call socket closed unexpectedly');
+        };
+
+        startBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent accidental form submissions if any
+            
+            // 1. Clear previous hint if exists
+            const existingHint = document.getElementById('jitsi-status-hint');
+            if (existingHint) existingHint.remove();
+
+            // 2. Add instructions for Judge
+            const hintBox = document.createElement('div');
+            hintBox.id = 'jitsi-status-hint';
+            hintBox.className = "alert alert-warning d-flex align-items-center mb-3";
+            hintBox.style = "border-radius: 12px; border: 1px dashed #f1c40f; background: rgba(241,196,15,0.05); color: #fff; animation: pulse-border 1.5s infinite;";
+            hintBox.innerHTML = `
+                <i class="fas fa-user-shield me-3 fs-3" style="color: #f1c40f;"></i>
+                <div style="font-size: 0.95rem; flex-grow: 1;">
+                    <strong>بانتظار تفعيل المضيف:</strong> سعادة القاضي، يرجى تسجيل الدخول كمضيف في نافذة الاتصال. <br>
+                    <small style="color: #aaa;">لن يصل رنين الاتصال للورثة إلا بعد نجاح دخولك كمضيف لضمان انضباط الجلسة.</small>
+                </div>
+                <div id="call-signal-spinner" class="spinner-border spinner-border-sm text-warning" role="status"></div>
+            `;
+            container.parentNode.insertBefore(hintBox, container);
+
+            // Start Jitsi locally
+            container.style.height = "600px";
+            container.style.marginTop = "20px";
+            startBtn.classList.add('d-none');
+            endBtn.classList.remove('d-none');
+
+            const domain = 'meet.jit.si';
+            const options = {
+                roomName: roomName,
+                width: '100%',
+                height: '100%',
+                parentNode: container,
+                userInfo: {
+                    displayName: 'فضيلة القاضي'
+                },
+                configOverwrite: {
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: false,
+                    disableDeepLinking: true,
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'desktop', 'fullscreen',
+                        'fodeviceselection', 'hangup', 'profile', 'chat',
+                        'settings', 'raisehand', 'videoquality', 'tileview', 'mute-everyone'
+                    ],
+                }
+            };
+            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+
+            // 3. LISTEN FOR MODERATOR STATUS TO SIGNAL HEIRS
+            jitsiApi.addListener('participantRoleChanged', function(event) {
+                if (event.role === 'moderator') {
+                    // Update UI Hint
+                    hintBox.classList.remove('alert-warning');
+                    hintBox.classList.add('alert-success');
+                    hintBox.style.borderColor = "#2ecc71";
+                    hintBox.querySelector('i').style.color = "#2ecc71";
+                    hintBox.querySelector('i').className = "fas fa-check-circle me-3 fs-3";
+                    hintBox.querySelector('strong').innerText = "تم تفعيل الغرفة بنجاح";
+                    hintBox.querySelector('small').innerText = "جاري إرسال رنين الاتصال لكافة الورثة الآن...";
+                    hintBox.style.animation = "none";
+                    const spinner = document.getElementById('call-signal-spinner');
+                    if (spinner) spinner.remove();
+
+                    // ACTUAL SIGNALING
+                    if (callSocket.readyState === WebSocket.OPEN) {
+                        callSocket.send(JSON.stringify({
+                            'type': 'incoming_call',
+                            'caller': 'فضيلة القاضي',
+                            'room_name': roomName
+                        }));
+                    }
+                }
+            });
+            
+            jitsiApi.addEventListener('videoConferenceLeft', function() {
+                // If judge manually clicks hangup inside Jitsi, trigger full end call
+                endCall();
+            });
+        });
+
+        endBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            endCall();
+        });
+
+        function endCall() {
+            // Signal all heirs to end the call (if socket is open)
+            if (callSocket.readyState === WebSocket.OPEN) {
+                callSocket.send(JSON.stringify({
+                    'type': 'end_call'
+                }));
+            }
+            closeJitsi();
+        }
+
+        function closeJitsi() {
+            if (jitsiApi) {
+                jitsiApi.dispose();
+                jitsiApi = null;
+            }
+            container.style.height = "0px";
+            container.style.marginTop = "0px";
+            startBtn.classList.remove('d-none');
+            endBtn.classList.add('d-none');
+        }
+    });
+</script>
+
 {% endblock %}

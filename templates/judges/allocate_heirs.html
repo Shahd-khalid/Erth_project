@@ -1,0 +1,450 @@
+{% extends 'judges/allocate_layout_base.html' %}
+{% load l10n %}
+{% load custom_filters %}
+
+{% block allocation_body %}
+<style>
+    .heir-stage-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .distribution-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .distribution-summary-card,
+    .heir-card,
+    .heir-stat,
+    .selection-option,
+    .selection-empty {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        box-shadow: 0 18px 36px rgba(0,0,0,0.12);
+    }
+
+    .distribution-summary-card {
+        padding: 1rem 1.1rem;
+    }
+
+    .distribution-summary-card span {
+        display: block;
+        color: var(--alloc-muted);
+        font-size: 0.82rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .distribution-summary-card strong {
+        color: var(--alloc-ink);
+        font-size: 1.1rem;
+        font-weight: 900;
+    }
+
+    .heir-card {
+        padding: 1.6rem;
+        margin-bottom: 1.4rem;
+        border-radius: 28px;
+    }
+
+    .heir-card-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        margin-bottom: 1.15rem;
+    }
+
+    .heir-card-head h3 {
+        color: var(--alloc-ink);
+        font-size: 1.45rem;
+        font-weight: 900;
+        margin: 0 0 0.25rem;
+    }
+
+    .heir-rel {
+        color: var(--alloc-muted);
+        font-weight: 700;
+    }
+
+    .heir-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+        gap: 0.75rem;
+        min-width: 420px;
+    }
+
+    .heir-stat {
+        padding: 0.9rem 1rem;
+        border-radius: 18px;
+    }
+
+    .heir-stat span {
+        display: block;
+        color: var(--alloc-muted);
+        font-size: 0.82rem;
+        margin-bottom: 0.28rem;
+    }
+
+    .heir-stat strong {
+        color: var(--alloc-ink);
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .share-input {
+        width: 100%;
+        min-height: 50px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(0,0,0,0.18);
+        color: var(--alloc-gold);
+        font-weight: 900;
+        text-align: center;
+        padding: 0.8rem 1rem;
+    }
+
+    .premium-textarea {
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(0,0,0,0.16);
+        color: var(--alloc-ink);
+        padding: 1rem 1.1rem;
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .heir-selection-area {
+        margin-top: 1.2rem;
+        padding-top: 1.1rem;
+        border-top: 1px dashed rgba(212,175,55,0.18);
+    }
+
+    .heir-selection-area > label {
+        display: block;
+        color: var(--alloc-gold);
+        font-weight: 900;
+        margin-bottom: 1rem;
+        font-size: 1.02rem;
+    }
+
+    .selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 0.85rem;
+    }
+
+    .selection-option {
+        padding: 0.95rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.22s ease;
+        border-radius: 18px;
+    }
+
+    .selection-option:hover {
+        transform: translateY(-2px);
+        border-color: rgba(212,175,55,0.24);
+        background: rgba(212,175,55,0.06);
+    }
+
+    .selection-option input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--alloc-gold);
+        flex-shrink: 0;
+    }
+
+    .selection-option label {
+        margin: 0;
+        cursor: pointer;
+        color: var(--alloc-ink);
+        line-height: 1.7;
+        font-weight: 700;
+    }
+
+    .comp-opt {
+        border-right: 4px solid rgba(212,175,55,0.55);
+    }
+
+    .selection-empty {
+        padding: 1rem 1.1rem;
+        border-style: dashed;
+        line-height: 1.8;
+        color: var(--alloc-muted);
+    }
+
+    .heir-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 1.35rem 1.5rem;
+    }
+
+    .heir-footer-copy {
+        color: var(--alloc-muted);
+        line-height: 1.8;
+        margin: 0;
+    }
+
+    .heir-footer-actions {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-save-main,
+    .btn-reset-main,
+    .btn-publish {
+        min-height: 56px;
+        padding: 0.95rem 1.35rem;
+        border-radius: 18px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        font-size: 1rem;
+    }
+
+    .btn-save-main {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(212,175,55,0.22);
+        color: var(--alloc-gold);
+    }
+
+    .btn-reset-main {
+        background: rgba(231,76,60,0.06);
+        border: 1px solid rgba(231,76,60,0.24);
+        color: #ff8a80;
+    }
+
+    .btn-publish {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        border: none;
+        color: #fff;
+        box-shadow: 0 18px 32px rgba(46,204,113,0.22);
+    }
+
+    .btn-publish:hover,
+    .btn-save-main:hover,
+    .btn-reset-main:hover,
+    .judge-alloc-btn-primary:hover,
+    .judge-alloc-btn-secondary:hover {
+        transform: translateY(-2px);
+    }
+
+    .over-limit {
+        color: #ff7d7d !important;
+    }
+
+    [data-theme="light"] .distribution-summary-card,
+    [data-theme="light"] .heir-card,
+    [data-theme="light"] .heir-stat,
+    [data-theme="light"] .selection-option,
+    [data-theme="light"] .selection-empty {
+        background: #fffdf8;
+        border-color: rgba(143,109,39,0.16);
+        box-shadow: 0 18px 36px rgba(96,67,24,0.08);
+    }
+
+    [data-theme="light"] .heir-card-head,
+    [data-theme="light"] .heir-selection-area {
+        border-color: rgba(143,109,39,0.16);
+    }
+
+    [data-theme="light"] .heir-card-head h3,
+    [data-theme="light"] .selection-option label,
+    [data-theme="light"] .heir-stat strong,
+    [data-theme="light"] .premium-textarea,
+    [data-theme="light"] .distribution-summary-card strong {
+        color: #2f2a22;
+    }
+
+    [data-theme="light"] .heir-rel,
+    [data-theme="light"] .heir-stat span,
+    [data-theme="light"] .heir-footer-copy,
+    [data-theme="light"] .distribution-summary-card span,
+    [data-theme="light"] .selection-empty {
+        color: #6f6452;
+    }
+
+    [data-theme="light"] .share-input,
+    [data-theme="light"] .premium-textarea {
+        background: #fffaf1;
+        border-color: rgba(143,109,39,0.18);
+    }
+
+    [data-theme="light"] .share-input {
+        color: #8f6d27;
+    }
+
+    [data-theme="light"] .btn-save-main {
+        background: #fffaf1;
+        color: #8f6d27;
+    }
+
+    @media (max-width: 991.98px) {
+        .distribution-summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .heir-stats {
+            min-width: 100%;
+            grid-template-columns: 1fr;
+        }
+
+        .heir-card-head {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .distribution-summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="heir-stage-grid">
+    <div class="judge-alloc-panel">
+        <div class="judge-alloc-panel-head">
+            <div>
+                <h2>توزيع الأصول والأجزاء على الورثة</h2>
+                <p>تعرض هذه الصفحة فقط العناصر الصافية المتاحة للورثة بعد استبعاد كل أصل أو جزء تم تخصيصه للديون والوصايا.</p>
+            </div>
+            <div class="judge-alloc-top-actions">
+                <a href="{{ obligations_stage_url }}" class="judge-alloc-btn-secondary">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة إلى تصفية الديون والوصايا
+                </a>
+            </div>
+        </div>
+        <div class="judge-alloc-panel-body">
+            <div class="distribution-summary-grid">
+                <div class="distribution-summary-card">
+                    <span>العناصر المتاحة للورثة</span>
+                    <strong>{{ distribution_summary.available_count }}</strong>
+                </div>
+                <div class="distribution-summary-card">
+                    <span>القيمة المتاحة للتوزيع</span>
+                    <strong>{{ distribution_summary.available_value|floatformat:2 }} ر.س</strong>
+                </div>
+                <div class="distribution-summary-card">
+                    <span>العناصر المحجوزة للديون والوصايا</span>
+                    <strong>{{ distribution_summary.reserved_count }}</strong>
+                </div>
+                <div class="distribution-summary-card">
+                    <span>القيمة المحجوزة</span>
+                    <strong>{{ distribution_summary.reserved_value|floatformat:2 }} ر.س</strong>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_allocation">
+
+                {% for heir in heirs %}
+                <div class="heir-card">
+                    <div class="heir-card-head">
+                        <div>
+                            <h3>{{ heir.name }}</h3>
+                            <div class="heir-rel">{{ heir.get_relationship_display }}</div>
+                        </div>
+                        <div class="heir-stats">
+                            <div class="heir-stat">
+                                <span>نصيب الوارث</span>
+                                <input type="number" step="0.01" name="value_{{ heir.id }}" class="share-input" value="{{ heir.share_value|floatformat:2|unlocalize }}">
+                            </div>
+                            <div class="heir-stat">
+                                <span>المخصص</span>
+                                <strong class="{% if heir.allocated_share > heir.share_value %}over-limit{% endif %}">{{ heir.allocated_share|floatformat:2 }} / {{ heir.share_value|floatformat:2 }}</strong>
+                            </div>
+                            <div class="heir-stat">
+                                <span>المتبقي</span>
+                                <strong id="rem_{{ heir.id }}">{{ heir.share_value|subtract:heir.allocated_share|floatformat:2 }} ر.س</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="d-block mb-2 fw-bold" style="color: var(--alloc-gold);">وصف القسمة / ملاحظات</label>
+                        <textarea name="desc_{{ heir.id }}" rows="2" class="premium-textarea">{{ heir.allocation_description }}</textarea>
+                    </div>
+
+                    <div class="heir-selection-area">
+                        <label><i class="fas fa-check-circle ms-1"></i> اختر الأصول أو الأجزاء المتاحة لهذا الوارث</label>
+                        <div class="selection-grid">
+                            {% for asset in available_assets %}
+                            <div class="selection-option">
+                                <input type="radio" name="asset_{{ asset.id }}" value="{{ heir.id }}" id="asset_{{ asset.id }}_h_{{ heir.id }}" {% if asset.assigned_to_id == heir.id %}checked{% endif %}>
+                                <label for="asset_{{ asset.id }}_h_{{ heir.id }}">
+                                    أصل كامل: {{ asset.description }}
+                                    <br><small>القيمة {{ asset.value|floatformat:2 }} ر.س</small>
+                                </label>
+                            </div>
+                            {% endfor %}
+
+                            {% for comp in available_components %}
+                            <div class="selection-option comp-opt">
+                                <input type="radio" name="comp_{{ comp.id }}" value="{{ heir.id }}" id="comp_{{ comp.id }}_h_{{ heir.id }}" {% if comp.assigned_to_id == heir.id %}checked{% endif %}>
+                                <label for="comp_{{ comp.id }}_h_{{ heir.id }}">
+                                    عينة: {{ comp.description }} ({{ comp.asset.description }})
+                                    <br><small>القيمة {{ comp.value|floatformat:2 }} ر.س</small>
+                                </label>
+                            </div>
+                            {% endfor %}
+
+                            {% if not available_assets and not available_components %}
+                            <div class="selection-empty">
+                                لا توجد أصول أو أجزاء متاحة للورثة حاليًا بعد استبعاد ما تم تخصيصه للديون والوصايا.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="judge-alloc-footer heir-footer">
+                    <p class="heir-footer-copy">يحفظ النظام في هذه الصفحة تخصيصات العناصر المتاحة فقط، ويرفض تلقائيًا أي أصل أو جزء محجوز لسداد دين أو تنفيذ وصية.</p>
+                    <div class="heir-footer-actions">
+                        <button type="submit" name="action" value="save_allocation" class="btn-save-main">
+                            <i class="fas fa-save"></i>
+                            حفظ جميع تخصيصات القاضي
+                        </button>
+                        <button type="submit" name="action" value="publish_session" class="btn-publish"
+                            {% if has_pending_payments %}
+                            disabled style="background: #555; cursor: not-allowed; box-shadow: none; opacity: 0.6;"
+                            title="لا يمكن الاعتماد لوجود تسويات مالية قيد السداد"
+                            {% else %}
+                            onclick="return confirm('هل أنت متأكد من اعتماد الجلسة نهائيًا؟');"
+                            {% endif %}>
+                            <i class="fas fa-check-double"></i>
+                            {% if has_pending_payments %}
+                            بانتظار اكتمال السداد
+                            {% else %}
+                            اعتماد القسمة النهائية
+                            {% endif %}
+                        </button>
+                        <button type="submit" name="action" value="reset_allocation" class="btn-reset-main" onclick="return confirm('هل أنت متأكد من إلغاء التخصيص الحالي وإعادة التوزيع من جديد؟');">
+                            <i class="fas fa-undo"></i>
+                            إلغاء التخصيص وإعادة التوزيع
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

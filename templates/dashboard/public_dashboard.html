@@ -19,13 +19,13 @@
                 <div class="card" style="background-color: #f8f9fa; border: 1px solid #ddd;">
                     <h4><i class="fas fa-gavel"></i> القضايا الجديدة</h4>
                     <p>إدارة القضايا المسندة إليك.</p>
-                    <a href="{% url 'case_list' %}" class="btn-primary"
+                    <a href="{% url 'cases:case_list' %}" class="btn-primary"
                         style="display: inline-block; margin-top: 10px;">عرض القضايا</a>
                 </div>
                 <div class="card" style="background-color: #f8f9fa; border: 1px solid #ddd;">
                     <h4><i class="fas fa-plus"></i> إنشاء قضية</h4>
                     <p>فتح ملف قضية جديد.</p>
-                    <a href="{% url 'create_case' %}" class="btn-primary"
+                    <a href="{% url 'cases:create_case' %}" class="btn-primary"
                         style="display: inline-block; margin-top: 10px;">بدء قضية</a>
                 </div>
                 {% elif user.role == 'ADMIN' %}

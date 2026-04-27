@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
@@ -391,7 +392,7 @@
 
     <!-- Rington Audio -->
     <audio id="ringtoneAudio" loop preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3" type="audio/mpeg">
+        <source src="{% static 'audio/ringtone.wav' %}" type="audio/wav">
     </audio>
 
     <!-- Jitsi Meet API -->

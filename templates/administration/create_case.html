@@ -1,82 +1,145 @@
-{% extends 'base.html' %}
+{% extends 'administration/admin_base.html' %}
+{% load static %}
 
-{% block extra_css %}
+{% block admin_extra_css %}
 <style>
-    [data-theme="light"] .admin-flow-card {
-        background: linear-gradient(180deg, #fffdf8 0%, #f8f1e4 100%) !important;
-        border-color: rgba(143, 109, 39, 0.16) !important;
-        box-shadow: 0 18px 36px rgba(96, 67, 24, 0.12) !important;
+    .creation-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     }
-
-    [data-theme="light"] .admin-flow-card h2 {
-        color: #8f6d27 !important;
+    .section-title {
+        color: #d4af37;
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        padding-bottom: 10px;
     }
-
-    [data-theme="light"] .admin-flow-card p,
-    [data-theme="light"] .admin-flow-card label,
-    [data-theme="light"] .admin-flow-card a,
-    [data-theme="light"] .admin-flow-card div[style*="font-size: 0.85rem"] {
-        color: #6f6452 !important;
+    .form-group {
+        margin-bottom: 25px;
     }
-
-    [data-theme="light"] .admin-flow-card select.form-control,
-    [data-theme="light"] .admin-flow-card input.form-control {
-        background: #fffaf1 !important;
-        color: #2f2a22 !important;
-        border-color: rgba(143, 109, 39, 0.16) !important;
-        box-shadow: 0 12px 20px rgba(96, 67, 24, 0.06);
+    .form-label {
+        display: block;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px 15px;
+        color: #fff;
+        transition: all 0.3s;
+    }
+    .form-control:focus {
+        border-color: #d4af37;
+        background: rgba(255, 255, 255, 0.08);
+        outline: none;
+        box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+    }
+    .btn-submit {
+        background: #d4af37;
+        color: #000;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 20px;
+        transition: all 0.3s;
+        font-size: 1.1rem;
+    }
+    .btn-submit:hover {
+        background: #f1c40f;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+    }
+    
+    [data-theme="light"] .creation-card {
+        background: #fff;
+        border-color: rgba(143, 109, 39, 0.1);
+        box-shadow: 0 15px 35px rgba(96, 67, 24, 0.1);
+    }
+    [data-theme="light"] .form-control {
+        background: #fdfaf3;
+        border-color: rgba(143, 109, 39, 0.2);
+        color: #2f2a22;
+    }
+    [data-theme="light"] .form-label {
+        color: #6d634f;
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container" style="max-width: 600px; margin-top: 60px; padding-bottom: 100px;">
-    <div class="card admin-flow-card" style="border: 1px solid var(--glass-border); padding: 40px; border-radius: 30px; background: rgba(255,255,255,0.02);">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <div style="width: 70px; height: 70px; background: rgba(212, 175, 55, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--primary-color); font-size: 2rem;">
-                <i class="fas fa-folder-plus"></i>
+{% block admin_header_title %}
+    <h1 style="color: #fff; font-weight: 800; margin: 0; font-size: 2rem;">{{ title }}</h1>
+    <p style="color: #888; margin-top: 5px;">{% if is_edit %}تعديل البيانات الأساسية المسجلة لهذه القضية{% else %}البدء في تسجيل بيانات المتوفى وتعيين القاضي المسؤول{% endif %}</p>
+{% endblock %}
+
+{% block admin_content %}
+<div class="creation-card">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="section-title">
+            <i class="fas fa-gavel"></i> تعيين القاضي
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">القاضي المشرف</label>
+                    {{ form.judge }}
+                </div>
             </div>
-            <h2 style="color: #fff; font-weight: 800;">إنشاء قضية جديدة</h2>
-            <p style="color: rgba(255,255,255,0.5);">للوريث: {{ heir_user.full_name|default:heir_user.username }}</p>
-            {% if heir_user.deceased_name %}
-            <div style="display: inline-block; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; font-size: 0.85rem; color: var(--primary-color); margin-top: 10px;">
-                اسم المتوفى: {{ heir_user.deceased_name }}
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">صك حصر الورثة (PDF أو صورة)</label>
+                    {{ form.inheritance_determination_doc }}
+                </div>
             </div>
-            {% endif %}
+        </div>
+        <p style="font-size: 0.8rem; color: #888; margin-top: -15px; margin-bottom: 25px;">يظهر هنا القضاة المعتمدون. والوثيقة اختيارية ولكن يفضل رفعها للتوثيق.</p>
+
+        <div class="section-title" style="margin-top: 40px;">
+            <i class="fas fa-user-alt-slash"></i> بيانات المتوفى
         </div>
         
-        <form method="post" class="auth-form">
-            {% csrf_token %}
-            <div class="form-group mb-4">
-                <label style="color: #fff; font-weight: 600; margin-bottom: 10px; display: block;">رقم القضية الرسمي</label>
-                <div style="position: relative;">
-                    <i class="fas fa-hashtag" style="position: absolute; right: 15px; top: 18px; color: var(--primary-color);"></i>
-                    <input type="text" class="form-control" value="سيتم توليد الرقم تلقائياً بالتسلسل" disabled style="padding-right: 45px; height: 55px; border-radius: 12px; appearance: none; background: rgba(255,255,255,0.05); color: #888; border: 1px solid rgba(255,255,255,0.1);">
+        <div class="form-group">
+            <label class="form-label">اسم المتوفى بالكامل</label>
+            {{ form.deceased_name }}
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">رقم الهوية / السجل المدني</label>
+                    {{ form.national_id }}
                 </div>
             </div>
-            
-            <div class="form-group mb-4">
-                <label style="color: #fff; font-weight: 600; margin-bottom: 10px; display: block;">تعيين قاضي للدراسة</label>
-                <div style="position: relative;">
-                    <i class="fas fa-user-tie" style="position: absolute; right: 15px; top: 18px; color: var(--primary-color);"></i>
-                    <select name="judge_id" class="form-control" required style="padding-right: 45px; height: 55px; border-radius: 12px; appearance: none; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);">
-                        <option value="" disabled selected>-- اختر القاضي المعتمد --</option>
-                        {% for judge in judges %}
-                        <option value="{{ judge.id }}">{{ judge.full_name|default:judge.username }}</option>
-                        {% endfor %}
-                    </select>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">تاريخ الوفاة</label>
+                    {{ form.date_of_death }}
                 </div>
             </div>
-            
-            <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 15px;">
-                <button type="submit" class="btn-primary" style="height: 55px; border-radius: 15px; font-weight: 700; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(212,175,55,0.2);">
-                    تثبيت الإسناد وإنشاء الملف <i class="fas fa-check"></i>
-                </button>
-                <a href="{% url 'administration:dashboard' %}" style="text-align: center; color: rgba(255,255,255,0.5); font-weight: 600; text-decoration: none;">
-                    &larr; إلغاء والعودة للمركز
-                </a>
-            </div>
-        </form>
-    </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas {% if is_edit %}fa-save{% else %}fa-folder-plus{% endif %}" style="margin-left: 10px;"></i>
+            {% if is_edit %}حفظ التعديلات{% else %}تأكيد وفتح القضية{% endif %}
+        </button>
+    </form>
 </div>
 {% endblock %}

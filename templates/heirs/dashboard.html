@@ -855,7 +855,7 @@
 <script>
     let jitsiApi = null;
     const jitsiContainer = document.getElementById('heir-dashboard-jitsi-container');
-    const ringtone = new Audio('{% static "audio/ringtone.mp3" %}'); // Ensure you have this or fallback
+    const ringtone = new Audio('{% static "audio/ringtone.wav" %}');
 
     function switchView(event, viewId) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));

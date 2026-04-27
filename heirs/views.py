@@ -134,6 +134,11 @@ def dashboard(request):
         if case.status != Case.Status.COMPLETED:
             case.objecting_heirs = case.heirs.filter(acceptance_status=Heir.AcceptanceStatus.OBJECTION_WITH_SELECTION)
         
+        # Attach allocated items and pending selections for the dashboard
+        record.my_assets = record.allocated_assets.all()
+        record.my_components = record.allocated_components.select_related('asset').all()
+        record.my_selections = record.selections.filter(status='PENDING').select_related('asset', 'component', 'component__asset')
+        
         # Settlements
         record.bills = PaymentSettlement.objects.filter(payer=record, is_paid_to_judge=False)
         record.receipts_waiting = PaymentSettlement.objects.filter(original_owner=record, is_paid_to_judge=True, is_delivered_to_owner=False)
@@ -938,36 +943,51 @@ def mark_asset_sold(request):
     return redirect('heirs:my_assets_for_sale')
 
 @login_required
-def manage_asset_listing(request, component_id):
+def manage_asset_listing(request, item_type, item_id):
     if request.user.role != 'HEIR' or request.method != 'POST':
         return redirect('dashboard')
         
-    component = get_object_or_404(AssetComponent, id=component_id, assigned_to__user=request.user)
+    asset = None
+    component = None
     
+    if item_type == 'asset':
+        asset = get_object_or_404(Asset, id=item_id, assigned_to__user=request.user)
+        target_item = asset
+    else:
+        component = get_object_or_404(AssetComponent, id=item_id, assigned_to__user=request.user)
+        target_item = component
+        
     seller_name = request.POST.get('seller_name')
     seller_email = request.POST.get('seller_email')
     seller_phone = request.POST.get('seller_phone')
     price_str = request.POST.get('price', '').replace(',', '.')
     description = request.POST.get('description')
+    custom_image = request.FILES.get('image')
     
     from decimal import Decimal, InvalidOperation
     try:
-        final_price = Decimal(price_str) if price_str else component.value
+        final_price = Decimal(price_str) if price_str else target_item.value
     except (InvalidOperation, ValueError):
-        final_price = component.value
+        final_price = target_item.value
         
-    final_description = description if description and description.strip() else component.description
+    final_description = description if description and description.strip() else target_item.description
+    
+    defaults = {
+        'seller_name': seller_name,
+        'seller_email': seller_email,
+        'seller_phone': seller_phone,
+        'price': final_price,
+        'description': final_description,
+        'is_active': True
+    }
+    
+    if custom_image:
+        defaults['image'] = custom_image
     
     listing, created = PublicAssetListing.objects.update_or_create(
+        asset=asset,
         component=component,
-        defaults={
-            'seller_name': seller_name,
-            'seller_email': seller_email,
-            'seller_phone': seller_phone,
-            'price': final_price,
-            'description': final_description,
-            'is_active': True
-        }
+        defaults=defaults
     )
     
     action_text = "إضافة" if created else "تحديث"

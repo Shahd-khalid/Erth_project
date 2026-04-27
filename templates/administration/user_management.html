@@ -156,7 +156,11 @@
 {% endblock %}
 
 {% block admin_content %}
-<div style="display: flex; justify-content: flex-end; margin-bottom: 30px; gap: 15px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <a href="{% url 'administration:create_user' %}" style="background-color: var(--primary-color); color: #000; padding: 12px 24px; border-radius: 12px; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <i class="fas fa-plus"></i>
+        إضافة مستخدم جديد
+    </a>
     <form method="GET" action="." style="display: flex; gap: 10px;">
         <input type="text" name="q" value="{{ query }}" placeholder="بحث عن مستخدم..." class="search-bar">
         <select name="status" class="search-bar" style="width: 150px;" onchange="this.form.submit()">

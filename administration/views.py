@@ -1,14 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.db.models import Avg, Exists, OuterRef, Q, Sum, Count
+from django.db.models import Avg, Exists, OuterRef, Q, Sum, Count, Subquery
 from django.contrib import messages
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 import csv
 from .models import AdminNotification, FiqhBook
-from .forms import FiqhBookForm
-from cases.models import Case, Heir, Asset, PublicAssetListing, HeirAssetSelection, AssetComponent
+from .forms import FiqhBookForm, AdminUserCreationForm, AdminCaseCreationForm
+from cases.models import Case, Heir, Asset, PublicAssetListing, HeirAssetSelection, AssetComponent, Deceased
 from users.models import Feedback
 
 User = get_user_model()
@@ -276,6 +276,114 @@ def case_tracking(request):
 
 
 @login_required
+def create_case(request):
+    if request.user.role != 'ADMIN':
+        return redirect('users:dashboard')
+
+    if request.method == 'POST':
+        form = AdminCaseCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            judge = form.cleaned_data.get('judge')
+            
+            # 1. Create Case
+            new_case = form.save(commit=False)
+            new_case.status = Case.Status.ASSIGNED_TO_JUDGE
+            new_case.save()
+            
+            # 2. Create Deceased linked record
+            Deceased.objects.create(
+                case=new_case,
+                name=form.cleaned_data.get('deceased_name'),
+                date_of_death=form.cleaned_data.get('date_of_death'),
+                national_id=form.cleaned_data.get('national_id')
+            )
+            
+            messages.success(request, f'تم فتح القضية رقم {new_case.display_case_number} بنجاح وإسنادها للقاضي {judge.full_name or judge.username}.')
+            
+            # Notify Admin Hub
+            AdminNotification.objects.create(
+                title='قضية جديدة مضافة',
+                message=f'قام الأدمن بفتح قضية جديدة برقم {new_case.display_case_number} للمتوفى {form.cleaned_data.get("deceased_name")}',
+                notification_type=AdminNotification.NotificationType.CASE_UPDATE
+            )
+            
+            return redirect('administration:case_tracking')
+        else:
+            messages.error(request, 'يرجى مراجعة بيانات القضية وإصلاح الأخطاء.')
+    else:
+        form = AdminCaseCreationForm()
+
+    return render(request, 'administration/create_case.html', {'form': form, 'title': 'فتح قضية إرث جديدة'})
+
+
+@login_required
+def edit_case(request, case_id):
+    if request.user.role != 'ADMIN':
+        return redirect('users:dashboard')
+
+    case_obj = get_object_or_404(Case, id=case_id)
+    try:
+        deceased_obj = case_obj.deceased
+    except ObjectDoesNotExist:
+        deceased_obj = None
+
+    if request.method == 'POST':
+        form = AdminCaseCreationForm(request.POST, request.FILES, instance=case_obj)
+        if form.is_valid():
+            case_obj = form.save()
+            
+            # Update or Create Deceased record
+            d_name = form.cleaned_data.get('deceased_name')
+            d_date = form.cleaned_data.get('date_of_death')
+            d_id = form.cleaned_data.get('national_id')
+            
+            if deceased_obj:
+                deceased_obj.name = d_name
+                deceased_obj.date_of_death = d_date
+                deceased_obj.national_id = d_id
+                deceased_obj.save()
+            else:
+                Deceased.objects.create(
+                    case=case_obj,
+                    name=d_name,
+                    date_of_death=d_date,
+                    national_id=d_id
+                )
+            
+            messages.success(request, f'تم تحديث بيانات القضية رقم {case_obj.display_case_number} بنجاح.')
+            return redirect('administration:case_tracking')
+    else:
+        initial_data = {}
+        if deceased_obj:
+            initial_data = {
+                'deceased_name': deceased_obj.name,
+                'date_of_death': deceased_obj.date_of_death,
+                'national_id': deceased_obj.national_id,
+            }
+        form = AdminCaseCreationForm(instance=case_obj, initial=initial_data)
+
+    return render(request, 'administration/create_case.html', {
+        'form': form, 
+        'title': f'تعديل القضية رقم {case_obj.display_case_number}',
+        'is_edit': True
+    })
+
+
+@login_required
+def delete_case(request, case_id):
+    if request.user.role != 'ADMIN':
+        return redirect('users:dashboard')
+    
+    if request.method == 'POST':
+        case_obj = get_object_or_404(Case, id=case_id)
+        case_num = case_obj.display_case_number
+        case_obj.delete()
+        messages.success(request, f'تم حذف القضية رقم {case_num} بنجاح من النظام.')
+    
+    return redirect('administration:case_tracking')
+
+
+@login_required
 def market_oversight(request):
     denied = _admin_guard(request)
     if denied:
@@ -311,8 +419,10 @@ def heirs_management(request):
     if denied:
         return denied
 
+    case_doc_subquery = Heir.objects.filter(user=OuterRef('pk')).exclude(case__inheritance_determination_doc='').values('case__inheritance_determination_doc')[:1]
     new_heirs = User.objects.filter(role=User.Role.HEIR).annotate(
-        linked_case_count=Count('heir_records', distinct=True)
+        linked_case_count=Count('heir_records', distinct=True),
+        case_document=Subquery(case_doc_subquery)
     ).order_by('-date_joined')
 
     return render(request, 'administration/heirs_management.html', {
@@ -656,71 +766,58 @@ def demote_user(request, user_id):
         messages.info(request, f'تم إلغاء ترقية {user.username} وإعادته إلى دور: {original_role}.')
         
 @login_required
-def user_management(request):
+def create_user(request):
     if request.user.role != 'ADMIN':
         return redirect('users:dashboard')
-    
-    query = request.GET.get('q', '')
-    status_filter = request.GET.get('status', 'ALL')
-    
-    users = User.objects.all().exclude(id=request.user.id)
-    
-    if query:
-        users = users.filter(Q(username__icontains=query) | Q(full_name__icontains=query))
-        
-    if status_filter == 'APPROVED':
-        users = users.filter(verification_status=User.VerificationStatus.APPROVED)
-    elif status_filter == 'PENDING':
-        users = users.filter(verification_status=User.VerificationStatus.PENDING)
-        
-    return render(request, 'administration/user_management.html', {
-        'managed_users': users,
-        'query': query,
-        'status_filter': status_filter
-    })
 
-@login_required
-def promote_to_admin(request, user_id):
-    if request.user.role != 'ADMIN' or request.method != 'POST':
-        return redirect('administration:user_management')
-    
-    user = get_object_or_404(User, id=user_id)
-    if user.role != User.Role.ADMIN:
-        user.previous_role = user.role
-        user.role = User.Role.ADMIN
-        user.save()
-        messages.success(request, f'تم ترقية {user.username} إلى مدير نظام بنجاح.')
-        
-        AdminNotification.objects.create(
-            title='ترقية مستخدم',
-            message=f'تم ترقية {user.username} إلى رتبة مدير نظام.',
-            notification_type=AdminNotification.NotificationType.ROLE_CHANGE,
-            related_user=user
-        )
-        
-    return redirect('administration:user_management')
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            
+            # Link to Case if it's an Heir and a case was selected
+            selected_case = form.cleaned_data.get('selected_case')
+            if new_user.role == User.Role.HEIR and selected_case:
+                from cases.models import Heir as HeirRecord
+                HeirRecord.objects.create(
+                    case=selected_case,
+                    user=new_user,
+                    name=new_user.full_name or new_user.username,
+                    relationship=form.cleaned_data.get('relationship') or HeirRecord.Relationship.SON,
+                    gender=new_user.gender or HeirRecord.Gender.MALE
+                )
+                messages.success(request, f'تم إنشاء حساب الوريث {new_user.username} وربطه بالقضية {selected_case.display_case_number} بنجاح.')
+            else:
+                messages.success(request, f'تم إنشاء الحساب للمستخدم {new_user.username} بنجاح كـ {new_user.get_role_display()}.')
+            
+            # Send Email
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            if new_user.email:
+                subject = 'تم إنشاء حسابك في منصة المواريث'
+                message = f'مرحباً {new_user.full_name or new_user.username}،\n\n' \
+                          f'تم إنشاء حساب لك كـ {new_user.get_role_display()}.\n' \
+                          f'اسم المستخدم: {new_user.username}\n' \
+                          f'كلمة المرور: {request.POST.get("password")}\n\n' \
+                          f'يرجى الدخول وتغيير كلمة المرور من إعدادات الحساب.'
+                
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL or 'webmaster@localhost',
+                    recipient_list=[new_user.email],
+                    fail_silently=True,
+                )
+                
+            return redirect('administration:user_management')
+        else:
+            messages.error(request, 'يرجى مراجعة الحقول وإصلاح الأخطاء.')
+    else:
+        form = AdminUserCreationForm()
 
-@login_required
-def demote_user(request, user_id):
-    if request.user.role != 'ADMIN' or request.method != 'POST':
-        return redirect('administration:user_management')
-    
-    user = get_object_or_404(User, id=user_id)
-    if user.role == User.Role.ADMIN and user.previous_role:
-        original_role = user.get_previous_role_display()
-        user.role = user.previous_role
-        user.previous_role = None
-        user.save()
-        messages.info(request, f'تم إلغاء ترقية {user.username} وإعادته إلى دور: {original_role}.')
-        
-        AdminNotification.objects.create(
-            title='إلغاء ترقية',
-            message=f'تمت إعادة {user.username} إلى رتبة {original_role}.',
-            notification_type=AdminNotification.NotificationType.ROLE_CHANGE,
-            related_user=user
-        )
-        
-    return redirect('administration:user_management')
+    return render(request, 'administration/create_user.html', {'form': form})
+
 
 @login_required
 def delete_user(request, user_id):

@@ -128,13 +128,13 @@
             <i class="fas fa-chart-line"></i>
             لوحة التحكم
           </a>
-          <form id="logout-form" action="{% url 'users:logout' %}" method="post" style="display: none;">
+          <form action="{% url 'users:logout' %}" method="post" class="inline-form">
             {% csrf_token %}
+            <button type="submit" class="btn btn-gold">
+              <i class="fas fa-sign-out-alt"></i>
+              خروج
+            </button>
           </form>
-          <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();" class="btn btn-gold">
-            <i class="fas fa-sign-out-alt"></i>
-            خروج
-          </a>
           {% else %}
           <a href="{% url 'users:login' %}" class="btn btn-outline">
             <i class="fas fa-right-to-bracket"></i>
@@ -218,23 +218,28 @@
             {% if latest_listings %}
             {% for listing in latest_listings %}
             <div class="slide {% if forloop.first %}active{% endif %}">
-              {% if listing.component.asset.image %}
-              <img src="{{ listing.component.asset.image.url }}">
+              {% if listing.image %}
+              <img src="{{ listing.image.url }}" alt="{{ listing.description }}" loading="eager" decoding="async">
+              {% elif listing.asset.image %}
+              <img src="{{ listing.asset.image.url }}" alt="{{ listing.description }}" loading="eager" decoding="async">
+              {% elif listing.component.asset.image %}
+              <img src="{{ listing.component.asset.image.url }}" alt="{{ listing.description }}" loading="eager" decoding="async">
               {% else %}
-              <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80">
+              <img src="{% static 'images/landing-market-fallback.svg' %}" alt="خلفية محلية لعرض الأصول" loading="eager" decoding="async">
               {% endif %}
               <div class="slide-overlay"></div>
               <div class="slide-caption">
                 <h3>{{ listing.description|truncatechars:40 }}</h3>
-                <p>معروض بقيمة {{ listing.price }} ريال ضمن ملف التركة رقم {{ listing.component.asset.case.case_number
-                  }}</p>
+                <p>معروض بقيمة {{ listing.price }} ريال ضمن ملف التركة رقم 
+                    {% if listing.asset %}{{ listing.asset.case.case_number }}{% else %}{{ listing.component.asset.case.case_number }}{% endif %}
+                </p>
               </div>
             </div>
             {% endfor %}
             {% else %}
             <!-- Fallback Slides -->
             <div class="slide active">
-              <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80">
+              <img src="{% static 'images/landing-market-fallback.svg' %}" alt="مشهد سوق الأصول" loading="eager" decoding="async">
               <div class="slide-overlay"></div>
               <div class="slide-caption">
                 <h3>سوق أصول فاخر داخل منصة التركات</h3>
@@ -242,7 +247,7 @@
               </div>
             </div>
             <div class="slide">
-              <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80">
+              <img src="{% static 'images/landing-process-fallback.svg' %}" alt="مشهد يوضح رحلة الإجراءات" loading="lazy" decoding="async">
               <div class="slide-overlay"></div>
               <div class="slide-caption">
                 <h3>تنظيم القضايا والموافقات</h3>
@@ -333,12 +338,14 @@
           {% for listing in public_listings %}
           <div class="asset-card">
             <div class="asset-image">
-              {% if listing.component.asset.image %}
-              <img src="{{ listing.component.asset.image.url }}" alt="{{ listing.description }}">
+              {% if listing.image %}
+              <img src="{{ listing.image.url }}" alt="{{ listing.description }}" loading="lazy" decoding="async">
+              {% elif listing.asset.image %}
+              <img src="{{ listing.asset.image.url }}" alt="{{ listing.description }}" loading="lazy" decoding="async">
+              {% elif listing.component.asset.image %}
+              <img src="{{ listing.component.asset.image.url }}" alt="{{ listing.description }}" loading="lazy" decoding="async">
               {% else %}
-              <div style="height: 100%; width: 100%; background: #111; display: grid; place-items: center;">
-                <i class="fas fa-gem" style="font-size: 3rem; color: var(--gold); opacity: 0.2;"></i>
-              </div>
+              <img src="{% static 'images/landing-asset-fallback.svg' %}" alt="أصل معروض" loading="lazy" decoding="async">
               {% endif %}
               <div class="asset-badge">جاهز للبيع</div>
               <div class="asset-price">{{ listing.price }} ريال</div>
@@ -346,7 +353,9 @@
             <div class="asset-body">
               <h3 class="asset-title">{{ listing.description }}</h3>
               <div class="asset-meta">
-                <span><i class="fas fa-folder"></i> رقم القضية: {{ listing.component.asset.case.case_number }}</span>
+                <span><i class="fas fa-folder"></i> رقم القضية: 
+                    {% if listing.asset %}{{ listing.asset.case.case_number }}{% else %}{{ listing.component.asset.case.case_number }}{% endif %}
+                </span>
                 <span><i class="fas fa-file-circle-check"></i> موثق قضائياً</span>
               </div>
               <div
@@ -368,7 +377,7 @@
           <!-- Fallback Static Items if no data -->
           <div class="asset-card">
             <div class="asset-image">
-              <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200"
+              <img src="{% static 'images/landing-asset-fallback.svg' %}"
                 alt="قصر">
               <div class="asset-badge">جاهز للبيع</div>
               <div class="asset-price">48,000,000 ر.ي</div>

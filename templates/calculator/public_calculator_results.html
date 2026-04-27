@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container" style="margin-top: 50px; padding-bottom: 100px;">
-    <div class="results-container" style="max-width: 1100px; margin: 0 auto;">
+<div class="container calculator-results-page" style="margin-top: 50px; padding-bottom: 100px;">
+    <div class="results-container calculator-results-shell" style="max-width: 1100px; margin: 0 auto;">
         
         <!-- Header -->
-        <div class="card" style="padding: 40px; border-radius: 30px; background: rgba(255, 255, 255, 0.02); margin-bottom: 30px; text-align: center; border: 1px solid rgba(212, 175, 55, 0.1);">
-            <div style="background: var(--primary-color); width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #000; margin: 0 auto 20px;">
+        <div class="card calculator-results-header" style="padding: 40px; border-radius: 30px; background: rgba(255, 255, 255, 0.02); margin-bottom: 30px; text-align: center; border: 1px solid rgba(212, 175, 55, 0.1);">
+            <div class="calculator-results-header-icon" style="background: var(--primary-color); width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #000; margin: 0 auto 20px;">
                 <i class="fas fa-file-invoice-dollar" style="font-size: 2.2rem;"></i>
             </div>
             <h1 style="font-weight: 800; color: #fff; font-size: 2.5rem; margin-bottom: 10px;">نتائج التوزيع الشرعي</h1>
             <p style="color: var(--text-muted);">تقرير مفصل بالأنصبة والحصص الشرعية بناءً على البيانات المدخلة.</p>
             
-            <div style="margin-top: 30px; display: inline-flex; gap: 20px; padding: 15px 30px; background: rgba(212, 175, 55, 0.05); border-radius: 999px; border: 1px solid rgba(212, 175, 55, 0.15);">
+            <div class="calculator-results-summary" style="margin-top: 30px; display: inline-flex; gap: 20px; padding: 15px 30px; background: rgba(212, 175, 55, 0.05); border-radius: 999px; border: 1px solid rgba(212, 175, 55, 0.15);">
                 <span style="color: var(--text-muted);">إجمالي التركة:</span>
                 <span style="color: var(--primary-color); font-weight: 900; font-size: 1.4rem;">{{ net_estate }} ر.س</span>
             </div>
@@ -28,16 +28,16 @@
         </div>
         {% else %}
 
-        <div style="display: grid; grid-template-columns: 1fr 380px; gap: 30px;">
+        <div class="calculator-results-grid" style="display: grid; grid-template-columns: 1fr 380px; gap: 30px;">
             
             <!-- Table Section -->
-            <div class="card" style="padding: 40px; border-radius: 30px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">
+            <div class="card calculator-results-card calculator-results-table-card" style="padding: 40px; border-radius: 30px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">
                 <h4 style="color: var(--primary-color); font-weight: 800; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;">
                     <i class="fas fa-list-ol"></i> تفاصيل الحصص الشرعية
                 </h4>
                 
-                <div class="table-container" style="border: none; background: transparent;">
-                    <table style="width: 100%; border-collapse: separate; border-spacing: 0 12px;">
+                <div class="table-container calculator-results-table-wrap" style="border: none; background: transparent;">
+                    <table class="calculator-results-table" style="width: 100%; border-collapse: separate; border-spacing: 0 12px;">
                         <thead>
                             <tr style="background: rgba(212, 175, 55, 0.1);">
                                 <th style="padding: 18px; border-radius: 12px 0 0 12px; font-size: 1rem; color: var(--primary-color);">الوارث</th>
@@ -49,17 +49,17 @@
                         </thead>
                         <tbody>
                             {% for item in result %}
-                            <tr style="background: rgba(255,255,255,0.03); transition: 0.3s;">
-                                <td style="padding: 22px; font-weight: 800; color: #fff; border-radius: 15px 0 0 15px;">{{ item.name }}</td>
-                                <td style="padding: 22px; text-align: center;">
+                            <tr class="calculator-results-row" style="background: rgba(255,255,255,0.03); transition: 0.3s;">
+                                <td class="calculator-results-cell" style="padding: 22px; font-weight: 800; color: #fff; border-radius: 15px 0 0 15px;">{{ item.name }}</td>
+                                <td class="calculator-results-cell" style="padding: 22px; text-align: center;">
                                     <span style="background: {% if item.fraction == 'محجوب' %}#e74c3c{% else %}var(--primary-color){% endif %}; color: {% if item.fraction == 'محجوب' %}#fff{% else %}#000{% endif %}; padding: 8px 18px; border-radius: 10px; font-weight: 900; font-size: 1.1rem;">
                                         {{ item.fraction }}
                                     </span>
                                 </td>
-                                <td style="padding: 22px; text-align: center; font-weight: 900; color: var(--primary-color); font-size: 1.3rem;">
+                                <td class="calculator-results-cell" style="padding: 22px; text-align: center; font-weight: 900; color: var(--primary-color); font-size: 1.3rem;">
                                     {% if item.value > 0 %}{{ item.value }}{% else %}-{% endif %}
                                 </td>
-                                <td style="padding: 22px; text-align: center; font-weight: 700; color: #fff;">
+                                <td class="calculator-results-cell" style="padding: 22px; text-align: center; font-weight: 700; color: #fff;">
                                     {% if item.adjustment %}
                                         <span style="background: rgba(212, 175, 55, 0.2); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--primary-color);">
                                             {{ item.adjustment }}
@@ -68,7 +68,7 @@
                                         <span style="color: var(--text-muted); opacity: 0.3;">-</span>
                                     {% endif %}
                                 </td>
-                                <td style="padding: 22px; text-align: center; font-size: 0.95rem; color: #e74c3c; font-weight: 600; border-radius: 0 15px 15px 0;">
+                                <td class="calculator-results-cell" style="padding: 22px; text-align: center; font-size: 0.95rem; color: #e74c3c; font-weight: 600; border-radius: 0 15px 15px 0;">
                                     {% if item.blocking_reason %}
                                         <i class="fas fa-ban" style="margin-left: 5px;"></i> {{ item.blocking_reason }}
                                     {% else %}
@@ -87,22 +87,22 @@
             </div>
 
             <!-- Side Panel (Chart & Actions) -->
-            <div style="display: flex; flex-direction: column; gap: 30px;">
+            <div class="calculator-results-side-panel" style="display: flex; flex-direction: column; gap: 30px;">
                 {% if chart_data %}
-                <div class="card" style="padding: 30px; border-radius: 30px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="card calculator-results-card calculator-results-chart-card" style="padding: 30px; border-radius: 30px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05);">
                     <h5 style="color: #fff; font-weight: 800; margin-bottom: 25px; text-align: center;">التوزيع البياني</h5>
                     {{ chart_data|json_script:"inheritance-chart-data" }}
-                    <div style="height: 300px; position: relative;">
+                    <div class="calculator-results-chart-wrap" style="height: 300px; position: relative;">
                         <canvas id="inheritancePieChart"></canvas>
                     </div>
                 </div>
                 {% endif %}
 
-                <div class="card" style="padding: 30px; border-radius: 30px; background: var(--primary-color); border: none; text-align: center;">
-                    <button onclick="window.print()" style="width: 100%; background: #000; color: var(--primary-color); border: none; height: 65px; border-radius: 18px; font-weight: 900; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.3s;">
+                <div class="card calculator-results-card calculator-results-actions" style="padding: 30px; border-radius: 30px; background: var(--primary-color); border: none; text-align: center;">
+                    <button onclick="window.print()" class="calculator-results-print-button" style="width: 100%; background: #000; color: var(--primary-color); border: none; height: 65px; border-radius: 18px; font-weight: 900; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.3s;">
                         <i class="fas fa-print"></i> طباعة التقرير
                     </button>
-                    <a href="{% url 'calculator:public_calculator' %}" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; color: #000; font-weight: 800; text-decoration: none;">
+                    <a href="{% url 'calculator:public_calculator' %}" class="calculator-results-reset-link" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; color: #000; font-weight: 800; text-decoration: none;">
                         <i class="fas fa-undo"></i> إجراء حساب جديد
                     </a>
                 </div>
@@ -114,6 +114,15 @@
 </div>
 
 <style>
+    .calculator-results-grid {
+        align-items: start;
+    }
+    .calculator-results-table {
+        min-width: 760px;
+    }
+    .calculator-results-cell {
+        vertical-align: middle;
+    }
     [data-theme="light"] .card {
         background: #fffdf8 !important;
         border-color: rgba(143, 109, 39, 0.14) !important;
@@ -131,6 +140,122 @@
     [data-theme="light"] tr[style*="background: rgba(255,255,255,0.03)"] {
         background: #fffaf1 !important;
         border: 1px solid rgba(143, 109, 39, 0.08) !important;
+    }
+    @media (max-width: 991.98px) {
+        .calculator-results-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+    @media (max-width: 767.98px) {
+        .calculator-results-page {
+            margin-top: 24px !important;
+            padding-bottom: 56px !important;
+        }
+        .calculator-results-header,
+        .calculator-results-card,
+        .results-container > .card {
+            padding: 22px !important;
+            border-radius: 22px !important;
+        }
+        .calculator-results-header-icon {
+            width: 64px !important;
+            height: 64px !important;
+            border-radius: 18px !important;
+            margin-bottom: 16px !important;
+        }
+        .calculator-results-header h1 {
+            font-size: 1.7rem !important;
+            line-height: 1.5;
+        }
+        .calculator-results-header p {
+            font-size: 0.95rem;
+            line-height: 1.9;
+        }
+        .calculator-results-summary {
+            width: 100%;
+            display: flex !important;
+            flex-direction: column;
+            gap: 8px !important;
+            padding: 14px 18px !important;
+            border-radius: 20px !important;
+        }
+        .calculator-results-summary > span:last-child {
+            font-size: 1.15rem !important;
+        }
+        .calculator-results-table {
+            min-width: 0;
+            border-spacing: 0;
+        }
+        .calculator-results-table thead {
+            display: none;
+        }
+        .calculator-results-table,
+        .calculator-results-table tbody,
+        .calculator-results-table tr,
+        .calculator-results-table td {
+            display: block;
+            width: 100%;
+        }
+        .calculator-results-row {
+            margin-bottom: 16px;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.04) !important;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .calculator-results-cell {
+            padding: 10px 0 !important;
+            border-radius: 0 !important;
+            text-align: right !important;
+        }
+        .calculator-results-cell::before {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .calculator-results-cell:nth-child(1)::before {
+            content: "الوارث";
+        }
+        .calculator-results-cell:nth-child(2)::before {
+            content: "النصيب";
+        }
+        .calculator-results-cell:nth-child(3)::before {
+            content: "القيمة (ريال)";
+        }
+        .calculator-results-cell:nth-child(4)::before {
+            content: "التعديل";
+        }
+        .calculator-results-cell:nth-child(5)::before {
+            content: "سبب الحجب";
+        }
+        .calculator-results-cell:first-child {
+            font-size: 1.05rem;
+            padding-top: 0 !important;
+        }
+        .calculator-results-cell:nth-child(3) {
+            font-size: 1.1rem !important;
+        }
+        .calculator-results-cell:last-child {
+            padding-bottom: 0 !important;
+        }
+        .calculator-results-chart-wrap {
+            height: 240px !important;
+        }
+        .calculator-results-actions {
+            padding: 24px 20px !important;
+        }
+        .calculator-results-print-button {
+            height: 56px !important;
+            border-radius: 16px !important;
+            font-size: 1rem !important;
+        }
+        .calculator-results-reset-link {
+            margin-top: 16px !important;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
     }
 </style>
 

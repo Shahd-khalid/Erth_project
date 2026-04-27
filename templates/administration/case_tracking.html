@@ -17,6 +17,7 @@
                 <th style="padding: 18px;">التقدم</th>
                 <th style="padding: 18px;">سبب الرفض</th>
                 <th style="padding: 18px;">التاريخ</th>
+                <th style="padding: 18px; text-align: center;">الإجراءات</th>
             </tr>
         </thead>
         <tbody>
@@ -52,9 +53,32 @@
                     {% endif %}
                 </td>
                 <td style="padding: 18px; color: rgba(255,255,255,0.55);">{{ case.created_at|date:"Y-m-d" }}</td>
+                <td style="padding: 18px;">
+                    <div style="display: flex; justify-content: center; gap: 10px;">
+                        {% if case.inheritance_determination_doc %}
+                        <a href="{{ case.inheritance_determination_doc.url }}" target="_blank" title="عرض صك حصر الورثة" 
+                           style="width: 35px; height: 35px; border-radius: 8px; background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.2); color: #2ecc71; display: flex; align-items: center; justify-content: center; transition: all 0.3s; text-decoration: none;">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'administration:edit_case' case.id %}" title="تعديل بيانات القضية" 
+                           style="width: 35px; height: 35px; border-radius: 8px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.2); color: #d4af37; display: flex; align-items: center; justify-content: center; transition: all 0.3s; text-decoration: none;">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        
+                        <form action="{% url 'administration:delete_case' case.id %}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف هذه القضية نهائياً من النظام؟ سيتم حذف جميع البيانات المرتبطة بها.')">
+                            {% csrf_token %}
+                            <button type="submit" title="حذف القضية نهائياً"
+                                style="width: 35px; height: 35px; border-radius: 8px; background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.2); color: #e74c3c; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" style="padding: 24px; color: rgba(255,255,255,0.6);">لا توجد قضايا حالية.</td></tr>
+            <tr><td colspan="8" style="padding: 24px; text-align: center; color: rgba(255,255,255,0.6);">لا توجد قضايا حالية.</td></tr>
             {% endfor %}
         </tbody>
     </table>

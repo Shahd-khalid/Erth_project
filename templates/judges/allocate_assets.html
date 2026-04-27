@@ -430,36 +430,91 @@
 
                         <div class="asset-components-wrap">
                             {% for comp in asset.components.all %}
-                            <div class="asset-component-item" id="comp_row_{{ comp.id }}">
-                                <div class="asset-component-copy">
-                                    <strong>{{ comp.description }}</strong>
-                                    <span>{{ comp.value|floatformat:2 }} ر.ي</span>
-                                </div>
-                                <div class="asset-component-actions">
-                                    <button type="button" class="asset-mini-btn is-edit" onclick="toggleEdit('{{ comp.id }}')" title="تعديل">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form method="post" style="margin:0;">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_component">
-                                        <input type="hidden" name="component_id" value="{{ comp.id }}">
-                                        <button type="submit" class="asset-mini-btn is-danger" title="حذف" onclick="return confirm('حذف هذا الجزء؟');">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                            <div class="asset-inline-form" id="edit_form_{{ comp.id }}">
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="update_component">
-                                    <input type="hidden" name="component_id" value="{{ comp.id }}">
-                                    <input type="text" name="description" value="{{ comp.description }}" required>
-                                    <input type="number" name="value" step="0.01" value="{{ comp.value|unlocalize }}" required>
-                                    <button type="submit" class="asset-action-btn"><i class="fas fa-check"></i></button>
-                                    <button type="button" class="asset-action-btn-secondary" onclick="toggleEdit('{{ comp.id }}')"><i class="fas fa-rotate-left"></i></button>
-                                </form>
-                            </div>
+                                {% if not comp.parent_component %}
+                                    <div class="asset-component-item" id="comp_row_{{ comp.id }}">
+                                        <div class="asset-component-copy">
+                                            <strong>{{ comp.description }}</strong>
+                                            <span>{{ comp.value|floatformat:2 }} ر.ي</span>
+                                        </div>
+                                        <div class="asset-component-actions">
+                                            <button type="button" class="asset-mini-btn" onclick="toggleSubSplit('{{ asset.id }}', '{{ comp.id }}')" title="تقسيم الجزء">
+                                                <i class="fas fa-scissors"></i>
+                                            </button>
+                                            <button type="button" class="asset-mini-btn is-edit" onclick="toggleEdit('{{ comp.id }}')" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form method="post" style="margin:0;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete_component">
+                                                <input type="hidden" name="component_id" value="{{ comp.id }}">
+                                                <button type="submit" class="asset-mini-btn is-danger" title="حذف" onclick="return confirm('حذف هذا الجزء وكافة أجزائه الفرعية؟');">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="asset-inline-form" id="edit_form_{{ comp.id }}">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="update_component">
+                                            <input type="hidden" name="component_id" value="{{ comp.id }}">
+                                            <input type="text" name="description" value="{{ comp.description }}" required>
+                                            <input type="number" name="value" step="0.01" value="{{ comp.value|unlocalize }}" required>
+                                            <button type="submit" class="asset-action-btn"><i class="fas fa-check"></i></button>
+                                            <button type="button" class="asset-action-btn-secondary" onclick="toggleEdit('{{ comp.id }}')"><i class="fas fa-rotate-left"></i></button>
+                                        </form>
+                                    </div>
+
+                                    {# Render Sub-components #}
+                                    <div class="sub-components-container" style="margin-right: 25px; border-right: 2px solid rgba(212,175,55,0.15); padding-right: 15px;">
+                                        {% for sub in comp.sub_components.all %}
+                                            <div class="asset-component-item sub-item" id="comp_row_{{ sub.id }}" style="background: rgba(255,255,255,0.01); border-style: dashed;">
+                                                <div class="asset-component-copy">
+                                                    <strong>{{ sub.description }} <small style="color:var(--alloc-gold); opacity:0.6;">(يتبع: {{ comp.description }})</small></strong>
+                                                    <span>{{ sub.value|floatformat:2 }} ر.ي</span>
+                                                </div>
+                                                <div class="asset-component-actions">
+                                                    <button type="button" class="asset-mini-btn is-edit" onclick="toggleEdit('{{ sub.id }}')" title="تعديل">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <form method="post" style="margin:0;">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="delete_component">
+                                                        <input type="hidden" name="component_id" value="{{ sub.id }}">
+                                                        <button type="submit" class="asset-mini-btn is-danger" title="حذف" onclick="return confirm('حذف هذا الجزء الفرعي؟');">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            <div class="asset-inline-form" id="edit_form_{{ sub.id }}">
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="update_component">
+                                                    <input type="hidden" name="component_id" value="{{ sub.id }}">
+                                                    <input type="text" name="description" value="{{ sub.description }}" required>
+                                                    <input type="number" name="value" step="0.01" value="{{ sub.value|unlocalize }}" required>
+                                                    <button type="submit" class="asset-action-btn"><i class="fas fa-check"></i></button>
+                                                    <button type="button" class="asset-action-btn-secondary" onclick="toggleEdit('{{ sub.id }}')"><i class="fas fa-rotate-left"></i></button>
+                                                </form>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    {# Sub-split Trigger #}
+                                    <div class="sub-split-trigger" id="sub_split_trigger_{{ comp.id }}" style="display:none; margin: 10px 25px; padding: 15px; background: rgba(212,175,55,0.05); border-radius: 15px; border: 1px dashed var(--alloc-gold);">
+                                        <p style="font-size: 0.9rem; margin-bottom: 10px;">تقسيم <strong>{{ comp.description }}</strong> إلى أجزاء فرعية:</p>
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="prepare_sub_split">
+                                            <input type="hidden" name="parent_component_id" value="{{ comp.id }}">
+                                            <div style="display: flex; gap: 10px;">
+                                                <input type="number" name="count" min="2" max="20" class="asset-wizard-input" style="min-height: 40px; font-size: 0.9rem;" placeholder="عدد الأجزاء" required>
+                                                <button type="submit" class="asset-action-btn" style="min-height: 40px; padding: 0 15px;">بدء</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                {% endif %}
                             {% empty %}
                             <div class="judge-alloc-empty">
                                 <i class="fas fa-cubes"></i>
@@ -468,8 +523,8 @@
                             {% endfor %}
                         </div>
 
-                        {% if not splitting_asset_id or splitting_asset_id != asset.id %}
-                        <div class="asset-wizard-box">
+                        {% if not splitting_asset_id or splitting_asset_id != asset.id or splitting_parent_comp_id %}
+                        <div class="asset-wizard-box" {% if splitting_parent_comp_id %}style="opacity:0.5; pointer-events:none;"{% endif %}>
                             {% if asset.components.exists %}
                             <button type="button" class="asset-action-btn-secondary w-100 mb-3" onclick="toggleResplit('{{ asset.id }}')" id="resplit_btn_{{ asset.id }}">
                                 <i class="fas fa-redo-alt"></i>
@@ -515,8 +570,9 @@
                                 <span class="asset-step-copy" id="stepIndicator">الجزء 1 من {{ split_count|length }}</span>
                                 <form method="post" id="wizardForm">
                                     {% csrf_token %}
-                                    <input type="hidden" name="action" value="bulk_create_components">
+                                    <input type="hidden" name="action" value="{% if splitting_parent_comp_id %}bulk_create_sub_components{% else %}bulk_create_components{% endif %}">
                                     <input type="hidden" name="asset_id" value="{{ asset.id }}">
+                                    <input type="hidden" name="parent_component_id" value="{{ splitting_parent_comp_id|default:'' }}">
                                     {% for i in split_count %}
                                     <div class="wizard-step" data-step="{{ forloop.counter }}" {% if not forloop.first %}style="display:none;"{% endif %}>
                                         <div class="asset-step-box">
@@ -579,6 +635,12 @@
 {% endwith %}
 
 <script>
+    function toggleSubSplit(assetId, compId) {
+        const trigger = document.getElementById(`sub_split_trigger_${compId}`);
+        if (!trigger) return;
+        trigger.style.display = trigger.style.display === 'none' ? 'block' : 'none';
+    }
+
     function toggleResplit(assetId) {
         const trigger = document.getElementById(`split_trigger_${assetId}`);
         const btn = document.getElementById(`resplit_btn_${assetId}`);

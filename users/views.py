@@ -78,7 +78,10 @@ def register_clerk(request):
     return render(request, 'registration/register_form.html', {'form': form, 'title': 'تسجيل كاتب مساعد'})
 
 def home(request):
-    public_listings = PublicAssetListing.objects.filter(is_active=True).select_related('component', 'component__asset', 'component__asset__case').order_by('-created_at')
+    public_listings = PublicAssetListing.objects.filter(is_active=True).select_related(
+        'asset', 'asset__case', 
+        'component', 'component__asset', 'component__asset__case'
+    ).order_by('-created_at')
     latest_listings = public_listings[:5]
     
     # Calculate stats for the hero section

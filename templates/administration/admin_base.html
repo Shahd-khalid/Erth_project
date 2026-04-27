@@ -336,6 +336,10 @@
             <i class="fas fa-th-large"></i>
             <span>مركز القيادة</span>
         </a>
+        <a href="{% url 'administration:create_case' %}" class="sidebar-item {% if request.resolver_match.url_name == 'create_case' %}active{% endif %}">
+            <i class="fas fa-folder-plus"></i>
+            <span>فتح قضية جديدة</span>
+        </a>
         <a href="{% url 'administration:verification_hub' %}" class="sidebar-item {% if request.resolver_match.url_name == 'verification_hub' %}active{% endif %}">
             <i class="fas fa-user-shield"></i>
             <span>محطة التحقق</span>

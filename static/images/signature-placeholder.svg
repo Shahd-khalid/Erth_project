@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" role="img" aria-labelledby="title desc">
+  <title id="title">توقيع افتراضي</title>
+  <desc id="desc">بديل محلي لتوقيع توثيق التقرير.</desc>
+  <defs>
+    <linearGradient id="ink" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f7edc8" />
+      <stop offset="50%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#b48417" />
+    </linearGradient>
+  </defs>
+
+  <rect width="520" height="180" fill="none" />
+  <path d="M42 120c28-42 55-62 80-62 20 0 28 14 23 32-5 18-17 34-12 42 9 14 31-3 64-51 23-34 38-51 54-51 15 0 24 10 24 24 0 12-6 26-6 38 0 21 29 22 82-31 35-35 54-51 72-51 22 0 30 19 22 43-6 18-18 31-14 42 5 14 25 10 67-16" fill="none" stroke="url(#ink)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" />
+  <path d="M95 145c33 8 68 12 106 12 83 0 162-18 264-55" fill="none" stroke="#f4dd8b" stroke-width="4" stroke-linecap="round" opacity="0.45" />
+</svg>

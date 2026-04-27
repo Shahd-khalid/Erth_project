@@ -66,6 +66,12 @@ class Case(models.Model):
     judge_consents_to_mutual = models.BooleanField(default=False, verbose_name=_("موافقة القاضي على القسمة بالتراضي"))
     allow_heir_selection = models.BooleanField(default=True, verbose_name=_("السماح للورثة بالدخول لمرحلة الاختيار"))
     rejection_reason = models.TextField(blank=True, null=True, verbose_name=_("سبب الرفض"))
+    inheritance_determination_doc = models.FileField(
+        upload_to="inheritance_docs/", 
+        blank=True, 
+        null=True, 
+        verbose_name=_("صك حصر الورثة")
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاريخ الإنشاء"))
 
     class Meta:
@@ -349,6 +355,14 @@ class HeirAssetSelection(models.Model):
 
 class AssetComponent(models.Model):
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name="components", verbose_name=_("الأصل التابع له"))
+    parent_component = models.ForeignKey(
+        'self', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='sub_components',
+        verbose_name=_("المكون الأب")
+    )
     description = models.CharField(max_length=255, verbose_name=_("وصف الجزء/العينة"))
     value = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("القيمة"))
     assigned_to = models.ForeignKey(Heir, on_delete=models.SET_NULL, null=True, blank=True, related_name="allocated_components", verbose_name=_("مخصص لـ"))
@@ -417,12 +431,14 @@ class EstateObligationAllocation(models.Model):
 
 
 class PublicAssetListing(models.Model):
-    component = models.OneToOneField(AssetComponent, on_delete=models.CASCADE, related_name="listing", verbose_name=_("العينة/الأصل"))
+    asset = models.OneToOneField(Asset, on_delete=models.CASCADE, null=True, blank=True, related_name="listing", verbose_name=_("الأصل الكامل"))
+    component = models.OneToOneField(AssetComponent, on_delete=models.CASCADE, null=True, blank=True, related_name="listing", verbose_name=_("العينة/الجزء"))
     seller_name = models.CharField(max_length=255, verbose_name=_("اسم البائع"))
     seller_email = models.EmailField(verbose_name=_("البريد الإلكتروني"))
     seller_phone = models.CharField(max_length=20, verbose_name=_("رقم التواصل"))
     price = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("سعر العرض"))
     description = models.TextField(verbose_name=_("وصف العرض"))
+    image = models.ImageField(upload_to="listings/", null=True, blank=True, verbose_name=_("صورة خاصة للعرض"))
     is_active = models.BooleanField(default=True, verbose_name=_("نشط (يُعرض للبيع)"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاريخ العرض"))
 
@@ -431,7 +447,8 @@ class PublicAssetListing(models.Model):
         verbose_name_plural = _("عروض بيع الأصول (عامة)")
 
     def __str__(self):
-        return f"{self.seller_name} - {self.component.description}"
+        item_desc = self.asset.description if self.asset else self.component.description if self.component else "N/A"
+        return f"{self.seller_name} - {item_desc}"
 
 
 class DisputeRaffle(models.Model):

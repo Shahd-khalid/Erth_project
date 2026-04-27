@@ -412,17 +412,23 @@ def allocate_assets(request, case_id):
         action = request.POST.get('action')
         
         # 1. Decomposition Actions
-        if action == 'prepare_split':
+        if action == 'prepare_split' or action == 'prepare_sub_split':
             asset_id = request.POST.get('asset_id')
+            parent_comp_id = request.POST.get('parent_component_id')
             split_count = int(request.POST.get('count', 0))
-            # Pass back to context to show the detail form
+            
+            parent_comp = None
+            if parent_comp_id:
+                parent_comp = get_object_or_404(AssetComponent, id=parent_comp_id, asset__case=case)
+
             assets = case.assets.prefetch_related('components').all()
             heirs = case.heirs.all()
             return render(request, 'judges/allocate_assets.html', {
                 'case': case,
                 'assets': assets,
                 'heirs': heirs,
-                'splitting_asset_id': int(asset_id),
+                'splitting_asset_id': int(asset_id) if asset_id else parent_comp.asset_id,
+                'splitting_parent_comp_id': int(parent_comp_id) if parent_comp_id else None,
                 'split_count': range(split_count),
                 'allocation_stage': 'assets',
                 'asset_stage_url': reverse('judges:allocate_assets', args=[case.id]),
@@ -430,11 +436,24 @@ def allocate_assets(request, case_id):
                 'heirs_stage_url': reverse('judges:allocate_heirs', args=[case.id]),
             })
 
-        elif action == 'bulk_create_components':
+        elif action == 'bulk_create_components' or action == 'bulk_create_sub_components':
             asset_id = request.POST.get('asset_id')
+            parent_comp_id = request.POST.get('parent_component_id')
             descriptions = request.POST.getlist('descriptions[]')
             values = request.POST.getlist('values[]')
-            asset = get_object_or_404(Asset, id=asset_id, case=case)
+            
+            asset = None
+            parent_comp = None
+            
+            if parent_comp_id:
+                parent_comp = get_object_or_404(AssetComponent, id=parent_comp_id, asset__case=case)
+                asset = parent_comp.asset
+                target_value = float(parent_comp.value)
+                target_name = parent_comp.description
+            else:
+                asset = get_object_or_404(Asset, id=asset_id, case=case)
+                target_value = float(asset.value)
+                target_name = asset.description
 
             try:
                 total_parts_value = sum(float(v) for v in values if v)
@@ -443,28 +462,39 @@ def allocate_assets(request, case_id):
                 return redirect('judges:allocate_assets', case_id=case_id)
 
             total_parts_value_rounded = round(total_parts_value, 2)
-            asset_value_rounded = round(float(asset.value), 2)
+            target_value_rounded = round(target_value, 2)
             
-            if total_parts_value_rounded != asset_value_rounded:
-                if total_parts_value_rounded > asset_value_rounded:
-                    messages.error(request, f"خطأ: مجموع العينات ({total_parts_value_rounded}) تجاوزت قيمة الأصل الأصلية ({asset_value_rounded}). الرجاء إنقاص القيم بمقدار {total_parts_value_rounded - asset_value_rounded}.")
+            if total_parts_value_rounded != target_value_rounded:
+                if total_parts_value_rounded > target_value_rounded:
+                    messages.error(request, f"خطأ: مجموع الأجزاء ({total_parts_value_rounded}) تجاوزت قيمة المكون الأصلي '{target_name}' ({target_value_rounded}).")
                 else:
-                    messages.error(request, f"خطأ: مجموع العينات ({total_parts_value_rounded}) أقل من قيمة الأصل الأصلية ({asset_value_rounded}). الرجاء زيادة القيم بمقدار {asset_value_rounded - total_parts_value_rounded}.")
+                    messages.error(request, f"خطأ: مجموع الأجزاء ({total_parts_value_rounded}) أقل من قيمة المكون الأصلي '{target_name}' ({target_value_rounded}).")
                 return redirect('judges:allocate_assets', case_id=case_id)
             
             from django.db import transaction
             with transaction.atomic():
-                # Clear existing components to prevent duplicates
-                asset.components.all().delete()
-                
-                for desc, val in zip(descriptions, values):
-                    if desc and val:
-                        AssetComponent.objects.create(
-                            asset=asset,
-                            description=desc,
-                            value=float(val)
-                        )
-            messages.success(request, f"تم تقسيم {asset.description} بنجاح.")
+                if parent_comp:
+                    # Clear existing sub-components
+                    parent_comp.sub_components.all().delete()
+                    for desc, val in zip(descriptions, values):
+                        if desc and val:
+                            AssetComponent.objects.create(
+                                asset=asset,
+                                parent_component=parent_comp,
+                                description=desc,
+                                value=float(val)
+                            )
+                else:
+                    # Clear top-level components ONLY if they don't have parents
+                    asset.components.filter(parent_component__isnull=True).delete()
+                    for desc, val in zip(descriptions, values):
+                        if desc and val:
+                            AssetComponent.objects.create(
+                                asset=asset,
+                                description=desc,
+                                value=float(val)
+                            )
+            messages.success(request, f"تم تقسيم {target_name} بنجاح.")
             return redirect('judges:allocate_assets', case_id=case_id)
 
         elif action == 'delete_component':
@@ -496,8 +526,11 @@ def allocate_assets(request, case_id):
                 messages.success(request, f"تم تحديث وصف {comp.description} بنجاح.")
                 return redirect('judges:allocate_assets', case_id=case.id)
             elif diff != 0:
-                # Value is changing, need to adjust other components to keep sum equals asset.value
-                other_comps = AssetComponent.objects.filter(asset=asset).exclude(id=comp.id)
+                # Value is changing, need to adjust other siblings to keep sum equals parent/asset value
+                other_comps = AssetComponent.objects.filter(
+                    asset=asset, 
+                    parent_component=comp.parent_component
+                ).exclude(id=comp.id)
                 num_others = other_comps.count()
                 
                 if num_others == 0:
@@ -542,7 +575,8 @@ def allocate_assets(request, case_id):
                     proposed_allocations[int(heir_id)] += float(asset.value)
                     
             # Sum up proposed component assignments
-            for comp in AssetComponent.objects.filter(asset__case=case):
+            leaf_components = AssetComponent.objects.filter(asset__case=case, sub_components__isnull=True)
+            for comp in leaf_components:
                 heir_id = request.POST.get(f'comp_{comp.id}')
                 if heir_id:
                     proposed_allocations[int(heir_id)] += float(comp.value)
@@ -579,7 +613,7 @@ def allocate_assets(request, case_id):
                     asset.save()
 
             # Save Component Assignments
-            for comp in AssetComponent.objects.filter(asset__case=case):
+            for comp in leaf_components:
                 heir_id = request.POST.get(f'comp_{comp.id}')
                 if heir_id:
                     heir = get_object_or_404(Heir, id=heir_id, case=case)

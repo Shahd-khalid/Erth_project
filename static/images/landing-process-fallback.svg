@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">رحلة الإجراءات</title>
+  <desc id="desc">خلفية محلية بديلة توضّح مراحل إدارة التركة والموافقات.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070707" />
+      <stop offset="45%" stop-color="#1a140d" />
+      <stop offset="100%" stop-color="#261807" />
+    </linearGradient>
+    <linearGradient id="panel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f7f0dc" />
+      <stop offset="100%" stop-color="#e2cf9b" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7e7a8" />
+      <stop offset="100%" stop-color="#c69a28" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)" />
+  <g opacity="0.2">
+    <circle cx="1280" cy="120" r="110" fill="#d4af37" />
+    <circle cx="280" cy="760" r="150" fill="#d4af37" opacity="0.55" />
+  </g>
+
+  <g transform="translate(170 155)">
+    <rect x="0" y="0" width="540" height="560" rx="34" fill="#0f0f11" stroke="#d4af37" stroke-opacity="0.35" stroke-width="3" />
+    <rect x="46" y="52" width="448" height="84" rx="18" fill="url(#panel)" />
+    <rect x="46" y="170" width="448" height="84" rx="18" fill="#191919" stroke="#d4af37" stroke-opacity="0.28" />
+    <rect x="46" y="288" width="448" height="84" rx="18" fill="#191919" stroke="#d4af37" stroke-opacity="0.28" />
+    <rect x="46" y="406" width="448" height="84" rx="18" fill="#191919" stroke="#d4af37" stroke-opacity="0.28" />
+
+    <g fill="url(#gold)">
+      <circle cx="92" cy="94" r="20" />
+      <circle cx="92" cy="212" r="20" />
+      <circle cx="92" cy="330" r="20" />
+      <circle cx="92" cy="448" r="20" />
+    </g>
+
+    <g stroke="url(#gold)" stroke-width="8" stroke-linecap="round" opacity="0.85">
+      <path d="M92 116v74" />
+      <path d="M92 234v74" />
+      <path d="M92 352v74" />
+    </g>
+
+    <g fill="#2d210b" opacity="0.92">
+      <rect x="130" y="78" width="260" height="14" rx="7" />
+      <rect x="130" y="104" width="190" height="10" rx="5" />
+    </g>
+    <g fill="#e9d7a8">
+      <rect x="130" y="196" width="260" height="14" rx="7" />
+      <rect x="130" y="222" width="190" height="10" rx="5" opacity="0.76" />
+      <rect x="130" y="314" width="260" height="14" rx="7" />
+      <rect x="130" y="340" width="190" height="10" rx="5" opacity="0.76" />
+      <rect x="130" y="432" width="260" height="14" rx="7" />
+      <rect x="130" y="458" width="190" height="10" rx="5" opacity="0.76" />
+    </g>
+  </g>
+
+  <g transform="translate(840 210)">
+    <path d="M0 360c48-180 156-285 322-315 113 27 193 86 238 177-13 55-34 108-63 158-115 78-248 119-399 124-45-37-78-84-98-144z" fill="#efe3bf" opacity="0.98" />
+    <path d="M126 294c72-62 138-95 198-100 63 29 118 69 166 120" fill="none" stroke="#b7851a" stroke-width="14" stroke-linecap="round" />
+    <path d="M206 126c41 15 81 36 118 63" fill="none" stroke="#d4af37" stroke-width="10" stroke-linecap="round" opacity="0.74" />
+    <circle cx="372" cy="218" r="26" fill="#120d05" opacity="0.2" />
+  </g>
+
+  <text x="1320" y="785" fill="#f6f1e4" font-size="62" font-family="'Tahoma', sans-serif" text-anchor="end">رحلة القضية</text>
+  <text x="1320" y="842" fill="#d4af37" font-size="33" font-family="'Tahoma', sans-serif" text-anchor="end">مراجعة وموافقات وتنظيم</text>
+</svg>

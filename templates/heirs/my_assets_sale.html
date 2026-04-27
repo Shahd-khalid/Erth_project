@@ -59,19 +59,41 @@
                         <strong style="color: var(--primary-color); font-size: 1.2rem;">{{ asset.value }} <small style="font-size: 0.8rem; font-weight: normal;">ريال</small></strong>
                     </div>
 
+                    {% if asset.listing and asset.listing.is_active %}
+                    <div style="background: rgba(52, 152, 219, 0.08); padding: 15px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2); margin-top: 10px;">
+                        <span style="display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 5px;">سعر عرضك الحالي:</span>
+                        <strong style="color: #3498db; font-size: 1.2rem;">{{ asset.listing.price }} <small style="font-size: 0.8rem; font-weight: normal;">ريال</small></strong>
+                    </div>
+                    {% endif %}
+
                     {% if asset.is_sold_by_heir %}
                     <div style="margin-top: 15px; width: 100%; background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border);">
                         <i class="fas fa-check-double" style="margin-left: 8px;"></i> تم البيع
                     </div>
                     {% else %}
-                    <form method="post" action="{% url 'heirs:mark_asset_sold' %}" style="margin-top: 15px; width: 100%;">
-                        {% csrf_token %}
-                        <input type="hidden" name="item_type" value="asset">
-                        <input type="hidden" name="item_id" value="{{ asset.id }}">
-                        <button type="submit" class="btn" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center; background: #2ecc71; color: white; display: flex; align-items: center; font-weight: bold; border: none; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onclick="return confirm('هل أنت متأكد من بيعك لهذا الأصل بالكامل؟ سيتم تعطيل الأصل كمباع ولا يمكن التراجع.')">
-                            <i class="fas fa-check-circle" style="margin-left: 8px;"></i> إنهاء و تأكيد البيع
-                        </button>
-                    </form>
+                    <div style="display: flex; gap: 8px; flex-direction: column; margin-top: 15px;">
+                        {% if asset.listing and asset.listing.is_active %}
+                            <button type="button" class="btn-outline" onclick="openEditSaleModal('asset', '{{ asset.id }}', '{{ asset.description|escapejs }}', '{{ asset.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                                <i class="fas fa-edit" style="margin-left: 8px;"></i> تعديل بيانات العرض
+                            </button>
+                        {% else %}
+                            <button type="button" class="btn-primary" onclick="openSaleModal('asset', '{{ asset.id }}', '{{ asset.description|escapejs }}', '{{ asset.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                                <i class="fas fa-bullhorn" style="margin-left: 8px;"></i> عرض للبيع
+                            </button>
+                            <button type="button" class="btn-outline" onclick="openEditSaleModal('asset', '{{ asset.id }}', '{{ asset.description|escapejs }}', '{{ asset.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                                <i class="fas fa-edit" style="margin-left: 8px;"></i> تخصيص بيانات العرض
+                            </button>
+                        {% endif %}
+
+                        <form method="post" action="{% url 'heirs:mark_asset_sold' %}" style="width: 100%;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_type" value="asset">
+                            <input type="hidden" name="item_id" value="{{ asset.id }}">
+                            <button type="submit" class="btn" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center; background: #2ecc71; color: white; display: flex; align-items: center; font-weight: bold; border: none; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onclick="return confirm('هل أنت متأكد من بيعك لهذا الأصل بالكامل؟ سيتم تعطيل الأصل كمباع ولا يمكن التراجع.')">
+                                <i class="fas fa-check-circle" style="margin-left: 8px;"></i> إنهاء و تأكيد البيع
+                            </button>
+                        </form>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -100,7 +122,9 @@
 
             <!-- Asset Image -->
             <div style="height: 200px; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--glass-border); position: relative;">
-                {% if component.asset.image %}
+                {% if component.listing and component.listing.image %}
+                <img src="{{ component.listing.image.url }}" alt="{{ component.description }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% elif component.asset.image %}
                 <img src="{{ component.asset.image.url }}" alt="{{ component.description }}" style="width: 100%; height: 100%; object-fit: cover;">
                 {% else %}
                 <i class="fas fa-home" style="font-size: 3rem; color: var(--primary-color); opacity: 0.5;"></i>
@@ -143,7 +167,7 @@
                         </div>
                     {% else %}
                         {% if component.listing and component.listing.is_active %}
-                            <button type="button" class="btn-outline" onclick="openEditSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                            <button type="button" class="btn-outline" onclick="openEditSaleModal('component', '{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
                                 <i class="fas fa-edit" style="margin-left: 8px;"></i> تعديل بيانات العرض
                             </button>
                             
@@ -156,11 +180,11 @@
                                 </button>
                             </form>
                         {% else %}
-                            <button type="button" class="btn-primary" onclick="openSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                            <button type="button" class="btn-primary" onclick="openSaleModal('component', '{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
                                 <i class="fas fa-bullhorn" style="margin-left: 8px;"></i> عرض للبيع (بالبيانات الأصلية)
                             </button>
                             
-                            <button type="button" class="btn-outline" onclick="openEditSaleModal('{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
+                            <button type="button" class="btn-outline" onclick="openEditSaleModal('component', '{{ component.id }}', '{{ component.description|escapejs }}', '{{ component.value|unlocalize }}')" style="border-radius: 12px; width: 100%; height: 45px; justify-content: center;">
                                 <i class="fas fa-edit" style="margin-left: 8px;"></i> تعديل بيانات العينة قبل العرض
                             </button>
                         {% endif %}
@@ -187,18 +211,18 @@
 <div id="saleModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center;">
     <div class="card" style="width: 90%; max-width: 500px; padding: 30px; border-radius: 25px; border-bottom: 3px solid var(--primary-color); animation: slideDown 0.3s ease;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h3 style="margin: 0; color: #fff; font-weight: 700;">عرض العينة للبيع</h3>
+            <h3 style="margin: 0; color: #fff; font-weight: 700;">عرض للأصل للبيع</h3>
             <button onclick="closeModal('saleModal')" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
         </div>
         
         <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
-            سيتم عرض هذه العينة في الواجهة الرئيسية للمنصة بناءً على القيمة والوصف الذي اعتمده القاضي مسبقاً.
+            سيتم عرض هذا الأصل في الواجهة الرئيسية للمنصة بناءً على القيمة والوصف الذي اعتمده القاضي مسبقاً.
         </p>
 
         <!-- Preview Box -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; margin-bottom: 25px;">
             <div style="margin-bottom: 10px;">
-                <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">وصف العينة:</span>
+                <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">الوصف المعتمد:</span>
                 <span id="previewOriginalDesc" style="color: #fff; font-weight: 600;"></span>
             </div>
             <div>
@@ -207,30 +231,30 @@
             </div>
         </div>
         
-        <form id="saleForm" method="post" action="">
+        <form id="saleForm" method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
-            <!-- Original data placeholders, sent if edit not requested -->
+            <!-- Original data placeholders -->
             <input type="hidden" name="description" id="saleOriginalDesc" value="">
             <input type="hidden" name="price" id="saleOriginalPrice" value="">
 
             <div class="form-group" style="margin-bottom: 15px;">
-                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">الاسم <span style="color: red;">*</span></label>
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">اسم البائع <span style="color: red;">*</span></label>
                 <input type="text" name="seller_name" class="form-control" required style="border-radius: 12px;">
             </div>
             
             <div class="form-group" style="margin-bottom: 15px;">
-                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">البريد الإلكتروني <span style="color: red;">*</span></label>
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">البريد الإلكتروني للتواصل <span style="color: red;">*</span></label>
                 <input type="email" name="seller_email" class="form-control" required style="border-radius: 12px;">
             </div>
             
             <div class="form-group" style="margin-bottom: 25px;">
-                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">رقم التواصل <span style="color: red;">*</span></label>
-                <input type="text" name="seller_phone" class="form-control" required style="border-radius: 12px;" placeholder="رقم متاح للمراسلة أو الاتصال">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">رقم الجوال <span style="color: red;">*</span></label>
+                <input type="text" name="seller_phone" class="form-control" required style="border-radius: 12px;" placeholder="سيتم عرضه للمشترين">
             </div>
             
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" class="btn-outline" onclick="closeModal('saleModal')" style="height: 45px; border-radius: 10px;">إلغاء</button>
-                <button type="submit" class="btn-primary" style="height: 45px; border-radius: 10px; padding: 0 25px;">تأكيد العرض</button>
+                <button type="submit" class="btn-primary" style="height: 45px; border-radius: 10px; padding: 0 25px;">تأكيد ونشر</button>
             </div>
         </form>
     </div>
@@ -240,57 +264,63 @@
 <div id="editSaleModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; overflow-y: auto;">
     <div class="card" style="width: 90%; max-width: 600px; padding: 30px; border-radius: 25px; border-bottom: 3px solid #3498db; animation: slideDown 0.3s ease; margin: 50px 0;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h3 style="margin: 0; color: #fff; font-weight: 700;">تعديل بيانات العينة وعرضها</h3>
+            <h3 style="margin: 0; color: #fff; font-weight: 700;">تعديل بيانات العرض</h3>
             <button onclick="closeModal('editSaleModal')" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
         </div>
         
-        <form id="editSaleForm" method="post" action="">
+        <form id="editSaleForm" method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
             
-            <h5 style="color: var(--primary-color); margin: 0 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">البيانات الأصلية (للمرجعية)</h5>
+            <h5 style="color: var(--primary-color); margin: 0 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">البيانات الأصلية</h5>
             <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; margin-bottom: 25px;">
                 <div style="margin-bottom: 10px;">
                     <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">الوصف الحالي:</span>
                     <span id="editReferenceDesc" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
                 </div>
                 <div>
-                    <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">المبلغ المعتمد:</span>
+                    <span style="color: var(--primary-color); font-size: 0.8rem; display: block; margin-bottom: 2px;">المبلع المعتمد:</span>
                     <span id="editReferencePrice" style="color: #fff; font-weight: 600;"></span> <span>ريال</span>
                 </div>
             </div>
 
-            <h5 style="color: var(--primary-color); margin: 0 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">بيانات العينة (رغبة التعديل)</h5>
+            <h5 style="color: var(--primary-color); margin: 0 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">بيانات العرض الجديدة</h5>
             
             <div class="form-group" style="margin-bottom: 15px;">
-                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">الوصف الجديد للعينة</label>
-                <textarea name="description" id="editDesc" class="form-control" style="border-radius: 12px; height: 100px; resize: none;"></textarea>
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">وصف تسويقي مخصص</label>
+                <textarea name="description" id="editDesc" class="form-control" style="border-radius: 12px; height: 100px; resize: none; border: 1px solid var(--glass-border);"></textarea>
             </div>
             
-            <div class="form-group" style="margin-bottom: 25px;">
-                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">السعر الجديد للعرض (ريال)</label>
-                <input type="number" step="0.01" name="price" id="editPrice" class="form-control" style="border-radius: 12px;">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">السعر المطلوب (ريال)</label>
+                <input type="number" step="0.01" name="price" id="editPrice" class="form-control" style="border-radius: 12px; border: 1px solid var(--glass-border);">
             </div>
 
-            <h5 style="color: var(--primary-color); margin: 25px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">بيانات التواصل للصيغة الإعلانية</h5>
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">صورة العرض (اختياري)</label>
+                <input type="file" name="image" class="form-control" style="border-radius: 12px; border: 1px solid var(--glass-border); padding: 8px;">
+                <small style="color: var(--text-muted);">يمكنك رفع صورة بجودة أفضل لجذب المشترين.</small>
+            </div>
+
+            <h5 style="color: var(--primary-color); margin: 25px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">بيانات التواصل</h5>
 
             <div class="form-group" style="margin-bottom: 15px;">
                 <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">الاسم <span style="color: red;">*</span></label>
-                <input type="text" name="seller_name" class="form-control" required style="border-radius: 12px;">
+                <input type="text" name="seller_name" class="form-control" required style="border-radius: 12px; border: 1px solid var(--glass-border);">
             </div>
             
             <div class="form-group" style="margin-bottom: 15px;">
                 <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">البريد الإلكتروني <span style="color: red;">*</span></label>
-                <input type="email" name="seller_email" class="form-control" required style="border-radius: 12px;">
+                <input type="email" name="seller_email" class="form-control" required style="border-radius: 12px; border: 1px solid var(--glass-border);">
             </div>
             
             <div class="form-group" style="margin-bottom: 25px;">
-                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">رقم التواصل <span style="color: red;">*</span></label>
-                <input type="text" name="seller_phone" class="form-control" required style="border-radius: 12px;" placeholder="رقم متاح للمراسلة أو الاتصال">
+                <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 5px;">رقم الجوال <span style="color: red;">*</span></label>
+                <input type="text" name="seller_phone" class="form-control" required style="border-radius: 12px; border: 1px solid var(--glass-border);" placeholder="مثلاً: 05XXXXXXXX">
             </div>
             
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" class="btn-outline" onclick="closeModal('editSaleModal')" style="height: 45px; border-radius: 10px;">إلغاء</button>
-                <button type="submit" class="btn-primary" style="height: 45px; border-radius: 10px; padding: 0 25px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">حفظ ونشر العرض</button>
+                <button type="submit" class="btn-primary" style="height: 45px; border-radius: 10px; padding: 0 25px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: none;">حفظ ونشر العرض</button>
             </div>
         </form>
     </div>
@@ -304,8 +334,8 @@
 </style>
 
 <script>
-    function openSaleModal(componentId, desc, price) {
-        document.getElementById('saleForm').action = "/heirs/manage-listing/" + componentId + "/";
+    function openSaleModal(itemType, itemId, desc, price) {
+        document.getElementById('saleForm').action = "/heirs/manage-listing/" + itemType + "/" + itemId + "/";
         document.getElementById('saleOriginalDesc').value = desc;
         document.getElementById('saleOriginalPrice').value = price;
         
@@ -316,8 +346,8 @@
         document.getElementById('saleModal').style.display = 'flex';
     }
 
-    function openEditSaleModal(componentId, desc, price) {
-        document.getElementById('editSaleForm').action = "/heirs/manage-listing/" + componentId + "/";
+    function openEditSaleModal(itemType, itemId, desc, price) {
+        document.getElementById('editSaleForm').action = "/heirs/manage-listing/" + itemType + "/" + itemId + "/";
         document.getElementById('editDesc').value = desc;
         document.getElementById('editPrice').value = price;
         

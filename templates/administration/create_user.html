@@ -1,0 +1,204 @@
+{% extends 'administration/admin_base.html' %}
+{% load static %}
+
+{% block admin_extra_css %}
+<style>
+    .creation-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .form-label {
+        display: block;
+        color: #d4af37;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px 15px;
+        color: #fff;
+        transition: all 0.3s;
+    }
+    .form-control:focus {
+        border-color: #d4af37;
+        background: rgba(255, 255, 255, 0.08);
+        outline: none;
+        box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+    }
+    .btn-submit {
+        background: #d4af37;
+        color: #000;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 20px;
+        transition: all 0.3s;
+        font-size: 1.1rem;
+    }
+    .btn-submit:hover {
+        background: #f1c40f;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+    }
+    .role-helper {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 5px;
+    }
+    .hidden-field {
+        display: none;
+    }
+
+    [data-theme="light"] .creation-card {
+        background: #fff;
+        border-color: rgba(143, 109, 39, 0.1);
+        box-shadow: 0 15px 35px rgba(96, 67, 24, 0.1);
+    }
+    [data-theme="light"] .form-control {
+        background: #fdfaf3;
+        border-color: rgba(143, 109, 39, 0.2);
+        color: #2f2a22;
+    }
+    [data-theme="light"] .form-label {
+        color: #8f6d27;
+    }
+</style>
+{% endblock %}
+
+{% block admin_header_title %}
+    <h1 style="color: #fff; font-weight: 800; margin: 0; font-size: 2rem;">إنشاء حساب جديد</h1>
+    <p style="color: #888; margin-top: 5px;">إضافة قاضي، كاتب مساعد، أو وريث يدوياً إلى النظام</p>
+{% endblock %}
+
+{% block admin_content %}
+<div class="creation-card">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">نوع الحساب (الدور)</label>
+                    {{ form.role }}
+                    <div class="role-helper">{{ form.role.help_text }}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">اسم المستخدم (للدخول)</label>
+                    {{ form.username }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    {{ form.email }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور المؤقتة</label>
+                    {{ form.password }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">الاسم الكامل</label>
+                    {{ form.full_name }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">الجنس</label>
+                    {{ form.gender }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">رقم الهاتف (اختياري)</label>
+            {{ form.phone_number }}
+        </div>
+
+        <div id="judge_fields" class="hidden-field">
+            <div class="form-group">
+                <label class="form-label">رقم رخصة القاضي</label>
+                {{ form.judge_license }}
+            </div>
+        </div>
+
+        <div id="heir_fields" class="hidden-field">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">القضية المرتبطة</label>
+                        {{ form.selected_case }}
+                        <div class="role-helper">{{ form.selected_case.help_text }}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">صلة القرابة</label>
+                        {{ form.relationship }}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">اسم المتوفى (الذي يرثه)</label>
+                {{ form.deceased_name }}
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-user-plus" style="margin-left: 10px;"></i>
+            إنشاء الحساب الآن
+        </button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelect = document.querySelector('select[name="role"]');
+        const judgeFields = document.getElementById('judge_fields');
+        const heirFields = document.getElementById('heir_fields');
+
+        function toggleFields() {
+            const role = roleSelect.value;
+            
+            // Hide all first
+            judgeFields.classList.add('hidden-field');
+            heirFields.classList.add('hidden-field');
+
+            if (role === 'JUDGE') {
+                judgeFields.classList.remove('hidden-field');
+            } else if (role === 'HEIR') {
+                heirFields.classList.remove('hidden-field');
+            }
+        }
+
+        roleSelect.addEventListener('change', toggleFields);
+        toggleFields(); // Initial call
+    });
+</script>
+{% endblock %}

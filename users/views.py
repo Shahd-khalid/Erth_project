@@ -11,11 +11,17 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.db.models import Avg, Count
 from .models import Feedback, User
+from administration.utils import get_registration_config
 
 def register_selection(request):
+    if not get_registration_config().get('registration_enabled', True):
+        messages.error(request, 'التسجيل العام متوقف حالياً. يرجى التواصل مع الإدارة.')
+        return redirect('users:login')
     return render(request, 'registration/register_selection.html')
 
 def register_public(request):
+    if not get_registration_config().get('registration_enabled', True):
+        return redirect('users:login')
     if request.method == 'POST':
         form = GeneralUserRegistrationForm(request.POST)
         if form.is_valid():
@@ -27,6 +33,8 @@ def register_public(request):
     return render(request, 'registration/register_form.html', {'form': form, 'title': 'تسجيل مستخدم عام'})
 
 def register_judge(request):
+    if not get_registration_config().get('registration_enabled', True):
+        return redirect('users:login')
     if request.method == 'POST':
         form = JudgeRegistrationForm(request.POST)
         if form.is_valid():
@@ -56,6 +64,8 @@ def register_judge(request):
     return render(request, 'registration/register_form.html', {'form': form, 'title': 'تسجيل قاضي'})
 
 def register_heir(request):
+    if not get_registration_config().get('registration_enabled', True):
+        return redirect('users:login')
     if request.method == 'POST':
         form = HeirRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
@@ -67,6 +77,8 @@ def register_heir(request):
     return render(request, 'registration/register_form.html', {'form': form, 'title': 'تسجيل وريث'})
 
 def register_clerk(request):
+    if not get_registration_config().get('registration_enabled', True):
+        return redirect('users:login')
     if request.method == 'POST':
         form = ClerkRegistrationForm(request.POST)
         if form.is_valid():

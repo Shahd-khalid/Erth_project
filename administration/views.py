@@ -10,6 +10,7 @@ from .models import AdminNotification, FiqhBook
 from .forms import FiqhBookForm, AdminUserCreationForm, AdminCaseCreationForm
 from cases.models import Case, Heir, Asset, PublicAssetListing, HeirAssetSelection, AssetComponent, Deceased
 from users.models import Feedback
+from .utils import get_registration_config, set_registration_config
 
 User = get_user_model()
 
@@ -692,6 +693,19 @@ def report_print_view(request):
     pending_count = User.objects.filter(verification_status='PENDING').count()
     
     total_heirs = User.objects.filter(role=User.Role.HEIR).count()
+    
+    return response
+
+@login_required
+def report_print_view(request):
+    if request.user.role != 'ADMIN':
+        return redirect('users:dashboard')
+        
+    cases = Case.objects.all().order_by('-created_at')
+    total_value = Asset.objects.aggregate(total=Sum('value'))['total'] or 0
+    pending_count = User.objects.filter(verification_status='PENDING').count()
+    
+    total_heirs = User.objects.filter(role=User.Role.HEIR).count()
     total_cases = cases.count()
     solved_cases = cases.filter(status=Case.Status.COMPLETED).count()
     approved_judges = User.objects.filter(role=User.Role.JUDGE, verification_status=User.VerificationStatus.APPROVED).count()
@@ -725,11 +739,29 @@ def user_management(request):
     elif status_filter == 'PENDING':
         users = users.filter(verification_status=User.VerificationStatus.PENDING)
         
+    registration_config = get_registration_config()
+    
     return render(request, 'administration/user_management.html', {
         'managed_users': users,
         'query': query,
-        'status_filter': status_filter
+        'status_filter': status_filter,
+        'registration_enabled': registration_config.get('registration_enabled', True)
     })
+
+@login_required
+def toggle_registration(request):
+    if request.user.role != 'ADMIN':
+        return redirect('dashboard:index')
+    
+    if request.method == 'POST':
+        current_config = get_registration_config()
+        new_status = not current_config.get('registration_enabled', True)
+        set_registration_config(new_status)
+        
+        status_msg = "تفعيل" if new_status else "إيقاف"
+        messages.success(request, f'تم {status_msg} إمكانية التسجيل العام للمستخدمين بنجاح.')
+        
+    return redirect('administration:user_management')
 
 @login_required
 def promote_to_admin(request, user_id):
@@ -764,7 +796,10 @@ def demote_user(request, user_id):
         user.previous_role = None
         user.save()
         messages.info(request, f'تم إلغاء ترقية {user.username} وإعادته إلى دور: {original_role}.')
-        
+    
+    return redirect('administration:user_management')
+
+
 @login_required
 def create_user(request):
     if request.user.role != 'ADMIN':

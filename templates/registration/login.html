@@ -41,7 +41,9 @@
                     </button>
 
                     <div class="footer-v3-links">
+                        {% if registration_enabled %}
                         <p>ليس لديك حساب؟ <a href="{% url 'users:register' %}">سجل عضوية</a></p>
+                        {% endif %}
                         <p style="margin-top: 10px;"><a href="{% url 'users:password_reset' %}" style="color: #888; font-size: 0.85rem;">نسيت كلمة المرور؟</a></p>
                     </div>
                 </form>

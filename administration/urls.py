@@ -29,6 +29,7 @@ urlpatterns = [
     path('users/<int:user_id>/promote/', views.promote_to_admin, name='promote_to_admin'),
     path('users/<int:user_id>/demote/', views.demote_user, name='demote_user'),
     path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
+    path('registration/toggle/', views.toggle_registration, name='toggle_registration'),
     path('notifications/<int:notif_id>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('books/upload/', views.upload_fiqh_book, name='upload_book'),
     path('books/<int:book_id>/edit/', views.edit_fiqh_book, name='edit_book'),

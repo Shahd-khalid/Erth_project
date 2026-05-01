@@ -18,18 +18,10 @@
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Amiri+Quran&family=Reem+Kufi+Ink&family=Tajawal:wght@400;500;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="{% static 'css/fontawesome.all.min.css' %}" />
+  <!-- Font Awesome 6.4.0 CDN Fallback -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=1.12">
-  <style>
-    .fa-fallback-mode .fa-fallback::before {
-      content: attr(data-fa-fallback) !important;
-      font-family: inherit !important;
-      font-weight: 700 !important;
-      font-style: normal !important;
-      display: inline-block;
-      line-height: 1;
-    }
-  </style>
 </head>
 
 <body>
@@ -40,7 +32,7 @@
   <aside class="sidebar">
     <a href="/" class="sidebar-logo">
       <div class="logo-icon">
-        <i class="fas fa-scale-balanced"></i>
+        <i class="fa-solid fa-scale-balanced"></i>
       </div>
       <div>
         <h2>إرث</h2>
@@ -50,22 +42,22 @@
 
     <nav class="sidebar-menu">
       <a href="/" class="menu-link active">
-        <i class="fas fa-house"></i>
+        <i class="fa-solid fa-house"></i>
         <span>المنصة الرئيسية</span>
       </a>
 
       <a href="{% url 'chat_page' %}" class="menu-link">
-        <i class="fas fa-robot"></i>
+        <i class="fa-solid fa-robot"></i>
         <span>المستشار الذكي</span>
       </a>
 
       <a href="{% url 'calculator:public_calculator' %}" class="menu-link">
-        <i class="fas fa-calculator"></i>
+        <i class="fa-solid fa-calculator"></i>
         <span>الحاسبة الشرعية</span>
       </a>
 
       <a href="{% url 'dashboard:visual_guide_selection' %}" class="menu-link">
-        <i class="fas fa-photo-film"></i>
+        <i class="fa-solid fa-photo-film"></i>
         <span>الدليل المرئي</span>
       </a>
 
@@ -75,17 +67,17 @@
       </a>
 
       <a href="{% url 'dashboard:library' %}" class="menu-link">
-        <i class="fas fa-book-open"></i>
+        <i class="fa-solid fa-book-open"></i>
         <span>المكتبة الفقهية</span>
       </a>
 
       <a href="{% url 'users:profile' %}" class="menu-link">
-        <i class="fas fa-user-circle"></i>
+        <i class="fa-solid fa-user-circle"></i>
         <span>البروفايل</span>
       </a>
 
       <a href="#marketplace" class="menu-link">
-        <i class="fas fa-tags"></i>
+        <i class="fa-solid fa-tags"></i>
         <span>المعروضات للبيع</span>
       </a>
     </nav>
@@ -97,7 +89,7 @@
         <!-- واجهة حديثة تجمع بين الفخامة، الثقة، والطابع القضائي المناسب لمنصة المواريث. -->
       </p>
       <a href="{% url 'users:portal' %}" class="btn btn-gold" style="width: 100%;">
-        <i class="fas fa-right-to-bracket"></i>
+        <i class="fa-solid fa-right-to-bracket"></i>
         الدخول للمنصة
       </a>
     </div>
@@ -111,7 +103,7 @@
       <div class="container topbar-inner">
 
         <div class="topbar-brand">
-          <i class="fas fa-gavel"></i>
+          <i class="fa-solid fa-gavel"></i>
           <span>منصة إرث</span>
         </div>
 
@@ -125,7 +117,7 @@
         <div class="topbar-actions">
           {% if user.is_authenticated %}
           <a href="{% url 'dashboard:index' %}" class="btn btn-outline">
-            <i class="fas fa-chart-line"></i>
+            <i class="fa-solid fa-chart-line"></i>
             لوحة التحكم
           </a>
           <form action="{% url 'users:logout' %}" method="post" class="inline-form">
@@ -137,13 +129,15 @@
           </form>
           {% else %}
           <a href="{% url 'users:login' %}" class="btn btn-outline">
-            <i class="fas fa-right-to-bracket"></i>
+            <i class="fa-solid fa-right-to-bracket"></i>
             دخول النظام
           </a>
+          {% if registration_enabled %}
           <a href="{% url 'users:register' %}" class="btn btn-gold">
             <i class="fas fa-user-plus"></i>
             حساب جديد
           </a>
+          {% endif %}
           {% endif %}
         </div>
 
@@ -185,7 +179,7 @@
 
           <div class="hero-actions">
             <a href="{% url 'users:portal' %}" class="btn btn-gold">
-              <i class="fas fa-right-to-bracket"></i>
+              <i class="fa-solid fa-right-to-bracket"></i>
               الدخول للمنصة
             </a>
 
@@ -290,25 +284,25 @@
 
         <div class="features-grid">
           <a href="{% url 'chat_page' %}" class="feature-card">
-            <div class="feature-icon"><i class="fas fa-robot"></i></div>
+            <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
             <h3>المستشار الذكي</h3>
             <p>مساعد رقمي يجيب عن الأسئلة ويوجه المستخدم داخل إجراءات التركة والقسمة.</p>
           </a>
 
           <a href="{% url 'calculator:public_calculator' %}" class="feature-card">
-            <div class="feature-icon"><i class="fas fa-calculator"></i></div>
+            <div class="feature-icon"><i class="fa-solid fa-calculator"></i></div>
             <h3>الحاسبة الشرعية</h3>
             <p>احتساب الأنصبة الشرعية بطريقة واضحة ومهيأة لتجربة المستخدم العربي.</p>
           </a>
 
           <a href="#" class="feature-card">
-            <div class="feature-icon"><i class="fas fa-photo-film"></i></div>
+            <div class="feature-icon"><i class="fa-solid fa-photo-film"></i></div>
             <h3>الدليل المرئي</h3>
             <p>محتوى بصري يشرح الخطوات والإجراءات وكيفية التعامل مع القضايا والأصول.</p>
           </a>
 
           <a href="{% url 'dashboard:index' %}" class="feature-card">
-            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
             <h3>لوحة التحكم</h3>
             <p>متابعة الإحصائيات، القضايا، الورثة، والإجراءات من لوحة تحكم حديثة ومركزية.</p>
           </a>
@@ -328,7 +322,7 @@
           </div>
 
           <a href="#" class="btn btn-outline">
-            <i class="fas fa-tags"></i>
+            <i class="fa-solid fa-tags"></i>
             جميع المعروضات
           </a>
         </div>
@@ -353,21 +347,21 @@
             <div class="asset-body">
               <h3 class="asset-title">{{ listing.description }}</h3>
               <div class="asset-meta">
-                <span><i class="fas fa-folder"></i> رقم القضية: 
+                <span><i class="fa-solid fa-folder"></i> رقم القضية: 
                     {% if listing.asset %}{{ listing.asset.case.case_number }}{% else %}{{ listing.component.asset.case.case_number }}{% endif %}
                 </span>
-                <span><i class="fas fa-file-circle-check"></i> موثق قضائياً</span>
+                <span><i class="fa-solid fa-file-circle-check"></i> موثق قضائياً</span>
               </div>
               <div
                 style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; border: 1px dashed var(--stroke); font-size: 0.85rem; margin-bottom: 15px;">
-                <div style="margin-bottom: 4px;"><i class="fas fa-user" style="color: var(--gold); width: 18px;"></i>
+                <div style="margin-bottom: 4px;"><i class="fa-solid fa-user" style="color: var(--gold); width: 18px;"></i>
                   البائع: {{ listing.seller_name }}</div>
-                <div><i class="fas fa-phone" style="color: var(--gold); width: 18px;"></i> {{ listing.seller_phone }}
+                <div><i class="fa-solid fa-phone" style="color: var(--gold); width: 18px;"></i> {{ listing.seller_phone }}
                 </div>
               </div>
               <div class="asset-footer">
                 <a href="mailto:{{ listing.seller_email }}" class="btn btn-gold" style="flex: 1;">
-                  <i class="fas fa-envelope"></i> تواصل مع البائع
+                  <i class="fa-solid fa-envelope"></i> تواصل مع البائع
                 </a>
               </div>
             </div>
@@ -387,7 +381,7 @@
               <p class="asset-desc">أصل عقاري فاخر داخل ملف التركة، معروض ضمن إجراءات التصفية والبيع.</p>
               <div class="asset-footer">
                 <a href="mailto:support@erth.sa" class="btn btn-gold" style="flex: 1;">
-                  <i class="fas fa-envelope"></i> تواصل مع البائع
+                  <i class="fa-solid fa-envelope"></i> تواصل مع البائع
                 </a>
               </div>
             </div>

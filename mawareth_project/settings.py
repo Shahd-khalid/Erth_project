@@ -218,3 +218,11 @@ EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# MIME types for fonts (helps Docker/Windows serving)
+import mimetypes
+mimetypes.add_type("font/woff", ".woff", True)
+mimetypes.add_type("font/woff2", ".woff2", True)
+mimetypes.add_type("application/vnd.ms-fontobject", ".eot", True)
+mimetypes.add_type("font/ttf", ".ttf", True)
+mimetypes.add_type("font/otf", ".otf", True)

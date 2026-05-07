@@ -1,4 +1,4 @@
-const CACHE_NAME = 'erth-pwa-cache-v1';
+const CACHE_NAME = 'erth-pwa-cache-v2';
 const urlsToCache = [
     '/',
     '/static/css/style.css',

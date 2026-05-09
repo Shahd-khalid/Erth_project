@@ -194,45 +194,45 @@
 
     @media (max-width: 767.98px) {
         .calculator-results-page {
-            margin-top: 24px !important;
-            padding-bottom: 56px !important;
+            margin-top: 15px !important;
+            padding-bottom: 40px !important;
         }
 
         .calculator-results-header,
         .calculator-results-card,
         .results-container>.card {
-            padding: 22px !important;
-            border-radius: 22px !important;
+            padding: 25px 20px !important;
+            border-radius: 24px !important;
         }
 
         .calculator-results-header-icon {
-            width: 64px !important;
-            height: 64px !important;
-            border-radius: 18px !important;
-            margin-bottom: 16px !important;
+            width: 60px !important;
+            height: 60px !important;
+            border-radius: 16px !important;
+            margin-bottom: 15px !important;
         }
 
         .calculator-results-header h1 {
-            font-size: 1.7rem !important;
-            line-height: 1.5;
+            font-size: 1.6rem !important;
+            line-height: 1.4;
         }
 
         .calculator-results-header p {
-            font-size: 0.95rem;
-            line-height: 1.9;
+            font-size: 0.9rem;
+            line-height: 1.6;
         }
 
         .calculator-results-summary {
             width: 100%;
             display: flex !important;
             flex-direction: column;
-            gap: 8px !important;
-            padding: 14px 18px !important;
-            border-radius: 20px !important;
+            gap: 10px !important;
+            padding: 16px !important;
+            border-radius: 18px !important;
         }
 
         .calculator-results-summary>span:last-child {
-            font-size: 1.15rem !important;
+            font-size: 1.2rem !important;
         }
 
         .calculator-results-table {
@@ -253,78 +253,75 @@
         }
 
         .calculator-results-row {
-            margin-bottom: 16px;
-            padding: 14px;
-            border-radius: 18px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 20px;
             background: rgba(255, 255, 255, 0.04) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .calculator-results-cell {
-            padding: 10px 0 !important;
+            padding: 12px 0 !important;
             border-radius: 0 !important;
             text-align: right !important;
-        }
-
-        .calculator-results-cell::before {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .calculator-results-cell:nth-child(1)::before {
-            content: "الوارث";
-        }
-
-        .calculator-results-cell:nth-child(2)::before {
-            content: "النصيب";
-        }
-
-        .calculator-results-cell:nth-child(3)::before {
-            content: "القيمة (ريال)";
-        }
-
-        .calculator-results-cell:nth-child(4)::before {
-            content: "التعديل";
-        }
-
-        .calculator-results-cell:nth-child(5)::before {
-            content: "سبب الحجب";
-        }
-
-        .calculator-results-cell:first-child {
-            font-size: 1.05rem;
-            padding-top: 0 !important;
-        }
-
-        .calculator-results-cell:nth-child(3) {
-            font-size: 1.1rem !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            gap: 10px;
         }
 
         .calculator-results-cell:last-child {
-            padding-bottom: 0 !important;
+            border-bottom: none;
+        }
+
+        .calculator-results-cell::before {
+            display: inline-block;
+            margin-bottom: 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .calculator-results-cell:nth-child(1)::before { content: "الوارث"; }
+        .calculator-results-cell:nth-child(2)::before { content: "النصيب"; }
+        .calculator-results-cell:nth-child(3)::before { content: "القيمة"; }
+        .calculator-results-cell:nth-child(4)::before { content: "التعديل"; }
+        .calculator-results-cell:nth-child(5)::before { content: "سبب الحجب"; }
+
+        .calculator-results-cell:first-child {
+            font-size: 1.1rem;
+            padding-top: 5px !important;
+            color: var(--primary-color) !important;
+        }
+
+        .calculator-results-cell span {
+            font-size: 0.95rem;
+        }
+
+        .calculator-results-cell:nth-child(3) {
+            font-size: 1.15rem !important;
         }
 
         .calculator-results-chart-wrap {
-            height: 240px !important;
+            height: 260px !important;
         }
 
         .calculator-results-actions {
-            padding: 24px 20px !important;
+            padding: 20px !important;
         }
 
         .calculator-results-print-button {
-            height: 56px !important;
-            border-radius: 16px !important;
-            font-size: 1rem !important;
+            height: 54px !important;
+            border-radius: 14px !important;
+            font-size: 1.05rem !important;
         }
 
         .calculator-results-reset-link {
-            margin-top: 16px !important;
-            font-size: 0.95rem;
-            flex-wrap: wrap;
+            margin-top: 20px !important;
+            font-size: 1rem;
         }
     }
 </style>
